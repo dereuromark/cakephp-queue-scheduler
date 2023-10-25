@@ -57,11 +57,33 @@ You can use different styles depending on your use case.
 For larger time frames (e.g. months) or more complex scheduling (e.g. "every Tuesday at ...") this style is recommended.
 See https://crontab.guru/ for details.
 
+```
+*    *    *    *    *   /path/to/somecommand.sh
+|    |    |    |    |            |
+|    |    |    |    |    Command or Script to execute
+|    |    |    |    |
+|    |    |    | Day of week(0-6 | Sun-Sat)
+|    |    |    |
+|    |    |  Month(1-12)
+|    |    |
+|    |  Day of Month(1-31)
+|    |
+|   Hour(0-23)
+|
+Min(0-59)
+```
+
+E.g. "At 04:05" each day:
+```
+5 4 * * *
+```
+
 ### DateInterval style
 
 They either start with a `P` or a `+`. Other values are invalid.
 
-`P1D` or `+ 1 day` mean the same thing.
+- `P1D` and `+ 1 day` mean the same thing.
+- `P2W` and `+ 2 weeks` mean the same thing.
 
 You can also define more complex intervals by chaining: `+ 1 hour + 5 minutes`.
 

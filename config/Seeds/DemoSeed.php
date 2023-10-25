@@ -21,6 +21,7 @@ class DemoSeed extends AbstractSeed {
 	public function run(): void {
 		$data = [
 			[
+				'id' => 1,
 				'name' => 'Example Shell snippet',
 				'type' => \QueueScheduler\Model\Entity\Row::TYPE_SHELL_COMMAND,
 				'frequency' => '+10seconds',
@@ -28,6 +29,7 @@ class DemoSeed extends AbstractSeed {
 				'enabled' => true,
 			],
 			[
+				'id' => 2,
 				'name' => 'Example Cake Command',
 				'type' => \QueueScheduler\Model\Entity\Row::TYPE_CAKE_COMMAND,
 				'frequency' => '+1minute',
@@ -35,6 +37,7 @@ class DemoSeed extends AbstractSeed {
 				'enabled' => true,
 			],
 			[
+				'id' => 3,
 				'name' => 'Example Queue Task',
 				'type' => \QueueScheduler\Model\Entity\Row::TYPE_QUEUE_TASK,
 				'frequency' => '+30seconds',
