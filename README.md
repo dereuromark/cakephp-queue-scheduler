@@ -36,3 +36,9 @@ composer require dereuromark/cakephp-queue-scheduler
 
 ## Installation and Usage
 See [Documentation](docs/).
+
+## Credit where credit is due
+This plugin is heavily inspired by [LordSimal Scheduler plugin](https://github.com/LordSimal/cakephp-scheduler)
+and [Laravel Task Scheduling Feature](https://laravel.com/docs/10.x/scheduling).
+
+Use this Scheduler plugin if you prefer configuring them file-based and purely in crontab style.

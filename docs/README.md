@@ -93,8 +93,3 @@ See https://www.php.net/manual/en/dateinterval.createfromdatestring.php for deta
 ## Configuration
 
 For details see config/app.example.php file.
-
-
-## Credit where credit is due
-This plugin is heavily inspired by [LordSimal Scheduler plugin](https://github.com/LordSimal/cakephp-scheduler)
-and [Laravel Task Scheduling Feature](https://laravel.com/docs/10.x/scheduling).
