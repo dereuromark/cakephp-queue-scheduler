@@ -29,7 +29,7 @@ use Tools\Model\Entity\Entity;
  * @property-read array $job_config
  * @property-read string $job_reference
  */
-class Row extends Entity {
+class SchedulerRow extends Entity {
 
 	/**
 	 * Fields that can be mass assigned using newEntity() or patchEntity().
@@ -136,7 +136,7 @@ class Row extends Entity {
 	}
 
 	/**
-	 * @see \QueueScheduler\Model\Entity\Row::$job_task
+	 *@see \QueueScheduler\Model\Entity\SchedulerRow::$job_task
 	 * @return string|null
 	 */
 	protected function _getJobTask(): ?string {
@@ -151,7 +151,7 @@ class Row extends Entity {
 	}
 
 	/**
-	 * @see \QueueScheduler\Model\Entity\Row::$job_data
+	 *@see \QueueScheduler\Model\Entity\SchedulerRow::$job_data
 	 * @return array
 	 */
 	protected function _getJobData(): array {
@@ -166,7 +166,7 @@ class Row extends Entity {
 	}
 
 	/**
-	 * @see \QueueScheduler\Model\Entity\Row::$job_config
+	 *@see \QueueScheduler\Model\Entity\SchedulerRow::$job_config
 	 * @return array
 	 */
 	protected function _getJobConfig(): array {
@@ -174,7 +174,7 @@ class Row extends Entity {
 	}
 
 	/**
-	 * @see \QueueScheduler\Model\Entity\Row::$job_reference
+	 *@see \QueueScheduler\Model\Entity\SchedulerRow::$job_reference
 	 * @return string
 	 */
 	protected function _getJobReference(): string {

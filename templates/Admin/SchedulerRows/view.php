@@ -1,7 +1,7 @@
 <?php
 /**
  * @var \App\View\AppView $this
- * @var \QueueScheduler\Model\Entity\Row $row
+ * @var \QueueScheduler\Model\Entity\SchedulerRow $row
  */
 ?>
 <div class="row">

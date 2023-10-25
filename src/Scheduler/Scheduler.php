@@ -5,7 +5,7 @@ namespace QueueScheduler\Scheduler;
 use Cake\Collection\CollectionInterface;
 use Cake\I18n\FrozenTime;
 use Cake\ORM\Locator\LocatorAwareTrait;
-use QueueScheduler\Model\Entity\Row;
+use QueueScheduler\Model\Entity\SchedulerRow;
 use RuntimeException;
 
 class Scheduler {
@@ -13,10 +13,10 @@ class Scheduler {
 	use LocatorAwareTrait;
 
 	/**
-	 * @return \Cake\Collection\CollectionInterface<\QueueScheduler\Model\Entity\Row>
+	 * @return \Cake\Collection\CollectionInterface<\QueueScheduler\Model\Entity\SchedulerRow>
 	 */
 	public function events(): CollectionInterface {
-		$events = $this->fetchTable('QueueScheduler.Rows')
+		$events = $this->fetchTable('QueueScheduler.SchedulerRows')
 			->find('active')
 			->find('scheduled')
 			->all();
@@ -25,18 +25,18 @@ class Scheduler {
 	}
 
 	/**
-	 * @param \Cake\Collection\CollectionInterface<\QueueScheduler\Model\Entity\Row> $events
+	 * @param \Cake\Collection\CollectionInterface<\QueueScheduler\Model\Entity\SchedulerRow> $events
 	 *
 	 * @return int
 	 */
 	public function schedule(CollectionInterface $events): int {
 		/** @var \Queue\Model\Table\QueuedJobsTable $queuedJobsTable */
 		$queuedJobsTable = $this->fetchTable('Queue.QueuedJobs');
-		/** @var \QueueScheduler\Model\Table\RowsTable $rowsTable */
-		$rowsTable = $this->fetchTable('QueueScheduler.Rows');
+		/** @var \QueueScheduler\Model\Table\SchedulerRowsTable $rowsTable */
+		$rowsTable = $this->fetchTable('QueueScheduler.SchedulerRows');
 
 		$count = 0;
-		$events->each(function (Row $row) use ($queuedJobsTable, $rowsTable, &$count) {
+		$events->each(function (SchedulerRow $row) use ($queuedJobsTable, $rowsTable, &$count) {
 			if ($row->job_task === null) {
 				throw new RuntimeException('Cannot add job task for ' . $row->name);
 			}
@@ -61,10 +61,10 @@ class Scheduler {
 	/**
 	 * @param \Cake\Collection\CollectionInterface $rows
 	 *
-	 * @return \Cake\Collection\CollectionInterface<\QueueScheduler\Model\Entity\Row>
+	 * @return \Cake\Collection\CollectionInterface<\QueueScheduler\Model\Entity\SchedulerRow>
 	 */
 	protected function dueEvents(CollectionInterface $rows): CollectionInterface {
-		return $rows->filter(function (Row $row) {
+		return $rows->filter(function (SchedulerRow $row) {
 			return $row->isDue();
 		});
 	}

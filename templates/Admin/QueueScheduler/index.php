@@ -8,7 +8,7 @@
     <ul class="side-nav nav nav-pills flex-column">
         <li class="nav-item heading"><?= __('Actions') ?></li>
         <li class="nav-item">
-            <?= $this->Html->link(__('New {0}', __('Row')), ['controller' => 'Rows', 'action' => 'add'], ['class' => 'nav-link']) ?>
+            <?= $this->Html->link(__('New {0}', __('Row')), ['controller' => 'SchedulerRows', 'action' => 'add'], ['class' => 'nav-link']) ?>
         </li>
     </ul>
 </nav>
@@ -17,6 +17,9 @@
     <h2><?= __('Queue Scheduler') ?></h2>
     <p>Addon to run commands and queue tasks as crontab like database driven schedule.</p>
 
-    <h3></h3>
+    <h3>Current schedule</h3>
+	<p>
+	<?= $this->Html->link(__('Schedule'), ['controller' => 'SchedulerRows', 'action' => 'index'], []) ?>
+	</p>
 
 </div>

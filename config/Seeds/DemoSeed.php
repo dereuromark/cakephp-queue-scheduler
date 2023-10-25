@@ -21,32 +21,29 @@ class DemoSeed extends AbstractSeed {
 	public function run(): void {
 		$data = [
 			[
-				'id' => 1,
 				'name' => 'Example Shell snippet',
-				'type' => \QueueScheduler\Model\Entity\Row::TYPE_SHELL_COMMAND,
+				'type' => \QueueScheduler\Model\Entity\SchedulerRow::TYPE_SHELL_COMMAND,
 				'frequency' => '+10seconds',
 				'content' => 'uname',
 				'enabled' => true,
 			],
 			[
-				'id' => 2,
 				'name' => 'Example Cake Command',
-				'type' => \QueueScheduler\Model\Entity\Row::TYPE_CAKE_COMMAND,
+				'type' => \QueueScheduler\Model\Entity\SchedulerRow::TYPE_CAKE_COMMAND,
 				'frequency' => '+1minute',
 				'content' => \Cake\Command\SchemacacheBuildCommand::class,
 				'enabled' => true,
 			],
 			[
-				'id' => 3,
 				'name' => 'Example Queue Task',
-				'type' => \QueueScheduler\Model\Entity\Row::TYPE_QUEUE_TASK,
+				'type' => \QueueScheduler\Model\Entity\SchedulerRow::TYPE_QUEUE_TASK,
 				'frequency' => '+30seconds',
 				'content' => \Queue\Queue\Task\ExampleTask::class,
 				'enabled' => true,
 			],
 		];
 
-		$table = $this->table(\Cake\ORM\TableRegistry::getTableLocator()->get('QueueScheduler.Rows')->getTable());
+		$table = $this->table(\Cake\ORM\TableRegistry::getTableLocator()->get('QueueScheduler.SchedulerRows')->getTable());
 		$table->insert($data)->save();
 	}
 

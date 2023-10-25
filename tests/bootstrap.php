@@ -1,6 +1,11 @@
 <?php
 declare(strict_types=1);
 
+if (!defined('DS')) {
+	define('DS', DIRECTORY_SEPARATOR);
+}
+define('PLUGIN_ROOT', dirname(__DIR__));
+
 /**
  * Test suite bootstrap for QueueScheduler.
  *
@@ -48,7 +53,18 @@ class_alias(AppController::class, 'App\Controller\AppController');
 Configure::write('App', [
 	'namespace' => 'TestApp',
 	'encoding' => 'UTF-8',
+	'paths' => [
+		'templates' => [
+			PLUGIN_ROOT . DS . 'tests' . DS . 'test_app' . DS . 'templates' . DS,
+		],
+	],
 ]);
+
+Configure::write('Icon', [
+	'sets' => ['bs' => \Tools\View\Icon\BootstrapIcon::class],
+]);
+
+//Cake\Datasource\ConnectionManager::get('test')->getDriver()->enableAutoQuoting(true);
 
 $migrator = new Migrator();
 $migrator->run(['plugin' => 'QueueScheduler']);

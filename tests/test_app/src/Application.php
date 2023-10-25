@@ -4,6 +4,7 @@ namespace TestApp;
 
 use Cake\Http\BaseApplication;
 use Cake\Http\MiddlewareQueue;
+use Cake\Routing\Middleware\RoutingMiddleware;
 use Cake\Routing\RouteBuilder;
 
 class Application extends BaseApplication {
@@ -12,6 +13,7 @@ class Application extends BaseApplication {
 	 * @inheritDoc
 	 */
 	public function bootstrap(): void {
+		$this->addPlugin('Tools');
 	}
 
 	/**
@@ -20,6 +22,17 @@ class Application extends BaseApplication {
 	 * @return void
 	 */
 	public function routes(RouteBuilder $routes): void {
+		$routes->prefix('Admin', function (RouteBuilder $builder): void {
+			$builder->plugin(
+				'QueueScheduler',
+				['path' => '/queue-scheduler'],
+				function (RouteBuilder $builder): void {
+					$builder->connect('/', ['controller' => 'QueueScheduler', 'action' => 'index']);
+
+					$builder->fallbacks();
+				},
+			);
+		});
 	}
 
 	/**
@@ -28,6 +41,8 @@ class Application extends BaseApplication {
 	 * @return \Cake\Http\MiddlewareQueue
 	 */
 	public function middleware(MiddlewareQueue $middlewareQueue): MiddlewareQueue {
+		$middlewareQueue->add(new RoutingMiddleware($this));
+
 		return $middlewareQueue;
 	}
 

@@ -8,7 +8,7 @@ use Cake\TestSuite\Fixture\TestFixture;
 /**
  * QueueSchedulerRowsFixture
  */
-class RowsFixture extends TestFixture {
+class SchedulerRowsFixture extends TestFixture {
 
 	/**
 	 * @var string
@@ -23,13 +23,12 @@ class RowsFixture extends TestFixture {
 	public function init(): void {
 		$this->records = [
 			[
-				'id' => 1,
 				'name' => 'Lorem ipsum dolor sit amet',
 				'type' => 1,
-				'content' => 'Lorem ipsum dolor sit amet, aliquet feugiat. Convallis morbi fringilla gravida, phasellus feugiat dapibus velit nunc, pulvinar eget sollicitudin venenatis cum nullam, vivamus ut a sed, mollitia lectus. Nulla vestibulum massa neque ut et, id hendrerit sit, feugiat in taciti enim proin nibh, tempor dignissim, rhoncus duis vestibulum nunc mattis convallis.',
-				'frequency' => 'Lorem ipsum dolor sit amet',
+				'content' => 'umask',
+				'frequency' => '+ 30 seconds',
 				'last_run' => '2023-10-18 01:50:09',
-				'allow_concurrent' => 1,
+				'allow_concurrent' => 0,
 				'enabled' => 1,
 				'created' => '2023-10-18 01:50:09',
 				'modified' => '2023-10-18 01:50:09',

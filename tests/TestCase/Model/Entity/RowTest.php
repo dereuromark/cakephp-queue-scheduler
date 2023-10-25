@@ -5,7 +5,7 @@ namespace QueueScheduler\Test\TestCase\Model\Entity;
 
 use Cake\TestSuite\TestCase;
 use Queue\Queue\Task\ExampleTask;
-use QueueScheduler\Model\Entity\Row;
+use QueueScheduler\Model\Entity\SchedulerRow;
 
 class RowTest extends TestCase {
 
@@ -13,7 +13,7 @@ class RowTest extends TestCase {
 	 * @return void
 	 */
 	public function testJobTask(): void {
-		$row = new Row();
+		$row = new SchedulerRow();
 		$row->content = ExampleTask::class;
 		$row->type = $row::TYPE_QUEUE_TASK;
 
@@ -25,7 +25,7 @@ class RowTest extends TestCase {
 	 * @return void
 	 */
 	public function testJobTaskShell(): void {
-		$row = new Row();
+		$row = new SchedulerRow();
 		$row->content = 'uname';
 		$row->type = $row::TYPE_SHELL_COMMAND;
 

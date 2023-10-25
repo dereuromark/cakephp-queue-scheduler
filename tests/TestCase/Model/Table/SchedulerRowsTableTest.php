@@ -6,20 +6,20 @@ namespace QueueScheduler\Test\TestCase\Model\Table;
 use Cake\I18n\FrozenTime;
 use Cake\TestSuite\TestCase;
 use Queue\Queue\Task\ExampleTask;
-use QueueScheduler\Model\Entity\Row;
-use QueueScheduler\Model\Table\RowsTable;
+use QueueScheduler\Model\Entity\SchedulerRow;
+use QueueScheduler\Model\Table\SchedulerRowsTable;
 
 /**
  * QueueScheduler\Model\Table\RowsTable Test Case
  */
-class RowsTableTest extends TestCase {
+class SchedulerRowsTableTest extends TestCase {
 
 	/**
 	 * Test subject
 	 *
-	 * @var \QueueScheduler\Model\Table\RowsTable
+	 * @var \QueueScheduler\Model\Table\SchedulerRowsTable
 	 */
-	protected $Rows;
+	protected $SchedulerRows;
 
 	/**
 	 * Fixtures
@@ -27,7 +27,7 @@ class RowsTableTest extends TestCase {
 	 * @var array<string>
 	 */
 	protected $fixtures = [
-		'plugin.QueueScheduler.Rows',
+		'plugin.QueueScheduler.SchedulerRows',
 	];
 
 	/**
@@ -37,8 +37,8 @@ class RowsTableTest extends TestCase {
 	 */
 	protected function setUp(): void {
 		parent::setUp();
-		$config = $this->getTableLocator()->exists('QueueScheduler.Rows') ? [] : ['className' => RowsTable::class];
-		$this->Rows = $this->getTableLocator()->get('QueueScheduler.Rows', $config);
+		$config = $this->getTableLocator()->exists('QueueScheduler.Scheduler') ? [] : ['className' => SchedulerRowsTable::class];
+		$this->SchedulerRows = $this->getTableLocator()->get('QueueScheduler.Scheduler', $config);
 	}
 
 	/**
@@ -47,7 +47,7 @@ class RowsTableTest extends TestCase {
 	 * @return void
 	 */
 	protected function tearDown(): void {
-		unset($this->Rows);
+		unset($this->SchedulerRows);
 
 		parent::tearDown();
 	}
@@ -55,31 +55,31 @@ class RowsTableTest extends TestCase {
 	/**
 	 * Test validationDefault method
 	 *
-	 * @uses \QueueScheduler\Model\Table\RowsTable::validationDefault()
+	 *@uses \QueueScheduler\Model\Table\SchedulerRowsTable::validationDefault()
 	 *
 	 * @return void
 	 */
 	public function testInsert(): void {
-		$row = $this->Rows->newEntity([
+		$row = $this->SchedulerRows->newEntity([
 			'name' => 'Example Queue Task',
-			'type' => Row::TYPE_QUEUE_TASK,
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
 			'frequency' => '+30seconds',
 			'content' => ExampleTask::class,
 			'enabled' => true,
 		]);
 
-		$row = $this->Rows->saveOrFail($row);
+		$row = $this->SchedulerRows->saveOrFail($row);
 		$this->assertNotEmpty($row->next_run);
 		$this->assertSame($row->next_run->getTestNow()->toDateTimeString(), $row->next_run->toDateTimeString());
 
 		$row->last_run = (new FrozenTime())->addDays(1);
 		$row->frequency = '+50seconds';
-		$row = $this->Rows->saveOrFail($row);
+		$row = $this->SchedulerRows->saveOrFail($row);
 
 		$this->assertSame($row->next_run->getTestNow()->addDays(1)->addSeconds(50)->toDateTimeString(), $row->next_run->toDateTimeString());
 
 		$row->last_run = (new FrozenTime())->addDays(2);
-		$row = $this->Rows->saveOrFail($row);
+		$row = $this->SchedulerRows->saveOrFail($row);
 
 		$this->assertSame($row->next_run->getTestNow()->addDays(2)->addSeconds(50)->toDateTimeString(), $row->next_run->toDateTimeString());
 	}

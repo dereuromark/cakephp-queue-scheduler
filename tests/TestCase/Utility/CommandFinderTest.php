@@ -25,6 +25,7 @@ class CommandFinderTest extends TestCase {
 			'Queue.MigrateTasks' => 'Queue.MigrateTasks',
 			'Queue.Info' => 'Queue.Info',
 			'QueueScheduler.Run' => 'QueueScheduler.Run',
+			'Tools.Inflect' => 'Tools.Inflect',
 		];
 		$this->assertEquals($expected, $result);
 	}

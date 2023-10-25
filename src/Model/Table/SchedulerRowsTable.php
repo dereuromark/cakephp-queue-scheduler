@@ -11,28 +11,28 @@ use Cake\I18n\FrozenTime;
 use Cake\ORM\Query;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
-use QueueScheduler\Model\Entity\Row;
+use QueueScheduler\Model\Entity\SchedulerRow;
 
 /**
  * Rows Model
  *
- * @method \QueueScheduler\Model\Entity\Row newEmptyEntity()
- * @method \QueueScheduler\Model\Entity\Row newEntity(array $data, array $options = [])
- * @method array<\QueueScheduler\Model\Entity\Row> newEntities(array $data, array $options = [])
- * @method \QueueScheduler\Model\Entity\Row get($primaryKey, $options = [])
- * @method \QueueScheduler\Model\Entity\Row findOrCreate($search, ?callable $callback = null, $options = [])
- * @method \QueueScheduler\Model\Entity\Row patchEntity(\Cake\Datasource\EntityInterface $entity, array $data, array $options = [])
- * @method array<\QueueScheduler\Model\Entity\Row> patchEntities(iterable $entities, array $data, array $options = [])
- * @method \QueueScheduler\Model\Entity\Row|false save(\Cake\Datasource\EntityInterface $entity, $options = [])
- * @method \QueueScheduler\Model\Entity\Row saveOrFail(\Cake\Datasource\EntityInterface $entity, $options = [])
- * @method \Cake\Datasource\ResultSetInterface<\QueueScheduler\Model\Entity\Row>|false saveMany(iterable $entities, $options = [])
- * @method \Cake\Datasource\ResultSetInterface<\QueueScheduler\Model\Entity\Row> saveManyOrFail(iterable $entities, $options = [])
- * @method \Cake\Datasource\ResultSetInterface<\QueueScheduler\Model\Entity\Row>|false deleteMany(iterable $entities, $options = [])
- * @method \Cake\Datasource\ResultSetInterface<\QueueScheduler\Model\Entity\Row> deleteManyOrFail(iterable $entities, $options = [])
+ * @method \QueueScheduler\Model\Entity\SchedulerRow newEmptyEntity()
+ * @method \QueueScheduler\Model\Entity\SchedulerRow newEntity(array $data, array $options = [])
+ * @method array<\QueueScheduler\Model\Entity\SchedulerRow> newEntities(array $data, array $options = [])
+ * @method \QueueScheduler\Model\Entity\SchedulerRow get($primaryKey, $options = [])
+ * @method \QueueScheduler\Model\Entity\SchedulerRow findOrCreate($search, ?callable $callback = null, $options = [])
+ * @method \QueueScheduler\Model\Entity\SchedulerRow patchEntity(\Cake\Datasource\EntityInterface $entity, array $data, array $options = [])
+ * @method array<\QueueScheduler\Model\Entity\SchedulerRow> patchEntities(iterable $entities, array $data, array $options = [])
+ * @method \QueueScheduler\Model\Entity\SchedulerRow|false save(\Cake\Datasource\EntityInterface $entity, $options = [])
+ * @method \QueueScheduler\Model\Entity\SchedulerRow saveOrFail(\Cake\Datasource\EntityInterface $entity, $options = [])
+ * @method \Cake\Datasource\ResultSetInterface<\QueueScheduler\Model\Entity\SchedulerRow>|false saveMany(iterable $entities, $options = [])
+ * @method \Cake\Datasource\ResultSetInterface<\QueueScheduler\Model\Entity\SchedulerRow> saveManyOrFail(iterable $entities, $options = [])
+ * @method \Cake\Datasource\ResultSetInterface<\QueueScheduler\Model\Entity\SchedulerRow>|false deleteMany(iterable $entities, $options = [])
+ * @method \Cake\Datasource\ResultSetInterface<\QueueScheduler\Model\Entity\SchedulerRow> deleteManyOrFail(iterable $entities, $options = [])
  *
  * @mixin \Cake\ORM\Behavior\TimestampBehavior
  */
-class RowsTable extends Table {
+class SchedulerRowsTable extends Table {
 
 	/**
 	 * @var array<string>
@@ -97,7 +97,7 @@ class RowsTable extends Table {
 
 	/**
 	 * @param \Cake\Event\EventInterface $event
-	 * @param \QueueScheduler\Model\Entity\Row $entity
+	 * @param \QueueScheduler\Model\Entity\SchedulerRow $entity
 	 * @param \ArrayObject $options
 	 *
 	 * @return void
@@ -117,7 +117,7 @@ class RowsTable extends Table {
 		$conditions = ['enabled' => true];
 		$debug = Configure::read('debug');
 		if (!$debug && !Configure::read('QueueScheduler.allowRaw')) {
-			$conditions['type !='] = Row::TYPE_SHELL_COMMAND;
+			$conditions['type !='] = SchedulerRow::TYPE_SHELL_COMMAND;
 		}
 
 		return $query->where($conditions);
