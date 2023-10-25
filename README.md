@@ -1,6 +1,6 @@
 # CakePHP QueueScheduler plugin
 
-[![CI](https://github.com/dereuromark/cakephp-queue-scheduler/workflows/CI/badge.svg?branch=master)](https://github.com/dereuromark/cakephp-queue-scheduler/actions?query=workflow%3ACI+branch%3Amaster)
+[![CI](https://github.com/dereuromark/cakephp-queue-scheduler/actions/workflows/ci.yml/badge.svg)](https://github.com/dereuromark/cakephp-queue-scheduler/actions/workflows/ci.yml)
 [![Coverage Status](https://img.shields.io/codecov/c/github/dereuromark/cakephp-queue-scheduler/master.svg)](https://codecov.io/github/dereuromark/cakephp-queue-scheduler/branch/master)
 [![Latest Stable Version](https://poser.pugx.org/dereuromark/cakephp-queue-scheduler/v/stable.svg)](https://packagist.org/packages/dereuromark/cakephp-queue-scheduler)
 [![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%207.4-8892BF.svg)](https://php.net/)
