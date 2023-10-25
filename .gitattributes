@@ -13,22 +13,13 @@
 *.jpg binary
 *.jpeg binary
 *.gif binary
-*.webp binary
-*.ico binary
-*.mo binary
-*.pdf binary
-*.xls binary
-*.xlsx binary
-*.phar binary
-*.woff binary
-*.woff2 binary
-*.ttf binary
-*.otf binary
-*.eot binary
-*.gz binary
-*.bz2 binary
-*.7z binary
-*.zip binary
-*.webm binary
-*.mp4 binary
-*.ogv binary
+
+# Remove files for archives generated using `git archive`
+phpunit.xml.dist export-ignore
+.github/ export-ignore
+.gitignore export-ignore
+.gitattributes export-ignore
+.editorconfig export-ignore
+tests/test_app/ export-ignore
+tests/test_files/ export-ignore
+tests/bootstrap.php export-ignore

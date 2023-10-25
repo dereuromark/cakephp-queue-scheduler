@@ -2,10 +2,8 @@
 
 namespace QueueScheduler\Test\TestCase\Queue\Task;
 
-use Cake\Console\Command\HelpCommand;
 use Cake\Console\ConsoleIo;
 use Cake\Console\TestSuite\StubConsoleOutput;
-use Cake\TestSuite\Stub\ConsoleOutput;
 use Cake\TestSuite\TestCase;
 use QueueScheduler\Queue\Task\CommandExecuteTask;
 use Tools\Command\InflectCommand;

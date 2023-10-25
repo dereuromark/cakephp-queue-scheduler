@@ -31,13 +31,41 @@ Tip: Use `bin/cake scheduler run` without additional elements as basic command f
 
 ### Scheduling Queue Tasks
 
+You can directly add Queue Tasks using FQCN.
+```
+Queue\Queue\Task\ExampleTask
+```
 ### Scheduling Cake Commands
+
+Adding CommandInterface classes also works using FQCN.
+```
+Cake\Command\SchemacacheBuildCommand
+```
 
 ### Scheduling Shell Commands
 For security reasons executing raw shell commands is only enabled by default for debug mode.
 Here you can add any shell command to be executed inside a Queue job.
+```
+sh /some/shell.sh
+```
 
 ## Schedule Frequency Options
+
+You can use different styles depending on your use case.
+
+### Crontab style
+For larger time frames (e.g. months) or more complex scheduling (e.g. "every Tuesday at ...") this style is recommended.
+See https://crontab.guru/ for details.
+
+### DateInterval style
+
+They either start with a `P` or a `+`. Other values are invalid.
+
+`P1D` or `+ 1 day` mean the same thing.
+
+You can also define more complex intervals by chaining: `+ 1 hour + 5 minutes`.
+
+See https://www.php.net/manual/en/dateinterval.createfromdatestring.php for details.
 
 
 ## Configuration

@@ -4,12 +4,14 @@ declare(strict_types=1);
 namespace QueueScheduler\Model\Table;
 
 use ArrayObject;
+use Cake\Core\Configure;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\EventInterface;
 use Cake\I18n\FrozenTime;
 use Cake\ORM\Query;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
+use QueueScheduler\Model\Entity\Row;
 
 /**
  * Rows Model
@@ -112,7 +114,13 @@ class RowsTable extends Table {
 	 * @return \Cake\ORM\Query
 	 */
 	public function findActive(Query $query) {
-		return $query->where(['enabled' => true]);
+		$conditions = ['enabled' => true];
+		$debug = Configure::read('debug');
+		if (!$debug && !Configure::read('QueueScheduler.allowRaw')) {
+			$conditions['type !='] = Row::TYPE_SHELL_COMMAND;
+		}
+
+		return $query->where($conditions);
 	}
 
 	/**

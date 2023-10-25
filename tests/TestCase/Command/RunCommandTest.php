@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace QueueScheduler\Test\TestCase\Command;
 
-use Cake\TestSuite\ConsoleIntegrationTestTrait;
+use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 
 /**
@@ -23,6 +23,16 @@ class RunCommandTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 		$this->useCommandRunner();
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testRun(): void {
+		$this->exec('scheduler run');
+
+		$this->assertExitCode(0);
+		$this->assertOutputContains('0 events due for scheduling');
 	}
 
 }
