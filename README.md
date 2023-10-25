@@ -24,7 +24,12 @@ instead of having to touch the server config.
 Also logging and i18n customization can potentially be easier to get addressed this way.
 
 Finally, with the Queue plugin integrating it can smoothly work alongside your existing Queue tasks.
-The backend can provide buttons to also "trigger" any such schedule manually where needed.
+Any failed job (e.g. network issue, or email SMTP issue) can be automatically re-run x times as per config.
+
+Further features:
+- Concurrency handling: Decision in case a job is still running or failed in queue, if it will run now ones or just skip.
+- The backend can provide buttons to also "trigger" any scheduled job manually where needed.
+- Autocomplete or proposals based on available Cake commands or Queue tasks.
 
 ## Installation
 

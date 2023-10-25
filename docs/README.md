@@ -24,7 +24,7 @@ the role of your admin, so that those users have access to this backend.
 ## Scheduling
 
 Add this in your crontab to run the scheduler every minute:
-```
+```cronexp
 * * * * * cd /path-to-your-project && bin/cake scheduler run >> /dev/null 2>&1
 ```
 Tip: Use `bin/cake scheduler run` without additional elements as basic command for local development/testing.
@@ -57,7 +57,7 @@ You can use different styles depending on your use case.
 For larger time frames (e.g. months) or more complex scheduling (e.g. "every Tuesday at ...") this style is recommended.
 See https://crontab.guru/ for details.
 
-```
+```cronexp
 *    *    *    *    *   /path/to/somecommand.sh
 |    |    |    |    |            |
 |    |    |    |    |    Command or Script to execute
@@ -74,7 +74,7 @@ Min(0-59)
 ```
 
 E.g. "At 04:05" each day:
-```
+```cronexp
 5 4 * * *
 ```
 
@@ -92,4 +92,30 @@ See https://www.php.net/manual/en/dateinterval.createfromdatestring.php for deta
 
 ## Configuration
 
-For details see config/app.example.php file.
+You can configure the plugin further through
+```php
+'QueueScheduler' => [
+    ...
+],
+```
+
+in your app.php config.
+For details see `config/app.example.php` file.
+
+### Plugins
+If you want to further include/exclude plugins, you can use the `plugins` key. Use `-` prefix to exclude.
+```php
+    'plugins' => [
+        'Foo',
+        '-ExcludeMe,
+        ...
+    ],
+```
+
+### Security
+Make sure that the admin backend (GUI) is secure through ACL and any only be reached by admins.
+
+For security reasons you can by default only run Cake and Queue types in non-debug mode.
+Allowing any shell script can potentially be a security risk.
+As such, only use `QueueScheduler.allowRaw` "raw command execution" on a secure and containered environment, e.g. staging.
+

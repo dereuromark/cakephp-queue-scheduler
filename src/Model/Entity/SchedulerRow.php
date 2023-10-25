@@ -136,6 +136,16 @@ class SchedulerRow extends Entity {
 	}
 
 	/**
+	 * @throws \Exception
+	 * @return bool
+	 */
+	public function isCronExpression(): bool {
+		$i = $this->calculateNextInterval();
+
+		return $i === null;
+	}
+
+	/**
 	 *@see \QueueScheduler\Model\Entity\SchedulerRow::$job_task
 	 * @return string|null
 	 */

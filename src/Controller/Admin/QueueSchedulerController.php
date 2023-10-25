@@ -3,9 +3,24 @@ declare(strict_types=1);
 
 namespace QueueScheduler\Controller\Admin;
 
+use Cake\Utility\Hash;
 use QueueScheduler\Controller\AppController;
 
 class QueueSchedulerController extends AppController {
+
+	/**
+	 * @return void
+	 */
+	public function initialize(): void {
+		parent::initialize();
+
+		$this->viewBuilder()->addHelpers([
+			//'Tools.Format',
+			'Tools.Icon',
+			'Queue.Queue',
+			'Queue.QueueProgress',
+		]);
+	}
 
 	/**
 	 * Index method
@@ -13,8 +28,18 @@ class QueueSchedulerController extends AppController {
 	 * @return \Cake\Http\Response|null|void Renders view
 	 */
 	public function index() {
-		$x = null;
-		$this->set(compact('x'));
+		$schedulerRows = $this->fetchTable('QueueScheduler.SchedulerRows')
+			->find('active')
+			->all()
+			->toArray();
+
+		$runningJobs = $this->fetchTable('Queue.QueuedJobs')->find('queued')
+			->where(['reference LIKE' => 'queue-scheduler-%'])
+			->all()
+			->toArray();
+		$runningJobs = Hash::combine($runningJobs, '{n}.reference', '{n}');
+
+		$this->set(compact('schedulerRows', 'runningJobs'));
 	}
 
 }
