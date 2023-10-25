@@ -11,6 +11,7 @@
 		"dereuromark/cakephp-queue": "^6.7.2"
 	},
 	"require-dev": {
+		"cakephp/migrations": "^3.9.0",
 		"phpunit/phpunit": "^9.5",
 		"fig-r/psr2r-sniffer": "^1.5.1"
 	},

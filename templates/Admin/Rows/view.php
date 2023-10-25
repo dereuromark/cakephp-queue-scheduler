@@ -1,7 +1,7 @@
 <?php
 /**
  * @var \App\View\AppView $this
- * @var \Cake\Datasource\EntityInterface $row
+ * @var \QueueScheduler\Model\Entity\Row $row
  */
 ?>
 <div class="row">
@@ -53,6 +53,15 @@
                     <?= $this->Text->autoParagraph(h($row->content)); ?>
                 </blockquote>
             </div>
+
+            <?php if (class_exists('Cron\CronExpression')) { ?>
+            <h3>Crontab expression</h3>
+            <p>If you want to port this into a native crontab line, copy and paste the following</p>
+            <code>
+                <pre><?php echo (new \Cron\CronExpression($row->frequency_string))?></pre>
+            </code>
+
+            <?php } ?>
         </div>
     </div>
 </div>

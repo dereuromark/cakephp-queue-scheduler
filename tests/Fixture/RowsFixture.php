@@ -8,7 +8,12 @@ use Cake\TestSuite\Fixture\TestFixture;
 /**
  * QueueSchedulerRowsFixture
  */
-class QueueSchedulerRowsFixture extends TestFixture {
+class RowsFixture extends TestFixture {
+
+	/**
+	 * @var string
+	 */
+	public $table = 'queue_scheduler_rows';
 
 	/**
 	 * Init method
@@ -25,6 +30,7 @@ class QueueSchedulerRowsFixture extends TestFixture {
 				'frequency' => 'Lorem ipsum dolor sit amet',
 				'last_run' => '2023-10-18 01:50:09',
 				'allow_concurrent' => 1,
+				'enabled' => 1,
 				'created' => '2023-10-18 01:50:09',
 				'modified' => '2023-10-18 01:50:09',
 			],

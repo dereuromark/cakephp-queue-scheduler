@@ -7,6 +7,7 @@ use Cake\Command\Command;
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
+use QueueScheduler\Scheduler\Scheduler;
 
 /**
  * Run command.
@@ -31,6 +32,17 @@ class RunCommand extends Command {
 	 * @return int|null|void The exit code or null for success
 	 */
 	public function execute(Arguments $args, ConsoleIo $io) {
+		$scheduler = new Scheduler();
+		$events = $scheduler->events();
+
+		$io->out(sprintf('%s events due for scheduling', $events->count()));
+
+		$count = $scheduler->schedule($events);
+
+		$io->success('Done: ' . $count . ' events scheduled.');
+		if ($count < $events->count()) {
+			$io->warning($events->count() - $count . ' events held back (run not finished or still pending in queue)');
+		}
 	}
 
 }

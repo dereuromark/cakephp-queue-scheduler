@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace QueueScheduler\Controller\Admin;
 
-use App\Controller\AppController;
+use QueueScheduler\Controller\AppController;
 
 class QueueSchedulerController extends AppController {
 

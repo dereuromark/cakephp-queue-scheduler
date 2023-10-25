@@ -37,6 +37,10 @@ class QueueSchedulerInit extends AbstractMigration {
 				'default' => null,
 				'null' => true,
 			])
+			->addColumn('next_run', 'datetime', [
+				'default' => null,
+				'null' => true,
+			])
 			->addColumn('allow_concurrent', 'boolean', [
 				'default' => false,
 				'null' => false,

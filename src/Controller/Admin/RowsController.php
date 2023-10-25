@@ -3,12 +3,13 @@ declare(strict_types=1);
 
 namespace QueueScheduler\Controller\Admin;
 
-use App\Controller\AppController;
+use QueueScheduler\Controller\AppController;
 
 /**
  * Rows Controller
  *
- * @method array<\QueueScheduler\Model\Entity\Row>|\Cake\Datasource\ResultSetInterface paginate($object = null, array $settings = [])
+ * @method \Cake\Datasource\ResultSetInterface<\QueueScheduler\Model\Entity\Row> paginate($object = null, array $settings = [])
+ * @property \QueueScheduler\Model\Table\RowsTable $Rows
  */
 class RowsController extends AppController {
 

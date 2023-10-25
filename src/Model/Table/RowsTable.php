@@ -3,6 +3,11 @@ declare(strict_types=1);
 
 namespace QueueScheduler\Model\Table;
 
+use ArrayObject;
+use Cake\Datasource\EntityInterface;
+use Cake\Event\EventInterface;
+use Cake\I18n\FrozenTime;
+use Cake\ORM\Query;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 
@@ -18,10 +23,10 @@ use Cake\Validation\Validator;
  * @method array<\QueueScheduler\Model\Entity\Row> patchEntities(iterable $entities, array $data, array $options = [])
  * @method \QueueScheduler\Model\Entity\Row|false save(\Cake\Datasource\EntityInterface $entity, $options = [])
  * @method \QueueScheduler\Model\Entity\Row saveOrFail(\Cake\Datasource\EntityInterface $entity, $options = [])
- * @method array<\QueueScheduler\Model\Entity\Row>|\Cake\Datasource\ResultSetInterface|false saveMany(iterable $entities, $options = [])
- * @method array<\QueueScheduler\Model\Entity\Row>|\Cake\Datasource\ResultSetInterface saveManyOrFail(iterable $entities, $options = [])
- * @method array<\QueueScheduler\Model\Entity\Row>|\Cake\Datasource\ResultSetInterface|false deleteMany(iterable $entities, $options = [])
- * @method array<\QueueScheduler\Model\Entity\Row>|\Cake\Datasource\ResultSetInterface deleteManyOrFail(iterable $entities, $options = [])
+ * @method \Cake\Datasource\ResultSetInterface<\QueueScheduler\Model\Entity\Row>|false saveMany(iterable $entities, $options = [])
+ * @method \Cake\Datasource\ResultSetInterface<\QueueScheduler\Model\Entity\Row> saveManyOrFail(iterable $entities, $options = [])
+ * @method \Cake\Datasource\ResultSetInterface<\QueueScheduler\Model\Entity\Row>|false deleteMany(iterable $entities, $options = [])
+ * @method \Cake\Datasource\ResultSetInterface<\QueueScheduler\Model\Entity\Row> deleteManyOrFail(iterable $entities, $options = [])
  *
  * @mixin \Cake\ORM\Behavior\TimestampBehavior
  */
@@ -86,6 +91,37 @@ class RowsTable extends Table {
 			->notEmptyString('allow_concurrent');
 
 		return $validator;
+	}
+
+	/**
+	 * @param \Cake\Event\EventInterface $event
+	 * @param \QueueScheduler\Model\Entity\Row $entity
+	 * @param \ArrayObject $options
+	 *
+	 * @return void
+	 */
+	public function beforeSave(EventInterface $event, EntityInterface $entity, ArrayObject $options) {
+		if ($entity->next_run === null || $entity->isDirty('frequency') || $entity->isDirty('last_run')) {
+			$entity->next_run = $entity->calculateNextRun();
+		}
+	}
+
+	/**
+	 * @param \Cake\ORM\Query $query
+	 *
+	 * @return \Cake\ORM\Query
+	 */
+	public function findActive(Query $query) {
+		return $query->where(['enabled' => true]);
+	}
+
+	/**
+	 * @param \Cake\ORM\Query $query
+	 *
+	 * @return \Cake\ORM\Query
+	 */
+	public function findScheduled(Query $query) {
+		return $query->where(['OR' => ['next_run IS' => null, 'next_run <=' => new FrozenTime()]]);
 	}
 
 }

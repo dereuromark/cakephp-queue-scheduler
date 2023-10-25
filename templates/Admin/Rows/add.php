@@ -1,7 +1,7 @@
 <?php
 /**
  * @var \App\View\AppView $this
- * @var \Cake\Datasource\EntityInterface $row
+ * @var \QueueScheduler\Model\Entity\Row $row
  */
 ?>
 <div class="row">

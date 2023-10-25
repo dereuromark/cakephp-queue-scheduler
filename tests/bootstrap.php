@@ -40,6 +40,7 @@ if (file_exists($root . '/config/bootstrap.php')) {
 }
 
 use Cake\Core\Configure;
+use Migrations\TestSuite\Migrator;
 use TestApp\Controller\AppController;
 
 class_alias(AppController::class, 'App\Controller\AppController');
@@ -48,3 +49,6 @@ Configure::write('App', [
 	'namespace' => 'TestApp',
 	'encoding' => 'UTF-8',
 ]);
+
+$migrator = new Migrator();
+$migrator->run(['plugin' => 'QueueScheduler']);

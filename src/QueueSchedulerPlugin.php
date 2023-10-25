@@ -59,7 +59,7 @@ class QueueSchedulerPlugin extends BasePlugin {
 	 */
 	public function console(CommandCollection $commands): CommandCollection {
 		$commands = parent::console($commands);
-		$commands->add('schedule run', RunCommand::class);
+		$commands->add('scheduler run', RunCommand::class);
 
 		return $commands;
 	}
