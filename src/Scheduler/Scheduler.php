@@ -3,10 +3,8 @@
 namespace QueueScheduler\Scheduler;
 
 use Cake\Collection\CollectionInterface;
-use Cake\I18n\FrozenTime;
 use Cake\ORM\Locator\LocatorAwareTrait;
 use QueueScheduler\Model\Entity\SchedulerRow;
-use RuntimeException;
 
 class Scheduler {
 

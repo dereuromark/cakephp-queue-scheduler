@@ -8,7 +8,6 @@ use Cake\Core\Configure;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\EventInterface;
 use Cake\I18n\FrozenTime;
-use Cake\ORM\Locator\TableLocator;
 use Cake\ORM\Query;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
@@ -140,8 +139,7 @@ class SchedulerRowsTable extends Table {
 	 *
 	 * @return bool
 	 */
-    public function run(SchedulerRow $row): bool
-    {
+	public function run(SchedulerRow $row): bool {
 		if ($row->job_task === null) {
 			throw new RuntimeException('Cannot add job task for ' . $row->name);
 		}
@@ -160,6 +158,6 @@ class SchedulerRowsTable extends Table {
 		$this->saveOrFail($row);
 
 		return true;
-    }
+	}
 
 }
