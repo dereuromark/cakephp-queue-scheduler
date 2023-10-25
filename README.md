@@ -13,6 +13,19 @@ A scheduler addon for [Queue plugin](https://github.com/dereuromark/cakephp-queu
 
 This branch is for use with **CakePHP 4.4+**. For details see [version map](https://github.com/dereuromark/cakephp-queue-scheduler/wiki#cakephp-version-map).
 
+## Motivation
+A DB and queue based cronjob system does not require a sys-admin to manually modify the crontab file on a server.
+It also allows for easier multi-server (worker) environments.
+
+Such a system provides easier input and "frequency" validation, as well as visual output of the schedule in the backend.
+For smaller projects it can also be ported more easily between systems (e.g. dev/stage/prod) using migrations
+instead of having to touch the server config.
+
+Also logging and i18n customization can potentially be easier to get addressed this way.
+
+Finally, with the Queue plugin integrating it can smoothly work alongside your existing Queue tasks.
+The backend can provide buttons to also "trigger" any such schedule manually where needed.
+
 ## Installation
 
 You can install this plugin into your CakePHP application using [composer](https://getcomposer.org).
