@@ -64,7 +64,12 @@ Configure::write('Icon', [
 	'sets' => ['bs' => \Tools\View\Icon\BootstrapIcon::class],
 ]);
 
-//Cake\Datasource\ConnectionManager::get('test')->getDriver()->enableAutoQuoting(true);
-
 $migrator = new Migrator();
-$migrator->run(['plugin' => 'QueueScheduler']);
+$migrator->runMany([
+	[
+		'plugin' => 'QueueScheduler',
+	],
+	[
+		'plugin' => 'Queue',
+	],
+]);

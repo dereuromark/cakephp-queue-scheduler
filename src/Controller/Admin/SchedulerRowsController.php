@@ -94,6 +94,24 @@ class SchedulerRowsController extends AppController {
 	}
 
 	/**
+	 * @param string|null $id Row id.
+	 *
+	 * @return \Cake\Http\Response|null|void Redirects to index.
+	 */
+	public function run($id = null) {
+		$this->request->allowMethod(['post']);
+		$row = $this->SchedulerRows->get($id);
+
+		if ($this->SchedulerRows->run($row)) {
+			$this->Flash->success(__('The job has been added to the queue.'));
+		} else {
+			$this->Flash->error(__('The job could not be added to the queue.'));
+		}
+
+		return $this->redirect($this->referer(['action' => 'view', $id]));
+	}
+
+	/**
 	 * Delete method
 	 *
 	 * @param string|null $id Row id.

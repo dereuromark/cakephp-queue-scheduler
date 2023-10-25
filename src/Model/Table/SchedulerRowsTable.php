@@ -8,10 +8,13 @@ use Cake\Core\Configure;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\EventInterface;
 use Cake\I18n\FrozenTime;
+use Cake\ORM\Locator\TableLocator;
 use Cake\ORM\Query;
 use Cake\ORM\Table;
+use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
 use QueueScheduler\Model\Entity\SchedulerRow;
+use RuntimeException;
 
 /**
  * Rows Model
@@ -131,5 +134,32 @@ class SchedulerRowsTable extends Table {
 	public function findScheduled(Query $query) {
 		return $query->where(['OR' => ['next_run IS' => null, 'next_run <=' => new FrozenTime()]]);
 	}
+
+	/**
+	 * @param \QueueScheduler\Model\Entity\SchedulerRow $row
+	 *
+	 * @return bool
+	 */
+    public function run(SchedulerRow $row): bool
+    {
+		if ($row->job_task === null) {
+			throw new RuntimeException('Cannot add job task for ' . $row->name);
+		}
+
+		$config = $row->job_config;
+		$config['reference'] = $row->job_reference;
+
+		/** @var \Queue\Model\Table\QueuedJobsTable $queuedJobsTable */
+		$queuedJobsTable = TableRegistry::getTableLocator()->get('Queue.QueuedJobs');
+		if (!$row->allow_concurrent && $queuedJobsTable->isQueued($row->job_reference, $row->job_task)) {
+			return false;
+		}
+
+		$queuedJobsTable->createJob($row->job_task, $row->job_data, $config);
+		$row->last_run = new FrozenTime();
+		$this->saveOrFail($row);
+
+		return true;
+    }
 
 }

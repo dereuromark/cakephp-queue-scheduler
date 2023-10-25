@@ -7,9 +7,7 @@ use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 
 /**
- * QueueScheduler\Controller\Admin\TasksController Test Case
- *
- * @uses \QueueScheduler\Controller\Admin\TasksController
+ * @uses \QueueScheduler\Controller\Admin\QueueSchedulerController
  */
 class QueueSchedulerControllerTest extends TestCase {
 

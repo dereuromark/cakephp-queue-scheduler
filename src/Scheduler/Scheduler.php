@@ -30,27 +30,14 @@ class Scheduler {
 	 * @return int
 	 */
 	public function schedule(CollectionInterface $events): int {
-		/** @var \Queue\Model\Table\QueuedJobsTable $queuedJobsTable */
-		$queuedJobsTable = $this->fetchTable('Queue.QueuedJobs');
 		/** @var \QueueScheduler\Model\Table\SchedulerRowsTable $rowsTable */
 		$rowsTable = $this->fetchTable('QueueScheduler.SchedulerRows');
 
 		$count = 0;
-		$events->each(function (SchedulerRow $row) use ($queuedJobsTable, $rowsTable, &$count) {
-			if ($row->job_task === null) {
-				throw new RuntimeException('Cannot add job task for ' . $row->name);
-			}
-
-			$config = $row->job_config;
-			$config['reference'] = $row->job_reference;
-
-			if (!$row->allow_concurrent && $queuedJobsTable->isQueued($row->job_reference, $row->job_task)) {
+		$events->each(function (SchedulerRow $row) use ($rowsTable, &$count) {
+			if (!$rowsTable->run($row)) {
 				return;
 			}
-
-			$queuedJobsTable->createJob($row->job_task, $row->job_data, $config);
-			$row->last_run = new FrozenTime();
-			$rowsTable->saveOrFail($row);
 
 			$count++;
 		});

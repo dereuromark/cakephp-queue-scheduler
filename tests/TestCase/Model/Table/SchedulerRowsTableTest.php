@@ -37,8 +37,8 @@ class SchedulerRowsTableTest extends TestCase {
 	 */
 	protected function setUp(): void {
 		parent::setUp();
-		$config = $this->getTableLocator()->exists('QueueScheduler.Scheduler') ? [] : ['className' => SchedulerRowsTable::class];
-		$this->SchedulerRows = $this->getTableLocator()->get('QueueScheduler.Scheduler', $config);
+		$config = $this->getTableLocator()->exists('QueueScheduler.SchedulerRows') ? [] : ['className' => SchedulerRowsTable::class];
+		$this->SchedulerRows = $this->getTableLocator()->get('QueueScheduler.SchedulerRows', $config);
 	}
 
 	/**
