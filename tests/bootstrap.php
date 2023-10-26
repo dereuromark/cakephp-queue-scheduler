@@ -41,7 +41,6 @@ ini_set('intl.default_locale', 'de-DE');
 
 require PLUGIN_ROOT . '/vendor/autoload.php';
 require CORE_PATH . 'config/bootstrap.php';
-require CAKE . 'functions.php';
 
 Configure::write('App', [
 	'namespace' => 'TestApp',
