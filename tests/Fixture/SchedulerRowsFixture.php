@@ -5,15 +5,36 @@ namespace QueueScheduler\Test\Fixture;
 
 use Cake\TestSuite\Fixture\TestFixture;
 
-/**
- * QueueSchedulerRowsFixture
- */
 class SchedulerRowsFixture extends TestFixture {
 
 	/**
 	 * @var string
 	 */
 	public $table = 'queue_scheduler_rows';
+
+	/**
+	 * @var array
+	 */
+	public $fields = [
+		'id' => ['type' => 'integer', 'length' => null, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'autoIncrement' => true, 'precision' => null],
+		'name' => ['type' => 'string', 'length' => 140, 'null' => false, 'default' => null, 'collate' => 'utf8mb4_unicode_ci', 'comment' => '', 'precision' => null],
+		'type' => ['type' => 'tinyinteger', 'length' => null, 'unsigned' => false, 'null' => false, 'default' => '0', 'comment' => '', 'precision' => null],
+		'content' => ['type' => 'text', 'length' => null, 'null' => false, 'default' => null, 'collate' => 'utf8mb4_unicode_ci', 'comment' => '', 'precision' => null],
+		'frequency' => ['type' => 'string', 'length' => 140, 'null' => false, 'default' => null, 'collate' => 'utf8mb4_unicode_ci', 'comment' => '', 'precision' => null],
+		'last_run' => ['type' => 'datetime', 'length' => null, 'precision' => null, 'null' => true, 'default' => null, 'comment' => ''],
+		'next_run' => ['type' => 'datetime', 'length' => null, 'precision' => null, 'null' => true, 'default' => null, 'comment' => ''],
+		'allow_concurrent' => ['type' => 'boolean', 'length' => null, 'null' => false, 'default' => '0', 'comment' => '', 'precision' => null],
+		'enabled' => ['type' => 'boolean', 'length' => null, 'null' => false, 'default' => '0', 'comment' => '', 'precision' => null],
+		'created' => ['type' => 'datetime', 'length' => null, 'precision' => null, 'null' => true, 'default' => null, 'comment' => ''],
+		'modified' => ['type' => 'datetime', 'length' => null, 'precision' => null, 'null' => true, 'default' => null, 'comment' => ''],
+		'_constraints' => [
+			'primary' => ['type' => 'primary', 'columns' => ['id'], 'length' => []],
+		],
+		'_options' => [
+			'engine' => 'InnoDB',
+			'collation' => 'utf8mb4_unicode_ci',
+		],
+	];
 
 	/**
 	 * Init method

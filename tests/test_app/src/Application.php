@@ -14,6 +14,8 @@ class Application extends BaseApplication {
 	 */
 	public function bootstrap(): void {
 		$this->addPlugin('Tools');
+		$this->addPlugin('Queue');
+		$this->addPlugin('QueueScheduler');
 	}
 
 	/**
