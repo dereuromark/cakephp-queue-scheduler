@@ -12,6 +12,9 @@ use Cake\ORM\Query;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
+use Cron\CronExpression;
+use DateInterval;
+use Exception;
 use QueueScheduler\Model\Entity\SchedulerRow;
 use RuntimeException;
 
@@ -78,13 +81,21 @@ class SchedulerRowsTable extends Table {
 		$validator
 			->scalar('content')
 			->requirePresence('content', 'create')
-			->notEmptyString('content');
+			->notEmptyString('content')
+			->add('content', 'validateContent', [
+				'role' => 'validateContent',
+				'provider' => 'table',
+			]);
 
 		$validator
 			->scalar('frequency')
 			->maxLength('frequency', 140)
 			->requirePresence('frequency', 'create')
-			->notEmptyString('frequency');
+			->notEmptyString('frequency')
+			->add('frequency', 'validateFrequency', [
+				'role' => 'validateFrequency',
+				'provider' => 'table',
+			]);
 
 		$validator
 			->dateTime('last_run')
@@ -95,6 +106,58 @@ class SchedulerRowsTable extends Table {
 			->notEmptyString('allow_concurrent');
 
 		return $validator;
+	}
+
+	/**
+	 * @param mixed $value
+	 * @param array $context
+	 *
+	 * @return bool
+	 */
+	public function validateContent($value, array $context): bool {
+		if (!is_string($value) || !$value) {
+			return false;
+		}
+
+		$data = $context['data'];
+		if (!isset($data['type'])) {
+			return false;
+		}
+		$type = (int)$data['type'];
+		switch ($type) {
+			case SchedulerRow::TYPE_QUEUE_TASK:
+				return $this->validateQueueTask($value, $data);
+			case SchedulerRow::TYPE_CAKE_COMMAND:
+				return $this->validateCakeCommand($value, $data);
+			case SchedulerRow::TYPE_SHELL_COMMAND:
+				return $this->validateShellCommand($value, $data);
+		}
+
+		return false;
+	}
+
+	/**
+	 * @param mixed $value
+	 * @param array $context
+	 *
+	 * @return bool
+	 */
+	public function validateFrequency($value, array $context): bool {
+		if (!is_string($value) || !$value) {
+			return false;
+		}
+
+		$data = $context['data'];
+
+		if (substr($value, 0, 1) === '+') {
+			return $this->validateFrequencyAsStringInterval($value);
+		}
+
+		if (substr($value, 0, 1) === 'P') {
+			return $this->validateFrequencyAsDateInterval($value);
+		}
+
+		return $this->validateFrequencyAsCronExpression($value);
 	}
 
 	/**
@@ -157,6 +220,92 @@ class SchedulerRowsTable extends Table {
 		$row->last_run = new FrozenTime();
 		$this->saveOrFail($row);
 
+		return true;
+	}
+
+	/**
+	 * @param string $value
+	 *
+	 * @return bool
+	 */
+	protected function validateFrequencyAsStringInterval(string $value): bool {
+		try {
+			$result = DateInterval::createFromDateString($value);
+
+		} catch (Exception $e) {
+			return false;
+		}
+
+		return $result !== false;
+	}
+
+	/**
+	 * @param string $value
+	 *
+	 * @return bool
+	 */
+	protected function validateFrequencyAsDateInterval(string $value): bool {
+		try {
+			new DateInterval($value);
+		} catch (Exception $e) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * @param string $value
+	 *
+	 * @return bool
+	 */
+	protected function validateFrequencyAsCronExpression(string $value): bool {
+		try {
+			new CronExpression($value);
+		} catch (\Exception $e) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * @param string $value
+	 * @param array $data
+	 *
+	 * @return bool
+	 */
+	protected function validateCakeCommand(string $value, array $data): bool {
+		preg_match('/\w+Command$/', $value, $matches);
+		if (!$matches) {
+			return false;
+		}
+
+		return class_exists($value);
+	}
+
+	/**
+	 * @param string $value
+	 * @param array $data
+	 *
+	 * @return bool
+	 */
+	protected function validateQueueTask(string $value, array $data): bool {
+		preg_match('/\w+Task$/', $value, $matches);
+		if (!$matches) {
+			return false;
+		}
+
+		return class_exists($value);
+	}
+
+	/**
+	 * @param string $value
+	 * @param array $data
+	 *
+	 * @return bool
+	 */
+	protected function validateShellCommand(string $value, array $data): bool {
 		return true;
 	}
 

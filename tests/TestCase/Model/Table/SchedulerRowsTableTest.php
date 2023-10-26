@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace QueueScheduler\Test\TestCase\Model\Table;
 
+use Cake\Command\CacheClearCommand;
 use Cake\I18n\FrozenTime;
 use Cake\TestSuite\TestCase;
 use Queue\Queue\Task\ExampleTask;
@@ -82,6 +83,78 @@ class SchedulerRowsTableTest extends TestCase {
 		$row = $this->SchedulerRows->saveOrFail($row);
 
 		$this->assertSame($row->next_run->getTestNow()->addDays(2)->addSeconds(50)->toDateTimeString(), $row->next_run->toDateTimeString());
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testValidateFrequency(): void {
+		$data = [
+			'name' => 'n',
+			'content' => 'c',
+			'frequency' => '@daily',
+		];
+		$row = $this->SchedulerRows->newEntity($data);
+		$this->assertSame([], $row->getError('frequency'));
+
+		$data = [
+			'name' => 'n',
+			'content' => 'c',
+			'frequency' => 'daily',
+		];
+		$row = $this->SchedulerRows->newEntity($data);
+		$expected = ['validateFrequency' => 'The provided value is invalid'];
+		$this->assertSame($expected, $row->getError('frequency'));
+
+		$data = [
+			'name' => 'n',
+			'content' => 'c',
+			'frequency' => 'P2D',
+		];
+		$row = $this->SchedulerRows->newEntity($data);
+		$this->assertSame([], $row->getError('frequency'));
+
+		$data = [
+			'name' => 'n',
+			'content' => 'c',
+			'frequency' => '+ 1 hour + 1 minute',
+		];
+		$row = $this->SchedulerRows->newEntity($data);
+		$expected = [];
+		$this->assertSame($expected, $row->getError('frequency'));
+
+		$data = [
+			'name' => 'n',
+			'content' => 'c',
+			'frequency' => '+ x',
+		];
+		$row = $this->SchedulerRows->newEntity($data);
+		$expected = ['validateFrequency' => 'The provided value is invalid'];
+		$this->assertSame($expected, $row->getError('frequency'));
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testValidateContent(): void {
+		$data = [
+			'name' => 'n',
+			'content' => CacheClearCommand::class,
+			'type' => SchedulerRow::TYPE_CAKE_COMMAND,
+			'frequency' => '',
+		];
+		$row = $this->SchedulerRows->newEntity($data);
+		$this->assertSame([], $row->getError('content'));
+
+		$data = [
+			'name' => 'n',
+			'content' => ExampleTask::class,
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'frequency' => '',
+		];
+		$row = $this->SchedulerRows->newEntity($data);
+		$this->assertSame([], $row->getError('content'));
+
 	}
 
 }
