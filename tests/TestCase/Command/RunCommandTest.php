@@ -16,6 +16,13 @@ class RunCommandTest extends TestCase {
 	use ConsoleIntegrationTestTrait;
 
 	/**
+	 * @var string[]
+	 */
+	protected $fixtures = [
+		'plugin.QueueScheduler.SchedulerRows',
+	];
+
+	/**
 	 * setUp method
 	 *
 	 * @return void
@@ -32,7 +39,8 @@ class RunCommandTest extends TestCase {
 		$this->exec('scheduler run');
 
 		$this->assertExitCode(0);
-		$this->assertOutputContains('0 events due for scheduling');
+		$this->assertOutputContains('1 events due for scheduling');
+		$this->assertOutputContains('Done: 1 events scheduled');
 	}
 
 }

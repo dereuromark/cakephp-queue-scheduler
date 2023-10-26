@@ -1,52 +1,86 @@
 <?php
 declare(strict_types=1);
 
+use Cake\Cache\Cache;
+use Cake\Chronos\Chronos;
+use Cake\Core\Configure;
+use Cake\Core\Plugin;
+use Cake\Database\Connection;
+use Cake\Datasource\ConnectionManager;
+use Cake\TestSuite\Fixture\SchemaLoader;
+use TestApp\Controller\AppController;
+use Tools\View\Icon\BootstrapIcon;
+
 if (!defined('DS')) {
 	define('DS', DIRECTORY_SEPARATOR);
 }
-define('PLUGIN_ROOT', dirname(__DIR__));
-
-/**
- * Test suite bootstrap for QueueScheduler.
- *
- * This function is used to find the location of CakePHP whether CakePHP
- * has been installed as a dependency of the plugin, or the plugin is itself
- * installed as a dependency of an application.
- */
-$findRoot = function ($root) {
-	do {
-		$lastRoot = $root;
-		$root = dirname($root);
-		if (is_dir($root . '/vendor/cakephp/cakephp')) {
-			return $root;
-		}
-	} while ($root !== $lastRoot);
-
-	throw new Exception('Cannot find the root of the application, unable to run tests');
-};
-$root = $findRoot(__FILE__);
-unset($findRoot);
-
-chdir($root);
-
-require_once $root . '/vendor/autoload.php';
-
-/**
- * Define fallback values for required constants and configuration.
- * To customize constants and configuration remove this require
- * and define the data required by your plugin here.
- */
-require_once $root . '/vendor/cakephp/cakephp/tests/bootstrap.php';
-
-if (file_exists($root . '/config/bootstrap.php')) {
-	require $root . '/config/bootstrap.php';
-
-	return;
+if (!defined('WINDOWS')) {
+	if (DS === '\\' || substr(PHP_OS, 0, 3) === 'WIN') {
+		define('WINDOWS', true);
+	} else {
+		define('WINDOWS', false);
+	}
 }
 
-use Cake\Core\Configure;
-use Migrations\TestSuite\Migrator;
-use TestApp\Controller\AppController;
+define('PLUGIN_ROOT', dirname(__DIR__));
+define('ROOT', PLUGIN_ROOT . DS . 'tests' . DS . 'test_app');
+define('TMP', PLUGIN_ROOT . DS . 'tmp' . DS);
+define('LOGS', TMP . 'logs' . DS);
+define('CACHE', TMP . 'cache' . DS);
+define('APP', ROOT . DS . 'src' . DS);
+define('APP_DIR', 'src');
+define('CAKE_CORE_INCLUDE_PATH', PLUGIN_ROOT . '/vendor/cakephp/cakephp');
+define('CORE_PATH', CAKE_CORE_INCLUDE_PATH . DS);
+define('CAKE', CORE_PATH . APP_DIR . DS);
+
+define('WWW_ROOT', PLUGIN_ROOT . DS . 'webroot' . DS);
+define('TESTS', __DIR__ . DS);
+define('CONFIG', TESTS . 'config' . DS);
+
+ini_set('intl.default_locale', 'de-DE');
+
+require PLUGIN_ROOT . '/vendor/autoload.php';
+require CORE_PATH . 'config/bootstrap.php';
+
+Configure::write('App', [
+	'namespace' => 'TestApp',
+	'encoding' => 'UTF-8',
+	'paths' => [
+		'templates' => [
+			PLUGIN_ROOT . DS . 'tests' . DS . 'test_app' . DS . 'templates' . DS,
+		],
+	],
+]);
+Configure::write('Icon', [
+	'sets' => [
+		'bs' => BootstrapIcon::class,
+	],
+]);
+
+Configure::write('debug', true);
+
+$cache = [
+	'default' => [
+		'engine' => 'File',
+		'path' => CACHE,
+	],
+	'_cake_core_' => [
+		'className' => 'File',
+		'prefix' => 'crud_myapp_cake_core_',
+		'path' => CACHE . 'persistent/',
+		'serialize' => true,
+		'duration' => '+10 seconds',
+	],
+	'_cake_model_' => [
+		'className' => 'File',
+		'prefix' => 'crud_my_app_cake_model_',
+		'path' => CACHE . 'models/',
+		'serialize' => 'File',
+		'duration' => '+10 seconds',
+	],
+];
+
+Cache::setConfig($cache);
 
 class_alias(AppController::class, 'App\Controller\AppController');
 
@@ -64,12 +98,28 @@ Configure::write('Icon', [
 	'sets' => ['bs' => \Tools\View\Icon\BootstrapIcon::class],
 ]);
 
-$migrator = new Migrator();
-$migrator->runMany([
-	[
-		'plugin' => 'QueueScheduler',
-	],
-	[
-		'plugin' => 'Queue',
-	],
+Plugin::getCollection()->add(new QueueScheduler\QueueSchedulerPlugin());
+Plugin::getCollection()->add(new Queue\Plugin());
+Plugin::getCollection()->add(new Tools\Plugin());
+
+if (!getenv('DB_CLASS')) {
+	putenv('DB_CLASS=Cake\Database\Driver\Sqlite');
+	putenv('DB_URL=sqlite:///:memory:');
+}
+
+// Uses Travis config then (MySQL, Postgres, ...)
+ConnectionManager::setConfig('test', [
+	'className' => Connection::class,
+	'driver' => getenv('DB_CLASS') ?: null,
+	'url' => getenv('DB_URL') ?: null,
+	'timezone' => 'UTC',
+	'quoteIdentifiers' => false,
+	'cacheMetadata' => true,
 ]);
+
+Chronos::setTestNow(Chronos::now());
+
+if (env('FIXTURE_SCHEMA_METADATA')) {
+	$loader = new SchemaLoader();
+	$loader->loadInternalFile(env('FIXTURE_SCHEMA_METADATA'));
+}
