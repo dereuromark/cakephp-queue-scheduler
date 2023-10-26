@@ -9,20 +9,20 @@ $tables = [];
  */
 $iterator = new DirectoryIterator(__DIR__ . DS . 'Fixture');
 foreach ($iterator as $file) {
-	$tables = addTableFromSchemaFile((string)$file, 'QueueScheduler', $tables);
+	$tables = addTablesFromSchemaFile((string)$file, 'QueueScheduler', $tables);
 }
 
 /**
  * @var \DirectoryIterator<\DirectoryIterator> $iterator
  */
-$iterator = new DirectoryIterator(dirname(__DIR__) . DS . 'vendor/dereuromark/cakephp-queue/tests/Fixture');
+$iterator = new DirectoryIterator(dirname(__DIR__) . '/vendor/dereuromark/cakephp-queue/tests/Fixture');
 foreach ($iterator as $file) {
-	$tables = addTableFromSchemaFile((string)$file, 'Queue', $tables);
+	$tables = addTablesFromSchemaFile((string)$file, 'Queue', $tables);
 }
 
 return $tables;
 
-function addTableFromSchemaFile(string $file, string $pluginName, array $tables): array {
+function addTablesFromSchemaFile(string $file, string $pluginName, array $tables): array {
 	if (!preg_match('/(\w+)Fixture.php$/', $file, $matches)) {
 		return $tables;
 	}
