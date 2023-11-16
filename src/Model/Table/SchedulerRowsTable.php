@@ -7,7 +7,7 @@ use ArrayObject;
 use Cake\Core\Configure;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\EventInterface;
-use Cake\I18n\FrozenTime;
+use Cake\I18n\DateTime;
 use Cake\ORM\Query;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
@@ -192,7 +192,7 @@ class SchedulerRowsTable extends Table {
 	 * @return \Cake\ORM\Query
 	 */
 	public function findScheduled(Query $query) {
-		return $query->where(['OR' => ['next_run IS' => null, 'next_run <=' => new FrozenTime()]]);
+		return $query->where(['OR' => ['next_run IS' => null, 'next_run <=' => new DateTime()]]);
 	}
 
 	/**
@@ -215,7 +215,7 @@ class SchedulerRowsTable extends Table {
 		}
 
 		$queuedJobsTable->createJob($row->job_task, $row->job_data, $config);
-		$row->last_run = new FrozenTime();
+		$row->last_run = new DateTime();
 		$this->saveOrFail($row);
 
 		return true;

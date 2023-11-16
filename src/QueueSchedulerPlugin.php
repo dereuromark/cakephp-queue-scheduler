@@ -17,12 +17,12 @@ class QueueSchedulerPlugin extends BasePlugin {
 	/**
 	 * @var bool
 	 */
-	protected $bootstrapEnabled = false;
+	protected bool $bootstrapEnabled = false;
 
 	/**
 	 * @var bool
 	 */
-	protected $middlewareEnabled = false;
+	protected bool $middlewareEnabled = false;
 
 	/**
 	 * Add routes for the plugin.

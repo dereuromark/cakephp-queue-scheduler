@@ -21,7 +21,7 @@
 		<exclude-pattern>*/config/Migrations/*</exclude-pattern>
 		<exclude-pattern>*/config/Seeds/*</exclude-pattern>
 	</rule>
-	<rule ref="Spryker.Classes.ClassFileName.NoMatch">
+	<rule ref="PhpCollective.Classes.ClassFileName.NoMatch">
 		<exclude-pattern>*/config/Migrations/*</exclude-pattern>
 	</rule>
 

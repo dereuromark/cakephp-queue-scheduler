@@ -41,6 +41,7 @@ ini_set('intl.default_locale', 'de-DE');
 
 require PLUGIN_ROOT . '/vendor/autoload.php';
 require CORE_PATH . 'config/bootstrap.php';
+require CAKE . 'functions.php';
 
 Configure::write('App', [
 	'namespace' => 'TestApp',
@@ -99,18 +100,16 @@ Configure::write('Icon', [
 ]);
 
 Plugin::getCollection()->add(new QueueScheduler\QueueSchedulerPlugin());
-Plugin::getCollection()->add(new Queue\Plugin());
-Plugin::getCollection()->add(new Tools\Plugin());
+Plugin::getCollection()->add(new Queue\QueuePlugin());
+Plugin::getCollection()->add(new Tools\ToolsPlugin());
 
-if (!getenv('DB_CLASS')) {
-	putenv('DB_CLASS=Cake\Database\Driver\Sqlite');
+if (!getenv('DB_URL')) {
 	putenv('DB_URL=sqlite:///:memory:');
 }
 
 // Uses Travis config then (MySQL, Postgres, ...)
 ConnectionManager::setConfig('test', [
 	'className' => Connection::class,
-	'driver' => getenv('DB_CLASS') ?: null,
 	'url' => getenv('DB_URL') ?: null,
 	'timezone' => 'UTC',
 	'quoteIdentifiers' => false,
