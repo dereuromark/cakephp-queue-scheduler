@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace QueueScheduler\Model\Entity;
 
-use Cake\I18n\FrozenTime;
+use Cake\I18n\DateTime;
 use Cron\CronExpression;
 use DateInterval;
 use Queue\Queue\Config;
@@ -18,11 +18,11 @@ use Tools\Model\Entity\Entity;
  * @property int $type
  * @property string $content
  * @property string $frequency
- * @property \Cake\I18n\FrozenTime|null $last_run
- * @property \Cake\I18n\FrozenTime|null $next_run
+ * @property \Cake\I18n\DateTime|null $last_run
+ * @property \Cake\I18n\DateTime|null $next_run
  * @property bool $allow_concurrent
- * @property \Cake\I18n\FrozenTime|null $created
- * @property \Cake\I18n\FrozenTime|null $modified
+ * @property \Cake\I18n\DateTime|null $created
+ * @property \Cake\I18n\DateTime|null $modified
  * @property bool $enabled
  * @property-read string|null $job_task
  * @property-read array $job_data
@@ -40,7 +40,7 @@ class SchedulerRow extends Entity {
 	 *
 	 * @var array<string, bool>
 	 */
-	protected $_accessible = [
+	protected array $_accessible = [
 		'*' => true,
 		'id' => false,
 	];
@@ -82,7 +82,7 @@ class SchedulerRow extends Entity {
 	public function isDue(): bool {
 		$nextRun = $this->next_run;
 
-		$dateTime = new FrozenTime();
+		$dateTime = new DateTime();
 		if ($nextRun) {
 			return $nextRun->timestamp < $dateTime->timestamp;
 		}
@@ -119,12 +119,12 @@ class SchedulerRow extends Entity {
 
 	/**
 	 * @throws \Exception
-	 * @return \Cake\I18n\FrozenTime|null
+	 * @return \Cake\I18n\DateTime|null
 	 */
 	public function calculateNextRun() {
 		$dateTime = $this->last_run;
 		if ($dateTime === null) {
-			return new FrozenTime();
+			return new DateTime();
 		}
 
 		$i = $this->calculateNextInterval();

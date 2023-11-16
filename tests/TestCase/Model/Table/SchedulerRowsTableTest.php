@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace QueueScheduler\Test\TestCase\Model\Table;
 
 use Cake\Command\CacheClearCommand;
-use Cake\I18n\FrozenTime;
+use Cake\I18n\DateTime;
 use Cake\TestSuite\TestCase;
 use Queue\Queue\Task\ExampleTask;
 use QueueScheduler\Model\Entity\SchedulerRow;
@@ -27,7 +27,7 @@ class SchedulerRowsTableTest extends TestCase {
 	 *
 	 * @var array<string>
 	 */
-	protected $fixtures = [
+	protected array $fixtures = [
 		'plugin.QueueScheduler.SchedulerRows',
 	];
 
@@ -73,13 +73,13 @@ class SchedulerRowsTableTest extends TestCase {
 		$this->assertNotEmpty($row->next_run);
 		$this->assertSame($row->next_run->getTestNow()->toDateTimeString(), $row->next_run->toDateTimeString());
 
-		$row->last_run = (new FrozenTime())->addDays(1);
+		$row->last_run = (new DateTime())->addDays(1);
 		$row->frequency = '+50seconds';
 		$row = $this->SchedulerRows->saveOrFail($row);
 
 		$this->assertSame($row->next_run->getTestNow()->addDays(1)->addSeconds(50)->toDateTimeString(), $row->next_run->toDateTimeString());
 
-		$row->last_run = (new FrozenTime())->addDays(2);
+		$row->last_run = (new DateTime())->addDays(2);
 		$row = $this->SchedulerRows->saveOrFail($row);
 
 		$this->assertSame($row->next_run->getTestNow()->addDays(2)->addSeconds(50)->toDateTimeString(), $row->next_run->toDateTimeString());

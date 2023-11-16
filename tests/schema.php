@@ -29,10 +29,19 @@ function addTablesFromSchemaFile(string $file, string $pluginName, array $tables
 
 	$name = $matches[1];
 	$class = $pluginName . '\\Test\\Fixture\\' . $name . 'Fixture';
+	try {
+		$fieldsObject = (new ReflectionClass($class))->getProperty('fields');
+		$tableObject = (new ReflectionClass($class))->getProperty('table');
+		$tableName = $tableObject->getDefaultValue();
+	} catch (ReflectionException $e) {
+		return $tables;
+	}
 
-	$object = new $class();
-	$array = $object->fields;
-	$tableName = $object->table ?: Inflector::underscore($name);
+	if (!$tableName) {
+		$tableName = Inflector::underscore($name);
+	}
+
+	$array = $fieldsObject->getDefaultValue();
 	$constraints = $array['_constraints'] ?? [];
 	$indexes = $array['_indexes'] ?? [];
 	unset($array['_constraints'], $array['_indexes'], $array['_options']);

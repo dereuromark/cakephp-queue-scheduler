@@ -7,8 +7,8 @@ use ArrayObject;
 use Cake\Core\Configure;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\EventInterface;
-use Cake\I18n\FrozenTime;
-use Cake\ORM\Query;
+use Cake\I18n\DateTime;
+use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
@@ -172,11 +172,11 @@ class SchedulerRowsTable extends Table {
 	}
 
 	/**
-	 * @param \Cake\ORM\Query $query
+	 * @param \Cake\ORM\Query\SelectQuery $query
 	 *
-	 * @return \Cake\ORM\Query
+	 * @return \Cake\ORM\Query\SelectQuery
 	 */
-	public function findActive(Query $query) {
+	public function findActive(SelectQuery $query): SelectQuery {
 		$conditions = ['enabled' => true];
 		$debug = Configure::read('debug');
 		if (!$debug && !Configure::read('QueueScheduler.allowRaw')) {
@@ -187,12 +187,12 @@ class SchedulerRowsTable extends Table {
 	}
 
 	/**
-	 * @param \Cake\ORM\Query $query
+	 * @param \Cake\ORM\Query\SelectQuery $query
 	 *
-	 * @return \Cake\ORM\Query
+	 * @return \Cake\ORM\Query\SelectQuery
 	 */
-	public function findScheduled(Query $query) {
-		return $query->where(['OR' => ['next_run IS' => null, 'next_run <=' => new FrozenTime()]]);
+	public function findScheduled(SelectQuery $query): SelectQuery {
+		return $query->where(['OR' => ['next_run IS' => null, 'next_run <=' => new DateTime()]]);
 	}
 
 	/**
@@ -215,7 +215,7 @@ class SchedulerRowsTable extends Table {
 		}
 
 		$queuedJobsTable->createJob($row->job_task, $row->job_data, $config);
-		$row->last_run = new FrozenTime();
+		$row->last_run = new DateTime();
 		$this->saveOrFail($row);
 
 		return true;

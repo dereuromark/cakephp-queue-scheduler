@@ -17,7 +17,7 @@ class SchedulerRowsControllerTest extends TestCase {
 	/**
 	 * @var string[]
 	 */
-	protected $fixtures = [
+	protected array $fixtures = [
 		'plugin.QueueScheduler.SchedulerRows',
 	];
 

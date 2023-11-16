@@ -18,19 +18,9 @@ class RunCommandTest extends TestCase {
 	/**
 	 * @var string[]
 	 */
-	protected $fixtures = [
+	protected array $fixtures = [
 		'plugin.QueueScheduler.SchedulerRows',
 	];
-
-	/**
-	 * setUp method
-	 *
-	 * @return void
-	 */
-	protected function setUp(): void {
-		parent::setUp();
-		$this->useCommandRunner();
-	}
 
 	/**
 	 * @return void
