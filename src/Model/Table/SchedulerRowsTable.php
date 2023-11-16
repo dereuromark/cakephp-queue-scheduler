@@ -147,8 +147,6 @@ class SchedulerRowsTable extends Table {
 			return false;
 		}
 
-		$data = $context['data'];
-
 		if (substr($value, 0, 1) === '+') {
 			return $this->validateFrequencyAsStringInterval($value);
 		}
