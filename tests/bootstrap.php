@@ -102,15 +102,13 @@ Plugin::getCollection()->add(new QueueScheduler\QueueSchedulerPlugin());
 Plugin::getCollection()->add(new Queue\Plugin());
 Plugin::getCollection()->add(new Tools\Plugin());
 
-if (!getenv('DB_CLASS')) {
-	putenv('DB_CLASS=Cake\Database\Driver\Sqlite');
+if (!getenv('DB_URL')) {
 	putenv('DB_URL=sqlite:///:memory:');
 }
 
 // Uses Travis config then (MySQL, Postgres, ...)
 ConnectionManager::setConfig('test', [
 	'className' => Connection::class,
-	'driver' => getenv('DB_CLASS') ?: null,
 	'url' => getenv('DB_URL') ?: null,
 	'timezone' => 'UTC',
 	'quoteIdentifiers' => false,
