@@ -45,7 +45,7 @@
 					<?php if ($queuedJob) { ?>
 					<div class="alert alert-warning">
 						<b><?php echo h($queuedJob->status) ?: 'Queued'?></b>
-						<?php echo $this->Html->link($this->Format->icon('view'), ['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $queuedJob->id], ['escapeTitle' => false]); ?>
+						<?php echo $this->Html->link($this->Icon->render('view'), ['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $queuedJob->id], ['escapeTitle' => false]); ?>
 
 						<?php if (!$queuedJob->completed && $queuedJob->fetched) { ?>
 							<?php if (!$queuedJob->failure_message) { ?>
