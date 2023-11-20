@@ -15,7 +15,6 @@ class QueueSchedulerController extends AppController {
 		parent::initialize();
 
 		$this->viewBuilder()->addHelpers([
-			//'Tools.Format',
 			'Tools.Icon',
 			'Queue.Queue',
 			'Queue.QueueProgress',
