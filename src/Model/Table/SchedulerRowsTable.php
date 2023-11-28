@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace QueueScheduler\Model\Table;
 
 use ArrayObject;
+use Cake\Core\App;
 use Cake\Core\Configure;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\EventInterface;
@@ -156,6 +157,32 @@ class SchedulerRowsTable extends Table {
 		}
 
 		return $this->validateFrequencyAsCronExpression($value);
+	}
+
+	/**
+	 * @param \Cake\Event\EventInterface $event
+	 * @param \ArrayObject $data
+	 * @param \ArrayObject $options
+	 *
+	 * @return void
+	 */
+	public function beforeMarshal(EventInterface $event, ArrayObject $data, ArrayObject $options): void {
+		if (!isset($data['type']) || strlen((string)$data['type']) === 0 || (int)$data['type'] !== SchedulerRow::TYPE_QUEUE_TASK) {
+			return;
+		}
+
+		if (empty($data['content'])) {
+			return;
+		}
+
+		if (strpos($data['content'], '\\') !== false) {
+			return;
+		}
+
+		$className = App::className($data['content'], 'Queue/Task', 'Task');
+		if ($className) {
+			$data['content'] = $className;
+		}
 	}
 
 	/**

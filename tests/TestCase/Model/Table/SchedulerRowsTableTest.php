@@ -86,6 +86,26 @@ class SchedulerRowsTableTest extends TestCase {
 	}
 
 	/**
+	 * Test validationDefault method
+	 *
+	 *@uses \QueueScheduler\Model\Table\SchedulerRowsTable::validationDefault()
+	 *
+	 * @return void
+	 */
+	public function testInsertWithAliasOnly(): void {
+		$row = $this->SchedulerRows->newEntity([
+			'name' => 'Example Queue Task',
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'frequency' => '+30seconds',
+			'content' => 'Queue.Example',
+			'enabled' => true,
+		]);
+
+		$row = $this->SchedulerRows->saveOrFail($row);
+		$this->assertSame($row->content, ExampleTask::class);
+	}
+
+	/**
 	 * @return void
 	 */
 	public function testValidateFrequency(): void {
