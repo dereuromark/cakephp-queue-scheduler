@@ -25,9 +25,9 @@
 		<exclude-pattern>*/config/Migrations/*</exclude-pattern>
 	</rule>
 
-	<rule ref="SlevomatCodingStandard.TypeHints.DeclareStrictTypes">
+	<rule ref="PhpCollective.PHP.DeclareStrictTypes">
 		<properties>
-			<property name="newlinesCountBetweenOpenTagAndDeclare" value="0"/>
+			<property name="declareOnFirstLine" value="yes"/>
 		</properties>
 	</rule>
 
