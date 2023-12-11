@@ -4,6 +4,7 @@ namespace QueueScheduler\Controller\Admin;
 
 use Cake\Utility\Hash;
 use QueueScheduler\Controller\AppController;
+use Templating\View\Helper\IconHelper;
 
 class QueueSchedulerController extends AppController {
 
@@ -14,7 +15,7 @@ class QueueSchedulerController extends AppController {
 		parent::initialize();
 
 		$this->viewBuilder()->addHelpers([
-			'Tools.Icon',
+			class_exists(IconHelper::class) ? 'Templating.Icon' : 'Tools.Icon',
 			'Queue.Queue',
 			'Queue.QueueProgress',
 		]);

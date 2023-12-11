@@ -3,6 +3,7 @@
 namespace QueueScheduler\Controller\Admin;
 
 use QueueScheduler\Controller\AppController;
+use Templating\View\Helper\IconHelper;
 
 /**
  * Rows Controller
@@ -20,7 +21,7 @@ class SchedulerRowsController extends AppController {
 
 		$this->viewBuilder()->addHelpers([
 			'Tools.Format',
-			'Tools.Icon',
+			class_exists(IconHelper::class) ? 'Templating.Icon' : 'Tools.Icon',
 		]);
 	}
 
