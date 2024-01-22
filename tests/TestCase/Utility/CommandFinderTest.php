@@ -2,7 +2,7 @@
 
 namespace QueueScheduler\Test\TestCase\Utility;
 
-use Cake\Core\Plugin as CakePlugin;
+use Cake\Core\Plugin;
 use Cake\TestSuite\TestCase;
 use Queue\QueuePlugin;
 use QueueScheduler\Utility\CommandFinder;
@@ -13,7 +13,7 @@ class CommandFinderTest extends TestCase {
 	 * @return void
 	 */
 	public function testAll() {
-		CakePlugin::getCollection()->add(new QueuePlugin());
+		Plugin::getCollection()->add(new QueuePlugin());
 
 		$result = (new CommandFinder())->all();
 		$expected = [
