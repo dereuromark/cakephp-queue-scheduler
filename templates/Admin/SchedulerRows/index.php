@@ -42,6 +42,10 @@
 					<td><?= $this->Format->yesNo($row->allow_concurrent) ?></td>
 					<td>
 						<?= $this->Format->yesNo($row->enabled) ?>
+						<?php if ($row->enabled && $row->type === $row::TYPE_SHELL_COMMAND && !\Cake\Core\Configure::read('QueueScheduler.allowRaw')) { ?>
+							<span><?php echo $this->Icon->render('fas:stop-circle', [], ['title' => 'Raw commands are currently configured to be not runnable on non-debug system for security reasons.']); ?></span>
+						<?php } ?>
+
 						<?php if ($row->last_run) { ?>
 						<div><small>Last run: <?php echo $row->last_run; ?></small></div>
 						<?php } ?>
