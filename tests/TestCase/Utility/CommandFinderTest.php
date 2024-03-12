@@ -16,7 +16,7 @@ class CommandFinderTest extends TestCase {
 		Plugin::getCollection()->add(new QueuePlugin());
 
 		$result = (new CommandFinder())->all();
-		unset($result['Queue.MigrateTask']);
+		unset($result['Queue.MigrateTasks']);
 		$expected = [
 			'Queue.BakeQueueTask' => 'Queue.BakeQueueTask',
 			'Queue.Worker' => 'Queue.Worker',
