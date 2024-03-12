@@ -2,8 +2,8 @@
 
 namespace QueueScheduler\Controller\Admin;
 
+use Queue\Controller\Admin\LoadHelperTrait;
 use QueueScheduler\Controller\AppController;
-use Templating\View\Helper\IconHelper;
 
 /**
  * Rows Controller
@@ -13,16 +13,15 @@ use Templating\View\Helper\IconHelper;
  */
 class SchedulerRowsController extends AppController {
 
+	use LoadHelperTrait;
+
 	/**
 	 * @return void
 	 */
 	public function initialize(): void {
 		parent::initialize();
 
-		$this->viewBuilder()->addHelpers([
-			'Tools.Format',
-			class_exists(IconHelper::class) ? 'Templating.Icon' : 'Tools.Icon',
-		]);
+		$this->loadHelpers();
 	}
 
 	/**

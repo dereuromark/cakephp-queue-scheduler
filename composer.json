@@ -8,9 +8,10 @@
 		"cakephp/cakephp": "^5.0.1",
 		"dragonmantank/cron-expression": "^3.3",
 		"dereuromark/cakephp-tools": "^3.0.0",
-		"dereuromark/cakephp-queue": "^7.0.0"
+		"dereuromark/cakephp-queue": "^7.0.0 || ^8.0.0"
 	},
 	"require-dev": {
+		"dereuromark/cakephp-templating": "^0.2.2",
 		"cakephp/migrations": "^4.1.0",
 		"phpunit/phpunit": "^10.3",
 		"fig-r/psr2r-sniffer": "dev-next"
