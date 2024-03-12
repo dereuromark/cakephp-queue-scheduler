@@ -39,9 +39,9 @@
 					<td><?= h($row->name) ?></td>
 					<td><?= $row::types($row->type) ?></td>
 					<td><?= h($row->frequency) ?></td>
-					<td><?= $this->Format->yesNo($row->allow_concurrent) ?></td>
+					<td><?= $this->element('Queue.yes_no', ['value' => $row->allow_concurrent]) ?></td>
 					<td>
-						<?= $this->Format->yesNo($row->enabled) ?>
+						<?= $this->element('Queue.yes_no', ['value' => $row->enabled]) ?>
 						<?php if ($row->enabled && $row->type === $row::TYPE_SHELL_COMMAND && !\Cake\Core\Configure::read('QueueScheduler.allowRaw')) { ?>
 							<span><?php echo $this->Icon->render('stop-circle', [], ['title' => 'Raw commands are currently configured to be not runnable on non-debug system for security reasons.']); ?></span>
 						<?php } ?>

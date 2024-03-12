@@ -40,7 +40,7 @@
 				</tr>
 				<tr>
 					<th><?= __('Allow Concurrent') ?></th>
-					<td><?= $this->Format->yesNo($row->allow_concurrent) ?> <?= $row->allow_concurrent ? __('Yes') : __('No'); ?></td>
+					<td><?= $this->element('Queue.yes_no', ['value' => $row->allow_concurrent]) ?> <?= $row->allow_concurrent ? __('Yes') : __('No'); ?></td>
 				</tr>
 			</table>
 			<div class="text">

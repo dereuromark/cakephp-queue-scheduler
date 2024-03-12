@@ -3,10 +3,12 @@
 namespace QueueScheduler\Controller\Admin;
 
 use Cake\Utility\Hash;
+use Queue\Controller\Admin\LoadHelperTrait;
 use QueueScheduler\Controller\AppController;
-use Templating\View\Helper\IconHelper;
 
 class QueueSchedulerController extends AppController {
+
+	use LoadHelperTrait;
 
 	/**
 	 * @return void
@@ -14,11 +16,7 @@ class QueueSchedulerController extends AppController {
 	public function initialize(): void {
 		parent::initialize();
 
-		$this->viewBuilder()->addHelpers([
-			class_exists(IconHelper::class) ? 'Templating.Icon' : 'Tools.Icon',
-			'Queue.Queue',
-			'Queue.QueueProgress',
-		]);
+		$this->loadHelpers();
 	}
 
 	/**

@@ -8,8 +8,8 @@ use Cake\Core\Plugin;
 use Cake\Database\Connection;
 use Cake\Datasource\ConnectionManager;
 use Cake\TestSuite\Fixture\SchemaLoader;
+use Templating\View\Icon\BootstrapIcon;
 use TestApp\Controller\AppController;
-use Tools\View\Icon\BootstrapIcon;
 
 if (!defined('DS')) {
 	define('DS', DIRECTORY_SEPARATOR);
@@ -96,7 +96,7 @@ Configure::write('App', [
 ]);
 
 Configure::write('Icon', [
-	'sets' => ['bs' => \Tools\View\Icon\BootstrapIcon::class],
+	'sets' => ['bs' => BootstrapIcon::class],
 ]);
 
 Plugin::getCollection()->add(new QueueScheduler\QueueSchedulerPlugin());
