@@ -17,17 +17,19 @@ class CommandFinderTest extends TestCase {
 
 		$result = (new CommandFinder())->all();
 		unset($result['Queue.MigrateTasks']);
+
+		$keys = array_keys($result);
 		$expected = [
-			'Queue.BakeQueueTask' => 'Queue.BakeQueueTask',
-			'Queue.Worker' => 'Queue.Worker',
-			'Queue.Job' => 'Queue.Job',
-			'Queue.Run' => 'Queue.Run',
-			'Queue.Add' => 'Queue.Add',
-			'Queue.Info' => 'Queue.Info',
-			'QueueScheduler.Run' => 'QueueScheduler.Run',
-			'Tools.Inflect' => 'Tools.Inflect',
+			'Queue.BakeQueueTask',
+			'Queue.Worker',
+			'Queue.Job',
+			'Queue.Run',
+			'Queue.Add',
+			'Queue.Info',
+			'QueueScheduler.Run',
+			'Tools.Inflect',
 		];
-		$this->assertEquals($expected, $result);
+		$this->assertEquals($expected, $keys);
 	}
 
 }
