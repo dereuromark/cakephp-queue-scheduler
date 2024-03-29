@@ -2,7 +2,6 @@
 
 namespace QueueScheduler\Controller\Admin;
 
-use Queue\Controller\Admin\LoadHelperTrait;
 use QueueScheduler\Controller\AppController;
 
 /**

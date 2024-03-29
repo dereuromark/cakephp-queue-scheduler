@@ -3,7 +3,6 @@
 namespace QueueScheduler\Controller\Admin;
 
 use Cake\Utility\Hash;
-use Queue\Controller\Admin\LoadHelperTrait;
 use QueueScheduler\Controller\AppController;
 
 class QueueSchedulerController extends AppController {

@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Queue\Controller\Admin;
+namespace QueueScheduler\Controller\Admin;
 
 use Templating\View\Helper\IconHelper;
 use Templating\View\Helper\IconSnippetHelper;
