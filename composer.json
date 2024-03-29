@@ -14,7 +14,7 @@
 		"dereuromark/cakephp-templating": "^0.2.2",
 		"cakephp/migrations": "^4.1.0",
 		"phpunit/phpunit": "^10.3",
-		"fig-r/psr2r-sniffer": "dev-next"
+		"fig-r/psr2r-sniffer": "dev-master"
 	},
 	"autoload": {
 		"psr-4": {
