@@ -42,9 +42,7 @@ class SchedulerRowsController extends AppController {
 	 * @return \Cake\Http\Response|null|void Renders view
 	 */
 	public function view($id = null) {
-		$row = $this->SchedulerRows->get($id, [
-			'contain' => [],
-		]);
+		$row = $this->SchedulerRows->get($id);
 
 		$this->set(compact('row'));
 	}
