@@ -74,9 +74,7 @@ class SchedulerRowsController extends AppController {
 	 * @return \Cake\Http\Response|null|void Redirects on successful edit, renders view otherwise.
 	 */
 	public function edit($id = null) {
-		$row = $this->SchedulerRows->get($id, [
-			'contain' => [],
-		]);
+		$row = $this->SchedulerRows->get($id);
 		if ($this->request->is(['patch', 'post', 'put'])) {
 			$row = $this->SchedulerRows->patchEntity($row, $this->request->getData());
 			if ($this->SchedulerRows->save($row)) {
