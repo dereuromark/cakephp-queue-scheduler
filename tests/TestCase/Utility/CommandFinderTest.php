@@ -2,9 +2,7 @@
 
 namespace QueueScheduler\Test\TestCase\Utility;
 
-use Cake\Core\Plugin;
 use Cake\TestSuite\TestCase;
-use Queue\QueuePlugin;
 use QueueScheduler\Utility\CommandFinder;
 
 class CommandFinderTest extends TestCase {
@@ -13,8 +11,6 @@ class CommandFinderTest extends TestCase {
 	 * @return void
 	 */
 	public function testAll() {
-		Plugin::getCollection()->add(new QueuePlugin());
-
 		$result = (new CommandFinder())->all();
 		unset($result['Queue.MigrateTasks']);
 		$expected = [

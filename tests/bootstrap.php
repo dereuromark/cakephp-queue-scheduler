@@ -4,7 +4,6 @@ declare(strict_types=1);
 use Cake\Cache\Cache;
 use Cake\Chronos\Chronos;
 use Cake\Core\Configure;
-use Cake\Core\Plugin;
 use Cake\Database\Connection;
 use Cake\Datasource\ConnectionManager;
 use Cake\TestSuite\Fixture\SchemaLoader;
@@ -85,23 +84,9 @@ Cache::setConfig($cache);
 
 class_alias(AppController::class, 'App\Controller\AppController');
 
-Configure::write('App', [
-	'namespace' => 'TestApp',
-	'encoding' => 'UTF-8',
-	'paths' => [
-		'templates' => [
-			PLUGIN_ROOT . DS . 'tests' . DS . 'test_app' . DS . 'templates' . DS,
-		],
-	],
-]);
-
 Configure::write('Icon', [
 	'sets' => ['bs' => BootstrapIcon::class],
 ]);
-
-Plugin::getCollection()->add(new QueueScheduler\QueueSchedulerPlugin());
-Plugin::getCollection()->add(new Queue\QueuePlugin());
-Plugin::getCollection()->add(new Tools\ToolsPlugin());
 
 if (!getenv('DB_URL')) {
 	putenv('DB_URL=sqlite:///:memory:');
