@@ -57,7 +57,6 @@ class QueueSchedulerPlugin extends BasePlugin {
 	 * @return \Cake\Console\CommandCollection
 	 */
 	public function console(CommandCollection $commands): CommandCollection {
-		$commands = parent::console($commands);
 		$commands->add('scheduler run', RunCommand::class);
 
 		return $commands;
