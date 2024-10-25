@@ -64,10 +64,10 @@
 				</td>
 				<td>
 					<?php if ($schedulerRow->last_run) { ?>
-						<div><small>Last run: <?php echo $schedulerRow->last_run; ?></small></div>
+						<div><small>Last run: <?php echo $this->Time->nice($schedulerRow->last_run); ?></small></div>
 					<?php } ?>
 					<?php if ($schedulerRow->next_run) { ?>
-						<div><small>Next run: <?php echo $schedulerRow->next_run; ?></small></div>
+						<div><small>Next run: <?php echo $this->Time->nice($schedulerRow->next_run); ?></small></div>
 					<?php } ?>
 				</td>
 				<td class="actions">

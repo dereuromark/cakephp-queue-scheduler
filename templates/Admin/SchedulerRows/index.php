@@ -47,10 +47,10 @@
 						<?php } ?>
 
 						<?php if ($row->last_run) { ?>
-						<div><small>Last run: <?php echo $row->last_run; ?></small></div>
+						<div><small>Last run: <?php echo $this->Time->nice($row->last_run); ?></small></div>
 						<?php } ?>
 						<?php if ($row->next_run) { ?>
-							<div><small>Next run: <?php echo $row->next_run; ?></small></div>
+							<div><small>Next run: <?php echo $this->Time->nice($row->next_run); ?></small></div>
 						<?php } ?>
 					</td>
 					<td><?= $this->Time->nice($row->created) ?></td>

@@ -53,9 +53,8 @@
 			<?php if (class_exists('Cron\CronExpression') && $row->isCronExpression()) { ?>
 			<h3>Crontab expression</h3>
 			<p>If you want to port this into a native crontab line, copy and paste the following</p>
-			<code>
-				<pre><?php echo (new \Cron\CronExpression($row->frequency))?></pre>
-			</code>
+
+			<pre class="crontab"><?php echo (new \Cron\CronExpression($row->frequency))?></pre>
 
 			<?php } ?>
 		</div>
