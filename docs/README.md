@@ -53,6 +53,16 @@ sh /some/shell.sh
 
 You can use different styles depending on your use case.
 
+### Shortcuts
+- `@yearly`
+- `@annually`
+- `@monthly`
+- `@weekly`
+- `@daily`
+- `@hourly`
+
+It calculates itself off the `created` datetime.
+
 ### Crontab style
 For larger time frames (e.g. months) or more complex scheduling (e.g. "every Tuesday at ...") this style is recommended.
 See https://crontab.guru/ for details.

@@ -30,6 +30,20 @@
 					<th><?= __('Last Run') ?></th>
 					<td><?= $this->Time->nice($row->last_run) ?></td>
 				</tr>
+				<?php
+				$nextRun = $row->next_run ?: $row->calculateNextRun();
+				?>
+				<?php if ($nextRun) { ?>
+					<tr>
+						<th><?= __('Next Run') ?></th>
+						<td>
+							<?= $this->Time->nice($nextRun) ?>
+							<div>
+							(<?php echo $this->Time->timeAgoInWords($nextRun); ?>)
+							</div>
+						</td>
+					</tr>
+				<?php } ?>
 				<tr>
 					<th><?= __('Created') ?></th>
 					<td><?= $this->Time->nice($row->created) ?></td>

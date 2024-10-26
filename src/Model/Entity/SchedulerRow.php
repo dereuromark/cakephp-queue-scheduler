@@ -5,6 +5,7 @@ namespace QueueScheduler\Model\Entity;
 use Cake\I18n\DateTime;
 use Cron\CronExpression;
 use DateInterval;
+use Exception;
 use Queue\Queue\Config;
 use RuntimeException;
 use Tools\Model\Entity\Entity;
@@ -120,7 +121,7 @@ class SchedulerRow extends Entity {
 	 * @throws \Exception
 	 * @return \Cake\I18n\DateTime|null
 	 */
-	public function calculateNextRun() {
+	public function calculateNextRun(): ?DateTime {
 		$dateTime = $this->last_run;
 		if ($dateTime === null) {
 			return new DateTime();
@@ -131,7 +132,13 @@ class SchedulerRow extends Entity {
 			return $dateTime->add($i);
 		}
 
-		return null;
+		try {
+			$dateTime = (new CronExpression($this->frequency))->getNextRunDate();
+		} catch (Exception $e) {
+			return null;
+		}
+
+		return new DateTime($dateTime);
 	}
 
 	/**
