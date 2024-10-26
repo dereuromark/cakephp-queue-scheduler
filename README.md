@@ -31,6 +31,8 @@ Further features:
 - The backend can provide buttons to also "trigger" any scheduled job manually where needed.
 - Autocomplete or proposals based on available Cake commands or Queue tasks.
 
+![screenshot](docs/screenshot.png)
+
 ## Installation
 
 You can install this plugin into your CakePHP application using [composer](https://getcomposer.org).

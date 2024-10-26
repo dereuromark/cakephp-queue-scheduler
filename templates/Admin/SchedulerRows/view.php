@@ -76,7 +76,10 @@
 			<h3>Crontab expression</h3>
 			<p>If you want to port this into a native crontab line, copy and paste the following</p>
 
-			<pre class="crontab"><?php echo (new \Cron\CronExpression($row->frequency))?></pre>
+			<?php
+				$expression = (new \Cron\CronExpression($row->frequency));
+			?>
+			<pre class="crontab"><?php echo $expression; ?></pre>
 
 			<?php } ?>
 		</div>
