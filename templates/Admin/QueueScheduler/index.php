@@ -64,13 +64,13 @@
 				</td>
 				<td>
 					<?php if ($schedulerRow->last_run) { ?>
-						<div><small>Last run: <?php echo $this->Time->nice($schedulerRow->last_run); ?></small></div>
+						<div><small><?= __('Last Run') ?>: <?php echo $this->Time->nice($schedulerRow->last_run); ?></small></div>
 					<?php } ?>
 					<?php
 						$nextRun = $schedulerRow->next_run ?: $schedulerRow->calculateNextRun();
 					?>
 					<?php if ($nextRun) { ?>
-						<div><small>Next run: <?php echo $this->Time->nice($nextRun); ?></small></div>
+						<div><small><?= __('Next Run') ?>: <?php echo $this->Time->nice($nextRun); ?></small></div>
 					<?php } ?>
 				</td>
 				<td class="actions">

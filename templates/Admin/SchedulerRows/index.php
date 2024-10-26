@@ -47,13 +47,17 @@
 						<?php } ?>
 
 						<?php if ($row->last_run) { ?>
-						<div><small>Last run: <?php echo $this->Time->nice($row->last_run); ?></small></div>
+						<div><small><?= __('Last Run') ?>: <?php echo $this->Time->nice($row->last_run); ?></small></div>
 						<?php } ?>
 						<?php
 							$nextRun = $row->next_run ?: $row->calculateNextRun();
 						?>
 						<?php if ($nextRun) { ?>
-							<div><small>Next run: <?php echo $this->Time->nice($nextRun); ?></small></div>
+							<?php if (!$row->enabled) { ?>
+								<div class="canceled"><small><del><?= __('Next Run') ?>: <?php echo $this->Time->nice($nextRun); ?></del></small></div>
+							<?php } else { ?>
+								<div><small><?= __('Next Run') ?>: <?php echo $this->Time->nice($nextRun); ?></small></div>
+							<?php } ?>
 						<?php } ?>
 					</td>
 					<td><?= $this->Time->nice($row->created) ?></td>

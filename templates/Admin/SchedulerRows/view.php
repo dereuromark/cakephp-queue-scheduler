@@ -19,12 +19,16 @@
 
 			<table class="table table-striped">
 				<tr>
+					<th><?= __('Type') ?></th>
+					<td><?= $row::types($row->type) ?></td>
+				</tr>
+				<tr>
 					<th><?= __('Frequency') ?></th>
 					<td><?= h($row->frequency) ?></td>
 				</tr>
 				<tr>
-					<th><?= __('Type') ?></th>
-					<td><?= $row::types($row->type) ?></td>
+					<th><?= __('Enabled') ?></th>
+					<td><?= $this->element('QueueScheduler.yes_no', ['value' => $row->enabled]) ?> <?= $row->enabled ? __('Yes') : __('No'); ?></td>
 				</tr>
 				<tr>
 					<th><?= __('Last Run') ?></th>
@@ -37,7 +41,11 @@
 					<tr>
 						<th><?= __('Next Run') ?></th>
 						<td>
-							<?= $this->Time->nice($nextRun) ?>
+							<?php if (!$row->enabled) { ?>
+								<div class="canceled"><del><?php echo $this->Time->nice($nextRun); ?></del></div>
+							<?php } else { ?>
+								<div><?php echo $this->Time->nice($nextRun); ?></div>
+							<?php } ?>
 							<div>
 							(<?php echo $this->Time->timeAgoInWords($nextRun); ?>)
 							</div>

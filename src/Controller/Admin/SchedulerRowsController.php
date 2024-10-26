@@ -80,7 +80,7 @@ class SchedulerRowsController extends AppController {
 			if ($this->SchedulerRows->save($row)) {
 				$this->Flash->success(__('The row has been saved.'));
 
-				return $this->redirect(['action' => 'index']);
+				return $this->redirect(['action' => 'view', $id]);
 			}
 			$this->Flash->error(__('The row could not be saved. Please, try again.'));
 		}
