@@ -80,7 +80,15 @@
 				$expression = (new \Cron\CronExpression($row->frequency));
 			?>
 			<pre class="crontab"><?php echo $expression; ?></pre>
+			<?php } ?>
 
+			<?php if (class_exists('Panlatent\CronExpressionDescriptor\ExpressionDescriptor') && $row->isCronExpression()) { ?>
+				<p>
+					<?php
+					$locale = Locale::getDefault();
+					?>
+                    <?php echo (new \Panlatent\CronExpressionDescriptor\ExpressionDescriptor($expression, $locale, true))->getDescription();?>
+				</p>
 			<?php } ?>
 		</div>
 	</div>
