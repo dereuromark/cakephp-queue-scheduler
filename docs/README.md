@@ -113,9 +113,9 @@ If you want to further include/exclude plugins, you can use the `plugins` key. U
 ```
 
 ### Security
-Make sure that the admin backend (GUI) is secure through ACL and any only be reached by admins.
+Make sure that the admin backend (GUI) is secure through ACL and can only be reached by admins.
 
-For security reasons you can by default only run Cake and Queue types in non-debug mode.
+For security reasons you can by default only run Cake command and Queue types in non-debug mode.
 Allowing any shell script can potentially be a security risk.
 As such, only use `QueueScheduler.allowRaw` "raw command execution" on a secure and containered environment, e.g. staging.
 
