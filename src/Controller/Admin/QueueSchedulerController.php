@@ -50,7 +50,7 @@ class QueueSchedulerController extends AppController {
 		if ($this->request->is(['post', 'put'])) {
 			$interval = $this->request->getData('interval');
 			try {
-				$expression = (new CronExpression($interval));
+				$expression = (new CronExpression($interval))->getExpression();
 			} catch (\Exception $e) {
 				$expression = null;
 				$this->Flash->error(__('Invalid interval') . ': ' . $e->getMessage());
