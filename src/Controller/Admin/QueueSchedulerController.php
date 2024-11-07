@@ -3,7 +3,11 @@
 namespace QueueScheduler\Controller\Admin;
 
 use Cake\Utility\Hash;
+use Cron\CronExpression;
+use Locale;
+use Panlatent\CronExpressionDescriptor\ExpressionDescriptor;
 use QueueScheduler\Controller\AppController;
+use QueueScheduler\Model\Entity\SchedulerRow;
 
 class QueueSchedulerController extends AppController {
 
@@ -36,6 +40,33 @@ class QueueSchedulerController extends AppController {
 		$runningJobs = Hash::combine($runningJobs, '{n}.reference', '{n}');
 
 		$this->set(compact('schedulerRows', 'runningJobs'));
+	}
+
+	/**
+	 * @return void
+	 */
+	public function intervals(): void {
+
+		if ($this->request->is(['post', 'put'])) {
+			$interval = $this->request->getData('interval');
+			try {
+				$expression = (new CronExpression($interval));
+			} catch (\Exception $e) {
+				$expression = null;
+				$this->Flash->error(__('Invalid interval') . ': ' . $e->getMessage());
+			}
+			$result = null;
+			if ($expression && class_exists('Panlatent\CronExpressionDescriptor\ExpressionDescriptor')) {
+				$locale = Locale::getDefault();
+				$result = (new ExpressionDescriptor($expression, $locale, true))->getDescription();
+			}
+
+			$this->set(compact('result'));
+		}
+
+		$shortcuts = SchedulerRow::shortcuts();
+
+		$this->set(compact('shortcuts'));
 	}
 
 }

@@ -13,14 +13,23 @@ class QueueSchedulerControllerTest extends TestCase {
 	use IntegrationTestTrait;
 
 	/**
-	 * Test index method
-	 *
 	 * @return void
 	 */
 	public function testIndex(): void {
 		$this->disableErrorHandlerMiddleware();
 
 		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'QueueScheduler', 'action' => 'index']);
+
+		$this->assertResponseCode(200);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testIntervals(): void {
+		$this->disableErrorHandlerMiddleware();
+
+		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'QueueScheduler', 'action' => 'intervals']);
 
 		$this->assertResponseCode(200);
 	}

@@ -10,6 +10,7 @@
 		<li class="nav-item heading"><?= __('Actions') ?></li>
 		<li class="nav-item">
 			<?= $this->Html->link(__('New {0}', __('Row')), ['controller' => 'SchedulerRows', 'action' => 'add'], ['class' => 'nav-link']) ?>
+			<?= $this->Html->link(__('Available {0}', __('Intervals')), ['action' => 'intervals'], ['class' => 'nav-link']) ?>
 		</li>
 	</ul>
 </nav>

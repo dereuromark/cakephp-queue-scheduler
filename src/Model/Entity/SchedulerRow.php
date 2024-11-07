@@ -32,6 +32,17 @@ use Tools\Model\Entity\Entity;
 class SchedulerRow extends Entity {
 
 	/**
+	 * @var array<string>
+	 */
+	protected static array $shortcuts = [
+		'@yearly',
+		'@monthly',
+		'@weekly',
+		'@daily',
+		'@hourly',
+	];
+
+	/**
 	 * Fields that can be mass assigned using newEntity() or patchEntity().
 	 *
 	 * Note that when '*' is set to true, this allows all unspecified fields to
@@ -149,6 +160,13 @@ class SchedulerRow extends Entity {
 		$i = $this->calculateNextInterval();
 
 		return $i === null;
+	}
+
+	/**
+	 * @return array<string, string>
+	 */
+	public static function shortcuts(): array {
+		return array_combine(static::$shortcuts, static::$shortcuts);
 	}
 
 	/**
