@@ -162,9 +162,9 @@ class SchedulerRowsTable extends Table {
 		$type = (int)$data['type'];
 		switch ($type) {
 			case SchedulerRow::TYPE_QUEUE_TASK:
-				return $this->validateQueueTaskConfig($value, $data);
+				return $this->validateQueueTaskParam($value, $data);
 			case SchedulerRow::TYPE_CAKE_COMMAND:
-				return $this->validateCakeCommandConfig($value, $data);
+				return $this->validateCakeCommandParam($value, $data);
 			case SchedulerRow::TYPE_SHELL_COMMAND:
 				return $value === '' ? true : __('Cannot have separate param data for shell command.');
 		}
@@ -375,7 +375,7 @@ class SchedulerRowsTable extends Table {
 	 *
 	 * @return bool
 	 */
-	protected function validateCakeCommandConfig(string $value, array $data): bool {
+	protected function validateCakeCommandParam(string $value, array $data): bool {
 		if (!str_starts_with($value, '{')) {
 			return false;
 		}
@@ -394,7 +394,7 @@ class SchedulerRowsTable extends Table {
 	 *
 	 * @return bool
 	 */
-	protected function validateQueueTaskConfig(string $value, array $data): bool {
+	protected function validateQueueTaskParam(string $value, array $data): bool {
 		if (!str_starts_with($value, '{')) {
 			return false;
 		}

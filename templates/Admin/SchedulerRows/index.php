@@ -40,7 +40,7 @@
 					<td>
 						<?= $row::types($row->type) ?>
 						<div><small>
-                            <?php echo h($row->param, JSON_PRETTY_PRINT); ?>
+                            <?php echo h($row->param); ?>
 						</small></div>
 					</td>
 					<td><?= h($row->frequency) ?></td>
