@@ -37,7 +37,12 @@
 				<?php foreach ($rows as $row): ?>
 				<tr>
 					<td><?= h($row->name) ?></td>
-					<td><?= $row::types($row->type) ?></td>
+					<td>
+						<?= $row::types($row->type) ?>
+						<div><small>
+                            <?php echo h($row->param, JSON_PRETTY_PRINT); ?>
+						</small></div>
+					</td>
 					<td><?= h($row->frequency) ?></td>
 					<td><?= $this->element('QueueScheduler.yes_no', ['value' => $row->allow_concurrent]) ?></td>
 					<td>

@@ -17,6 +17,7 @@ use Tools\Model\Entity\Entity;
  * @property string $name
  * @property int $type
  * @property string $content
+ * @property string|null $param
  * @property string $frequency
  * @property \Cake\I18n\DateTime|null $last_run
  * @property \Cake\I18n\DateTime|null $next_run
@@ -189,11 +190,19 @@ class SchedulerRow extends Entity {
 	 * @return array
 	 */
 	protected function _getJobData(): array {
+		$param = [];
+		if ($this->param) {
+			$param = json_decode($this->param, true, JSON_THROW_ON_ERROR);
+		}
+
+		if ($this->type === static::TYPE_QUEUE_TASK) {
+			return $param;
+		}
 		if ($this->type === static::TYPE_SHELL_COMMAND) {
 			return ['command' => $this->content];
 		}
 		if ($this->type === static::TYPE_CAKE_COMMAND) {
-			return ['class' => $this->content];
+			return ['class' => $this->content, 'args' => $param];
 		}
 
 		return [];

@@ -3,6 +3,7 @@
  * @var \App\View\AppView $this
  * @var iterable<\QueueScheduler\Model\Entity\SchedulerRow> $schedulerRows
  * @var array<string, string> $shortcuts
+ * @var mixed $result
  */
 ?>
 <nav class="actions large-3 medium-4 columns col-sm-4 col-xs-12" id="actions-sidebar">
