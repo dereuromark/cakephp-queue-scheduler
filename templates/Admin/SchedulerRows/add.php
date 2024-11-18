@@ -22,6 +22,7 @@
 					echo $this->Form->control('name');
 					echo $this->Form->control('type', ['options' => $row::types()]);
 					echo $this->Form->control('content');
+					echo $this->Form->control('param');
 					echo $this->Form->control('frequency');
 					echo $this->Form->control('allow_concurrent');
 

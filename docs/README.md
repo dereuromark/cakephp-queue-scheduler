@@ -35,11 +35,30 @@ You can directly add Queue Tasks using FQCN.
 ```
 Queue\Queue\Task\ExampleTask
 ```
+
+If you need to pass some payload data, you can use the param textarea for this using JSON:
+```
+{
+    "dryRun": true,
+    "id": 123,
+    "key": "value"
+}
+```
+
 ### Scheduling Cake Commands
 
 Adding CommandInterface classes also works using FQCN.
 ```
 Cake\Command\SchemacacheBuildCommand
+```
+
+If you need to pass additional args, you can use the param textarea for this using JSON:
+```
+[
+    "-v",
+    "--dry-run",
+    "--some-option \"Some value\"",
+]
 ```
 
 ### Scheduling Shell Commands
@@ -48,6 +67,8 @@ Here you can add any shell command to be executed inside a Queue job.
 ```
 sh /some/shell.sh
 ```
+
+This type does not need the param textarea as all args are directly passed along the command here.
 
 ## Schedule Frequency Options
 

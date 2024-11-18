@@ -25,7 +25,7 @@ use RuntimeException;
  * @method \QueueScheduler\Model\Entity\SchedulerRow newEntity(array $data, array $options = [])
  * @method array<\QueueScheduler\Model\Entity\SchedulerRow> newEntities(array $data, array $options = [])
  * @method \QueueScheduler\Model\Entity\SchedulerRow get(mixed $primaryKey, array|string $finder = 'all', \Psr\SimpleCache\CacheInterface|string|null $cache = null, \Closure|string|null $cacheKey = null, mixed ...$args)
- * @method \QueueScheduler\Model\Entity\SchedulerRow findOrCreate($search, ?callable $callback = null, array $options = [])
+ * @method \QueueScheduler\Model\Entity\SchedulerRow findOrCreate(\Cake\ORM\Query\SelectQuery|callable|array $search, ?callable $callback = null, array $options = [])
  * @method \QueueScheduler\Model\Entity\SchedulerRow patchEntity(\Cake\Datasource\EntityInterface $entity, array $data, array $options = [])
  * @method array<\QueueScheduler\Model\Entity\SchedulerRow> patchEntities(iterable $entities, array $data, array $options = [])
  * @method \QueueScheduler\Model\Entity\SchedulerRow|false save(\Cake\Datasource\EntityInterface $entity, array $options = [])
@@ -88,6 +88,14 @@ class SchedulerRowsTable extends Table {
 			]);
 
 		$validator
+			->scalar('param')
+			->allowEmptyString('param')
+			->add('param', 'validateParam', [
+				'role' => 'validateParam',
+				'provider' => 'table',
+			]);
+
+		$validator
 			->scalar('frequency')
 			->maxLength('frequency', 140)
 			->requirePresence('frequency', 'create')
@@ -140,6 +148,34 @@ class SchedulerRowsTable extends Table {
 	 * @param mixed $value
 	 * @param array $context
 	 *
+	 * @return string|bool
+	 */
+	public function validateParam($value, array $context) {
+		if (!is_string($value)) {
+			return false;
+		}
+
+		$data = $context['data'];
+		if (!isset($data['type'])) {
+			return false;
+		}
+		$type = (int)$data['type'];
+		switch ($type) {
+			case SchedulerRow::TYPE_QUEUE_TASK:
+				return $this->validateQueueTaskParam($value, $data);
+			case SchedulerRow::TYPE_CAKE_COMMAND:
+				return $this->validateCakeCommandParam($value, $data);
+			case SchedulerRow::TYPE_SHELL_COMMAND:
+				return $value === '' ? true : __('Cannot have separate param data for shell command.');
+		}
+
+		return false;
+	}
+
+	/**
+	 * @param mixed $value
+	 * @param array $context
+	 *
 	 * @return bool
 	 */
 	public function validateFrequency($value, array $context): bool {
@@ -174,7 +210,7 @@ class SchedulerRowsTable extends Table {
 			return;
 		}
 
-		if (strpos($data['content'], '\\') !== false) {
+		if (str_contains($data['content'], '\\')) {
 			return;
 		}
 
@@ -331,6 +367,44 @@ class SchedulerRowsTable extends Table {
 	 */
 	protected function validateShellCommand(string $value, array $data): bool {
 		return true;
+	}
+
+	/**
+	 * @param string $value
+	 * @param array $data
+	 *
+	 * @return bool
+	 */
+	protected function validateCakeCommandParam(string $value, array $data): bool {
+		if (!str_starts_with($value, '[')) {
+			return false;
+		}
+		if (!str_ends_with($value, ']')) {
+			return false;
+		}
+
+		$array = json_decode($value, true, 512, JSON_PRETTY_PRINT);
+
+		return is_array($array) && !empty($array);
+	}
+
+	/**
+	 * @param string $value
+	 * @param array $data
+	 *
+	 * @return bool
+	 */
+	protected function validateQueueTaskParam(string $value, array $data): bool {
+		if (!str_starts_with($value, '{')) {
+			return false;
+		}
+		if (!str_ends_with($value, '}')) {
+			return false;
+		}
+
+		$array = json_decode($value, true, 512, JSON_PRETTY_PRINT);
+
+		return is_array($array) && !empty($array);
 	}
 
 }

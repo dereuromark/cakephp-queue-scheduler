@@ -22,6 +22,12 @@
 					<th><?= __('Type') ?></th>
 					<td><?= $row::types($row->type) ?></td>
 				</tr>
+				<?php if ($row->config) { ?>
+				<tr>
+					<th><?= __('Config') ?></th>
+					<td><pre><?= json_encode(json_decode($row->param, true), JSON_PRETTY_PRINT) ?></pre></td>
+				</tr>
+				<?php } ?>
 				<tr>
 					<th><?= __('Frequency') ?></th>
 					<td><?= h($row->frequency) ?></td>
