@@ -376,10 +376,10 @@ class SchedulerRowsTable extends Table {
 	 * @return bool
 	 */
 	protected function validateCakeCommandParam(string $value, array $data): bool {
-		if (!str_starts_with($value, '{')) {
+		if (!str_starts_with($value, '[')) {
 			return false;
 		}
-		if (!str_ends_with($value, '}')) {
+		if (!str_ends_with($value, ']')) {
 			return false;
 		}
 
