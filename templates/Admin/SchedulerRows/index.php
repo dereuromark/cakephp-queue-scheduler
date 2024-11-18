@@ -36,7 +36,12 @@
 			<tbody>
 				<?php foreach ($rows as $row): ?>
 				<tr>
-					<td><?= h($row->name) ?></td>
+					<td>
+						<?= h($row->name) ?>
+						<div>
+							<small><?php echo h($row->content);?></small>
+						</div>
+					</td>
 					<td>
 						<?= $row::types($row->type) ?>
 						<div><small>
