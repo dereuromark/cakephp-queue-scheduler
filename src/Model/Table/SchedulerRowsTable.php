@@ -202,6 +202,15 @@ class SchedulerRowsTable extends Table {
 	 * @return void
 	 */
 	public function beforeMarshal(EventInterface $event, ArrayObject $data, ArrayObject $options): void {
+		$this->adjustQueueTask($data);
+		$this->adjustCakeCommand($data);
+	}
+
+	/**
+	 * @param \ArrayObject $data
+	 * @return void
+	 */
+	protected function adjustQueueTask(ArrayObject $data): void {
 		if (!isset($data['type']) || strlen((string)$data['type']) === 0 || (int)$data['type'] !== SchedulerRow::TYPE_QUEUE_TASK) {
 			return;
 		}
@@ -215,6 +224,29 @@ class SchedulerRowsTable extends Table {
 		}
 
 		$className = App::className($data['content'], 'Queue/Task', 'Task');
+		if ($className) {
+			$data['content'] = $className;
+		}
+	}
+
+	/**
+	 * @param \ArrayObject $data
+	 * @return void
+	 */
+	protected function adjustCakeCommand(ArrayObject $data): void {
+		if (!isset($data['type']) || strlen((string)$data['type']) === 0 || (int)$data['type'] !== SchedulerRow::TYPE_CAKE_COMMAND) {
+			return;
+		}
+
+		if (empty($data['content'])) {
+			return;
+		}
+
+		if (str_contains($data['content'], '\\')) {
+			return;
+		}
+
+		$className = App::className($data['content'], 'Command', 'Command');
 		if ($className) {
 			$data['content'] = $className;
 		}
