@@ -31,8 +31,10 @@ Tip: Use `bin/cake scheduler run` without additional elements as basic command f
 
 ### Scheduling Queue Tasks
 
-You can directly add Queue Tasks using FQCN.
+You can directly add Queue Tasks using `Plugin.Name` syntax or FQCN.
 ```
+Queue.Example
+// or
 Queue\Queue\Task\ExampleTask
 ```
 
@@ -47,8 +49,10 @@ If you need to pass some payload data, you can use the param textarea for this u
 
 ### Scheduling Cake Commands
 
-Adding CommandInterface classes also works using FQCN.
+Adding CommandInterface classes also works using `Plugin.Name` syntax or FQCN:
 ```
+MyPlugin.MyName
+// or e.g.
 Cake\Command\SchemacacheBuildCommand
 ```
 
