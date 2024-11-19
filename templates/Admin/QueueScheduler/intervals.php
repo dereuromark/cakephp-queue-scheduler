@@ -1,7 +1,6 @@
 <?php
 /**
  * @var \App\View\AppView $this
- * @var iterable<\QueueScheduler\Model\Entity\SchedulerRow> $schedulerRows
  * @var array<string, string> $shortcuts
  * @var string|null $result
  */

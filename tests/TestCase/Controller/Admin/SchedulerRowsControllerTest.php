@@ -2,7 +2,6 @@
 
 namespace QueueScheduler\Test\TestCase\Controller\Admin;
 
-use Cake\ORM\TableRegistry;
 use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 
@@ -47,6 +46,28 @@ class SchedulerRowsControllerTest extends TestCase {
 	}
 
 	/**
+	 * @return void
+	 */
+	public function testAdd(): void {
+		$this->disableErrorHandlerMiddleware();
+
+		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'add']);
+
+		$this->assertResponseCode(200);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testEdit(): void {
+		$this->disableErrorHandlerMiddleware();
+
+		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'edit', 1]);
+
+		$this->assertResponseCode(200);
+	}
+
+	/**
 	 * Test index method
 	 *
 	 * @return void
@@ -58,7 +79,7 @@ class SchedulerRowsControllerTest extends TestCase {
 
 		$this->assertResponseCode(302);
 
-		$queuedJob = TableRegistry::getTableLocator()->get('Queue.QueuedJobs')->find()->orderDesc('id')->firstOrFail();
+		$queuedJob = $this->fetchTable('Queue.QueuedJobs')->find()->orderByDesc('id')->firstOrFail();
 		$this->assertSame('queue-scheduler-1', $queuedJob->reference);
 	}
 

@@ -6,6 +6,7 @@ use Cake\Core\App;
 use Cake\Core\Plugin;
 use DirectoryIterator;
 use RegexIterator;
+use Throwable;
 
 class CommandFinder {
 
@@ -18,6 +19,8 @@ class CommandFinder {
 		foreach ($plugins as $plugin) {
 			$commands += $this->list('Command', $plugin);
 		}
+
+		ksort($commands);
 
 		return $commands;
 	}
@@ -41,7 +44,17 @@ class CommandFinder {
 			$regexIterator = new RegexIterator($iterator, '/(\w+)Command\.php$/i', RegexIterator::GET_MATCH);
 			foreach ($regexIterator as $match) {
 				$name = ($plugin ? $plugin . '.' : '') . $match[1];
-				$commands[$name] = $name;
+				try {
+					$className = App::className($name, 'Command', 'Command');
+				} catch (Throwable) {
+					$className = null;
+				}
+
+				if (!$className) {
+					continue;
+				}
+
+				$commands[$name] = $className;
 			}
 		}
 

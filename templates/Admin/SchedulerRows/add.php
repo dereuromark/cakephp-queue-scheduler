@@ -32,5 +32,9 @@
 			<?= $this->Form->button(__('Submit')) ?>
 			<?= $this->Form->end() ?>
 		</div>
+
+		<hr>
+
+		<?php echo $this->element('QueueScheduler.available')?>
 	</div>
 </div>
