@@ -12,10 +12,12 @@ $scheduler = $this->Scheduler;
 	<div class="col-md-6">
 		<h3>Available Commands</h3>
 		<ul>
-			<?php foreach ($scheduler->availableCommands() as $commmand) {  ?>
+			<?php foreach ($scheduler->availableCommands() as $name => $commmand) {  ?>
 				<li>
 					<p>
-						<?php echo h($commmand); ?>
+						<?php echo h($name); ?>
+						<br>
+						<small><code><?php echo h($commmand); ?></code></small>
 					</p>
 				</li>
 			<?php } ?>
@@ -30,6 +32,8 @@ $scheduler = $this->Scheduler;
 				<li>
 					<p>
 						<?php echo h($name); ?>
+						<br>
+						<small><code><?php echo h($queueTask); ?></code></small>
 					</p>
 				</li>
 			<?php } ?>
