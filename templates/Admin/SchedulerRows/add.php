@@ -9,6 +9,7 @@
 		<ul class="side-nav nav nav-pills flex-column">
 			<li class="nav-item heading"><?= __('Actions') ?></li>
 			<li class="nav-item"><?= $this->Html->link(__('List Rows'), ['action' => 'index'], ['class' => 'side-nav-item']) ?></li>
+			<li><?= $this->Html->link(__('Available {0}', __('Intervals')), ['controller' => 'QueueScheduler', 'action' => 'intervals'], ['class' => 'nav-link']) ?></li>
 		</ul>
 	</aside>
 	<div class="column-responsive column-80 form large-9 medium-8 columns col-sm-8 col-12">
