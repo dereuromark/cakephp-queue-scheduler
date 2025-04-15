@@ -110,14 +110,9 @@ class SchedulerRowsController extends AppController {
 	 */
 	public function disableAll() {
 		$this->request->allowMethod(['post']);
-		$rows = $this->SchedulerRows->find('active')
-			->all()
-			->toArray();
-		if ($this->SchedulerRows->deleteMany($rows)) {
-			$this->Flash->success(__('The jobs have been disabled'));
-		} else {
-			$this->Flash->error(__('The jobs could not be disabled.'));
-		}
+		$this->SchedulerRows->updateAll(['enabled' => false], ['enabled' => true]);
+
+		$this->Flash->success(__('All jobs have been disabled'));
 
 		return $this->redirect($this->referer(['action' => 'index']));
 	}
