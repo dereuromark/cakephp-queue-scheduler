@@ -68,8 +68,6 @@ class SchedulerRowsControllerTest extends TestCase {
 	}
 
 	/**
-	 * Test index method
-	 *
 	 * @return void
 	 */
 	public function testRun(): void {
@@ -81,6 +79,20 @@ class SchedulerRowsControllerTest extends TestCase {
 
 		$queuedJob = $this->fetchTable('Queue.QueuedJobs')->find()->orderByDesc('id')->firstOrFail();
 		$this->assertSame('queue-scheduler-1', $queuedJob->reference);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testDisableAll(): void {
+		$this->disableErrorHandlerMiddleware();
+
+		$this->post(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'disableAll']);
+
+		$this->assertResponseCode(302);
+
+		$result = $this->fetchTable('QueueScheduler.SchedulerRows')->find('active')->count();
+		$this->assertSame(0, $result);
 	}
 
 }

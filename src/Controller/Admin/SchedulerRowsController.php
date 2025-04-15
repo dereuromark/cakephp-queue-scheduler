@@ -106,6 +106,23 @@ class SchedulerRowsController extends AppController {
 	}
 
 	/**
+	 * @return \Cake\Http\Response|null|void Redirects to index.
+	 */
+	public function disableAll() {
+		$this->request->allowMethod(['post']);
+		$rows = $this->SchedulerRows->find('active')
+			->all()
+			->toArray();
+		if ($this->SchedulerRows->deleteMany($rows)) {
+			$this->Flash->success(__('The jobs have been disabled'));
+		} else {
+			$this->Flash->error(__('The jobs could not be disabled.'));
+		}
+
+		return $this->redirect($this->referer(['action' => 'index']));
+	}
+
+	/**
 	 * Delete method
 	 *
 	 * @param string|null $id Row id.

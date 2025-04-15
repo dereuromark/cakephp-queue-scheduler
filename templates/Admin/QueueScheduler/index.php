@@ -37,8 +37,9 @@
 			<tr>
 				<td>
 					<?= $this->Html->link($schedulerRow->name, ['controller' => 'SchedulerRows', 'action' => 'view', $schedulerRow->id]) ?>
-					<small><div><?= $schedulerRow::types($schedulerRow->type) ?></div></small>
-				</td>
+					<div>
+						<small><?= $schedulerRow::types($schedulerRow->type) ?></small>
+					</div>
 				</td>
 				<td>
 					<?= h($schedulerRow->frequency) ?>
@@ -87,7 +88,7 @@
 
 
 	<p>
-	<?= $this->Html->link(__('Details'), ['controller' => 'SchedulerRows', 'action' => 'index'], []) ?>
+	<?= $this->Html->link(__('Details'), ['controller' => 'SchedulerRows', 'action' => 'index'], ['class' => 'btn btn-secondary']) ?> <?php echo $this->Form->postLink($this->Icon->render('no', [], ['title' => 'Disable']) . ' ' . __('Disable all'), ['controller' => 'SchedulerRows', 'action' => 'disableAll'], ['escapeTitle' => false, 'class' => 'btn btn-small btn-danger', 'block' => true,  'confirm' => 'Sure to disable all?']); ?>
 	</p>
 
 </div>
