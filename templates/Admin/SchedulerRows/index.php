@@ -54,6 +54,8 @@
 						<?= $this->element('QueueScheduler.yes_no', ['value' => $row->enabled]) ?>
 						<?php if ($row->enabled && $row->type === $row::TYPE_SHELL_COMMAND && !\Cake\Core\Configure::read('QueueScheduler.allowRaw')) { ?>
 							<span><?php echo $this->Icon->render('stop-circle', [], ['title' => 'Raw commands are currently configured to be not runnable on non-debug system for security reasons.']); ?></span>
+						<?php } elseif (!$row->enabled && !($row->type === $row::TYPE_SHELL_COMMAND && !\Cake\Core\Configure::read('QueueScheduler.allowRaw'))) { ?>
+							<?php echo $this->Form->postLink($this->Icon->render('yes', [], ['title' => 'Enable']) . ' ' . __('Enable'), ['controller' => 'SchedulerRows', 'action' => 'edit', $row->id], ['data' => ['enabled' => 1], 'escapeTitle' => false, 'class' => 'btn btn-small btn-success', 'confirm' => 'Sure to enable?']); ?>
 						<?php } ?>
 
 						<?php if ($row->last_run) { ?>

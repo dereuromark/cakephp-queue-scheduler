@@ -34,7 +34,13 @@
 				</tr>
 				<tr>
 					<th><?= __('Enabled') ?></th>
-					<td><?= $this->element('QueueScheduler.yes_no', ['value' => $row->enabled]) ?> <?= $row->enabled ? __('Yes') : __('No'); ?></td>
+					<td>
+						<?= $this->element('QueueScheduler.yes_no', ['value' => $row->enabled]) ?> <?= $row->enabled ? __('Yes') : __('No'); ?>
+
+						<?php if (!$row->enabled) { ?>
+							<?php echo $this->Form->postLink($this->Icon->render('yes', [], ['title' => 'Enable']) . ' ' . __('Enable'), ['controller' => 'SchedulerRows', 'action' => 'edit', $row->id], ['data' => ['enabled' => 1], 'escapeTitle' => false, 'class' => 'btn btn-small btn-success', 'confirm' => 'Sure to enable?']); ?>
+						<?php } ?>
+					</td>
 				</tr>
 				<tr>
 					<th><?= __('Last Run') ?></th>

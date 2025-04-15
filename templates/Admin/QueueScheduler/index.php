@@ -79,7 +79,7 @@
 					<?php if (!$queuedJob) { ?>
 						<?php echo $this->Form->postLink($this->Icon->render('play-circle', [], ['title' => 'Run manually now']), ['controller' => 'SchedulerRows', 'action' => 'run', $schedulerRow->id], ['escapeTitle' => false, 'class' => 'btn btn-small btn-success', 'confirm' => 'Sure to run it now?']); ?>
 					<?php } ?>
-					<?php echo $this->Form->postLink($this->Icon->render('no', [], ['title' => 'Disable']), ['controller' => 'SchedulerRows', 'action' => 'edit', $schedulerRow->id], ['data' => ['enabled' => false], 'escapeTitle' => false, 'class' => 'btn btn-small btn-danger', 'confirm' => 'Sure to disable?']); ?>
+					<?php echo $this->Form->postLink($this->Icon->render('no', [], ['title' => 'Disable']), ['controller' => 'SchedulerRows', 'action' => 'edit', $schedulerRow->id], ['data' => ['enabled' => 0], 'escapeTitle' => false, 'class' => 'btn btn-small btn-danger', 'confirm' => 'Sure to disable?']); ?>
 				</td>
 			</tr>
 		<?php } ?>
