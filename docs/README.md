@@ -147,6 +147,15 @@ If you want to further include/exclude plugins, you can use the `plugins` key. U
     ],
 ```
 
+### Explaining crontab configuration
+
+Often, the crontab style is not very human readable.
+Install the following dependendy and it will translate for you:
+```bash
+composer require panlatent/cron-expression-descriptor
+```
+
+
 ### Security
 Make sure that the admin backend (GUI) is secure through ACL and can only be reached by admins.
 

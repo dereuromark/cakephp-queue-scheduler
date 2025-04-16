@@ -48,7 +48,20 @@
                             <?php echo h($row->param); ?>
 						</small></div>
 					</td>
-					<td><?= h($row->frequency) ?></td>
+					<td>
+						<?= h($row->frequency) ?>
+						<?php if (class_exists('Cron\CronExpression') && $row->isCronExpression()) { ?>
+							<?php if (class_exists('Panlatent\CronExpressionDescriptor\ExpressionDescriptor') && $row->isCronExpression()) { ?>
+								<div><small>
+									<?php
+									$expression = (new \Cron\CronExpression($row->frequency));
+									$locale = Locale::getDefault();
+									?>
+									<?php echo (new \Panlatent\CronExpressionDescriptor\ExpressionDescriptor($expression, $locale, true))->getDescription();?>
+								</small></div>
+							<?php } ?>
+						<?php } ?>
+					</td>
 					<td><?= $this->element('QueueScheduler.yes_no', ['value' => $row->allow_concurrent]) ?></td>
 					<td>
 						<?= $this->element('QueueScheduler.yes_no', ['value' => $row->enabled]) ?>

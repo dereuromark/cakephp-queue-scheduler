@@ -30,7 +30,23 @@
 				<?php } ?>
 				<tr>
 					<th><?= __('Frequency') ?></th>
-					<td><?= h($row->frequency) ?></td>
+					<td>
+						<p>
+						<code><?= h($row->frequency) ?></code>
+						</p>
+
+						<?php if (class_exists('Cron\CronExpression') && $row->isCronExpression()) { ?>
+							<?php if (class_exists('Panlatent\CronExpressionDescriptor\ExpressionDescriptor') && $row->isCronExpression()) { ?>
+								<p class="human-readable-description">
+									<?php
+									$expression = (new \Cron\CronExpression($row->frequency));
+									$locale = Locale::getDefault();
+									?>
+									<?php echo (new \Panlatent\CronExpressionDescriptor\ExpressionDescriptor($expression, $locale, true))->getDescription();?>
+								</p>
+							<?php } ?>
+						<?php } ?>
+					</td>
 				</tr>
 				<tr>
 					<th><?= __('Enabled') ?></th>
@@ -92,15 +108,6 @@
 				$expression = (new \Cron\CronExpression($row->frequency));
 			?>
 			<pre class="crontab"><?php echo $expression; ?></pre>
-			<?php } ?>
-
-			<?php if (class_exists('Panlatent\CronExpressionDescriptor\ExpressionDescriptor') && $row->isCronExpression()) { ?>
-				<p>
-					<?php
-					$locale = Locale::getDefault();
-					?>
-                    <?php echo (new \Panlatent\CronExpressionDescriptor\ExpressionDescriptor($expression, $locale, true))->getDescription();?>
-				</p>
 			<?php } ?>
 		</div>
 	</div>
