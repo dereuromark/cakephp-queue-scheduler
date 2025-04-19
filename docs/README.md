@@ -9,9 +9,9 @@ Using the GUI backend requires:
 
 ## Setup
 
-Add the plugin to your Application class
-```php
-    $this->addPlugin('QueueScheduler');
+Load the plugin
+```
+bin/cake plugin load QueueScheduler
 ```
 
 Make sure to run the migrations command or manually set up your table:
