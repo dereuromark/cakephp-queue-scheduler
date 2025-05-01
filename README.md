@@ -11,7 +11,7 @@
 
 A scheduler addon for [Queue plugin](https://github.com/dereuromark/cakephp-queue).
 
-This branch is for use with **CakePHP 5.0+**. For details see [version map](https://github.com/dereuromark/cakephp-queue-scheduler/wiki#cakephp-version-map).
+This branch is for use with **CakePHP 5.1+**. For details see [version map](https://github.com/dereuromark/cakephp-queue-scheduler/wiki#cakephp-version-map).
 
 ## Motivation
 A DB and queue based cronjob system does not require a sys-admin to manually modify the crontab file on a server.
