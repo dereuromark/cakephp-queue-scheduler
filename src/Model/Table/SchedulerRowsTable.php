@@ -259,7 +259,7 @@ class SchedulerRowsTable extends Table {
 	 *
 	 * @return void
 	 */
-	public function beforeSave(EventInterface $event, EntityInterface $entity, ArrayObject $options) {
+	public function beforeSave(EventInterface $event, EntityInterface $entity, ArrayObject $options): void {
 		if ($entity->next_run === null || $entity->isDirty('frequency') || $entity->isDirty('last_run')) {
 			$entity->next_run = $entity->calculateNextRun();
 		}
