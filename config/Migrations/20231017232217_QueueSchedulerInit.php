@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-use Migrations\AbstractMigration;
+use Migrations\BaseMigration;
 
-class QueueSchedulerInit extends AbstractMigration {
+class QueueSchedulerInit extends BaseMigration {
 
 	/**
 	 * Change Method.
