@@ -12,7 +12,7 @@
 	},
 	"require-dev": {
 		"panlatent/cron-expression-descriptor": "^1.1.0",
-		"dereuromark/cakephp-templating": "^0.2.2",
+		"dereuromark/cakephp-templating": "^0.2.7",
 		"cakephp/migrations": "^4.5.0",
 		"phpunit/phpunit": "^10.5 || ^11.5 || ^12.1",
 		"fig-r/psr2r-sniffer": "dev-master"
