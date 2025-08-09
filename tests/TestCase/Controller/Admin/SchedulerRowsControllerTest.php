@@ -13,7 +13,7 @@ class SchedulerRowsControllerTest extends TestCase {
 	use IntegrationTestTrait;
 
 	/**
-	 * @var string[]
+	 * @var array<string>
 	 */
 	protected array $fixtures = [
 		'plugin.QueueScheduler.SchedulerRows',

@@ -15,7 +15,7 @@ class RunCommandTest extends TestCase {
 	use ConsoleIntegrationTestTrait;
 
 	/**
-	 * @var string[]
+	 * @var array<string>
 	 */
 	protected array $fixtures = [
 		'plugin.QueueScheduler.SchedulerRows',
