@@ -21,6 +21,25 @@ Make sure to run the migrations command or manually set up your table:
 If you have Auth/ACL activated, you might also want to add the backend controllers to
 the role of your admin, so that those users have access to this backend.
 
+## Using the GUI
+
+Once the plugin is loaded and migrations are run, you can access the GUI backend at:
+
+```
+/admin/queue-scheduler
+```
+
+The routes are automatically configured by the plugin. No additional routing setup is needed.
+
+From the GUI you can:
+- Add new scheduled tasks (Queue tasks, Cake commands, or shell commands)
+- Edit existing schedules
+- Enable/disable tasks
+- Manually trigger tasks
+- View task details and next run times
+
+**Note:** If you have Auth/ACL activated, make sure your admin users have access to the `QueueScheduler` plugin controllers.
+
 ## Scheduling
 
 Add this in your crontab to run the scheduler every minute:
