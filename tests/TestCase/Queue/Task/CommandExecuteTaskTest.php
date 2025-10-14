@@ -22,6 +22,7 @@ class CommandExecuteTaskTest extends TestCase {
 			'class' => InflectCommand::class,
 			'args' => ['Foo', 'pluralize'],
 			'io' => new ConsoleIo($out, $err),
+			'enable_logging' => false,
 		];
 		$task->run($data, 0);
 
