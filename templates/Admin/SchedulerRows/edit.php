@@ -11,9 +11,9 @@
 			<li class="nav-item"><?= $this->Form->postLink(
 				__('Delete'),
 				['action' => 'delete', $row->id],
-				['confirm' => __('Are you sure you want to delete # {0}?', $row->id), 'class' => 'side-nav-item']
+				['confirm' => __('Are you sure you want to delete # {0}?', $row->id), 'class' => 'nav-link']
 				) ?></li>
-			<li class="nav-item"><?= $this->Html->link(__('List Rows'), ['action' => 'index'], ['class' => 'side-nav-item']) ?></li>
+			<li class="nav-item"><?= $this->Html->link(__('List Rows'), ['action' => 'index'], ['class' => 'nav-link']) ?></li>
 			<li><?= $this->Html->link(__('Available {0}', __('Intervals')), ['controller' => 'QueueScheduler', 'action' => 'intervals'], ['class' => 'nav-link']) ?></li>
 		</ul>
 	</aside>

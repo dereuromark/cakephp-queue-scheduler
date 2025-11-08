@@ -90,7 +90,8 @@
 					<td class="actions">
 						<?php echo $this->Html->link($this->Icon->render('view'), ['action' => 'view', $row->id], ['escapeTitle' => false]); ?>
 						<?php echo $this->Html->link($this->Icon->render('edit'), ['action' => 'edit', $row->id], ['escapeTitle' => false]); ?>
-						<?php echo $this->Form->postLink($this->Icon->render('delete'), ['action' => 'delete', $row->id], ['escapeTitle' => false, 'confirm' => __('Are you sure you want to delete # {0}?', $row->id)]); ?>
+						<?php echo $this->Form->postLink($this->Icon->render('play-circle', [], ['title' => 'Run manually now']), ['action' => 'run', $row->id], ['escapeTitle' => false, 'class' => '', 'confirm' => 'Sure to run it now?']); ?>
+					<?php echo $this->Form->postLink($this->Icon->render('delete'), ['action' => 'delete', $row->id], ['escapeTitle' => false, 'confirm' => __('Are you sure you want to delete # {0}?', $row->id)]); ?>
 					</td>
 				</tr>
 				<?php endforeach; ?>

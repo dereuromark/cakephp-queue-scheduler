@@ -3,6 +3,7 @@
  * @var \App\View\AppView $this
  * @var iterable<\QueueScheduler\Model\Entity\SchedulerRow> $schedulerRows
  * @var array<\Queue\Model\Entity\QueuedJob> $runningJobs
+ * @var array<\QueueScheduler\Model\Entity\CommandLog> $commandLogs
  */
 ?>
 <nav class="actions large-3 medium-4 columns col-sm-4 col-xs-12" id="actions-sidebar">
@@ -66,7 +67,46 @@
 				</td>
 				<td>
 					<?php if ($schedulerRow->last_run) { ?>
-						<div><small><?= __('Last Run') ?>: <?php echo $this->Time->nice($schedulerRow->last_run); ?></small></div>
+						<div>
+							<small><?= __('Last Run') ?>: <?php echo $this->Time->nice($schedulerRow->last_run); ?></small>
+							<?php
+							$lastLog = $commandLogs[$schedulerRow->content] ?? null;
+							if ($lastLog) {
+								if (!$lastLog->success) {
+									$errorTitle = h($lastLog->error_message ?: 'Command failed');
+									?>
+									<span class="badge bg-danger ms-1" title="<?= $errorTitle ?>" data-bs-toggle="tooltip">
+										<?= $this->Icon->render('error', [], ['title' => 'Failed']) ?>
+									</span>
+									<?php
+								} else {
+									?>
+									<span class="badge bg-success ms-1" title="Success" data-bs-toggle="tooltip">
+										<?= $this->Icon->render('yes', [], ['title' => 'Success']) ?>
+									</span>
+									<?php
+								}
+							}
+							?>
+						</div>
+						<?php if ($lastLog && !$lastLog->success) { ?>
+							<div class="alert alert-danger mt-2 mb-0" style="font-size: 0.85em;">
+								<strong>Error:</strong>
+								<?php
+								$errorMsg = $lastLog->error_message ?: 'Unknown error';
+								if (strlen($errorMsg) > 150) {
+									$errorMsg = substr($errorMsg, 0, 150) . '...';
+								}
+								echo h($errorMsg);
+								?>
+								<?php if ($lastLog->stderr) { ?>
+									<details class="mt-1">
+										<summary style="cursor: pointer;">Show stderr output</summary>
+										<pre style="font-size: 0.75em; max-height: 200px; overflow-y: auto;"><?= h($lastLog->stderr) ?></pre>
+									</details>
+								<?php } ?>
+							</div>
+						<?php } ?>
 					<?php } ?>
 					<?php
 						$nextRun = $schedulerRow->next_run ?: $schedulerRow->calculateNextRun();

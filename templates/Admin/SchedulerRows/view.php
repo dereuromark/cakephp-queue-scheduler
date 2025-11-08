@@ -8,9 +8,10 @@
 	<aside class="column actions large-3 medium-4 col-sm-4 col-xs-12">
 		<ul class="side-nav nav nav-pills flex-column">
 			<li class="nav-item heading"><?= __('Actions') ?></li>
-			<li class="nav-item"><?= $this->Html->link(__('Edit {0}', __('Row')), ['action' => 'edit', $row->id], ['class' => 'side-nav-item']) ?></li>
-			<li class="nav-item"><?= $this->Form->postLink(__('Delete {0}', __('Row')), ['action' => 'delete', $row->id], ['confirm' => __('Are you sure you want to delete # {0}?', $row->id), 'class' => 'side-nav-item']) ?></li>
-			<li class="nav-item"><?= $this->Html->link(__('List {0}', __('Rows')), ['action' => 'index'], ['class' => 'side-nav-item']) ?></li>
+			<li class="nav-item"><?= $this->Html->link(__('Edit {0}', __('Row')), ['action' => 'edit', $row->id], ['class' => 'nav-link']) ?></li>
+			<li class="nav-item"><?= $this->Form->postLink(__('Run {0}', __('manually')), ['action' => 'run', $row->id], ['confirm' => __('Are you sure you want to run this now?'), 'class' => 'nav-link']) ?></li>
+			<li class="nav-item"><?= $this->Form->postLink(__('Delete {0}', __('Row')), ['action' => 'delete', $row->id], ['confirm' => __('Are you sure you want to delete # {0}?', $row->id), 'class' => 'nav-link']) ?></li>
+			<li class="nav-item"><?= $this->Html->link(__('List {0}', __('Rows')), ['action' => 'index'], ['class' => 'nav-link']) ?></li>
 		</ul>
 	</aside>
 	<div class="column-responsive column-80 content large-9 medium-8 col-sm-8 col-xs-12">

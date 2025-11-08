@@ -39,7 +39,25 @@ class QueueSchedulerController extends AppController {
 			->toArray();
 		$runningJobs = Hash::combine($runningJobs, '{n}.reference', '{n}');
 
-		$this->set(compact('schedulerRows', 'runningJobs'));
+		// Fetch last command log for each scheduler row
+		$commandLogs = [];
+		if ($schedulerRows) {
+			$commands = array_unique(array_column($schedulerRows, 'content'));
+			$commandLogsTable = $this->fetchTable('QueueScheduler.CommandLogs');
+
+			// Get the most recent log for each command
+			foreach ($commands as $command) {
+				$log = $commandLogsTable->find()
+					->where(['command' => $command])
+					->orderBy(['executed_at' => 'DESC'])
+					->first();
+				if ($log) {
+					$commandLogs[$command] = $log;
+				}
+			}
+		}
+
+		$this->set(compact('schedulerRows', 'runningJobs', 'commandLogs'));
 	}
 
 	/**
