@@ -40,7 +40,9 @@
 							<?php if (class_exists('Panlatent\CronExpressionDescriptor\ExpressionDescriptor') && $row->isCronExpression()) { ?>
 								<p class="human-readable-description">
 									<?php
-									$expression = (new \Cron\CronExpression($row->frequency));
+									// Normalize @minutely to standard cron expression
+								$frequency = $row->frequency === '@minutely' ? '* * * * *' : $row->frequency;
+								$expression = (new \Cron\CronExpression($frequency));
 									$locale = Locale::getDefault();
 									?>
 									<?php echo (new \Panlatent\CronExpressionDescriptor\ExpressionDescriptor($expression, $locale, true))->getDescription();?>
@@ -106,7 +108,9 @@
 			<p>If you want to port this into a native crontab line, copy and paste the following</p>
 
 			<?php
-				$expression = (new \Cron\CronExpression($row->frequency));
+				// Normalize @minutely to standard cron expression
+			$frequency = $row->frequency === '@minutely' ? '* * * * *' : $row->frequency;
+			$expression = (new \Cron\CronExpression($frequency));
 			?>
 			<pre class="crontab"><?php echo $expression; ?></pre>
 			<?php } ?>
