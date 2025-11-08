@@ -49,6 +49,10 @@ class QueueSchedulerController extends AppController {
 
 		if ($this->request->is(['post', 'put'])) {
 			$interval = $this->request->getData('interval');
+			// Convert @minutely to standard cron expression
+			if ($interval === '@minutely') {
+				$interval = '* * * * *';
+			}
 			try {
 				$expression = (new CronExpression($interval))->getExpression();
 			} catch (\Exception $e) {

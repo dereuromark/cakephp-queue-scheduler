@@ -41,6 +41,7 @@ class SchedulerRow extends Entity {
 		'@weekly',
 		'@daily',
 		'@hourly',
+		'@minutely',
 	];
 
 	/**
@@ -108,7 +109,7 @@ class SchedulerRow extends Entity {
 			return $this->last_run->add($nextInterval)->timestamp < $dateTime->timestamp;
 		}
 
-		return (new CronExpression($this->frequency))->isDue($dateTime->toDateTimeString());
+		return (new CronExpression($this->normalizeCronExpression($this->frequency)))->isDue($dateTime->toDateTimeString());
 	}
 
 	/**
@@ -145,12 +146,26 @@ class SchedulerRow extends Entity {
 		}
 
 		try {
-			$dateTime = (new CronExpression($this->frequency))->getNextRunDate();
+			$dateTime = (new CronExpression($this->normalizeCronExpression($this->frequency)))->getNextRunDate();
 		} catch (Exception $e) {
 			return null;
 		}
 
 		return new DateTime($dateTime);
+	}
+
+	/**
+	 * Normalize cron expression shortcuts to standard cron format.
+	 *
+	 * @param string $expression
+	 * @return string
+	 */
+	protected function normalizeCronExpression(string $expression): string {
+		if ($expression === '@minutely') {
+			return '* * * * *';
+		}
+
+		return $expression;
 	}
 
 	/**

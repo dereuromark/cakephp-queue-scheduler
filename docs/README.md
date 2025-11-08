@@ -104,6 +104,7 @@ You can use different styles depending on your use case.
 - `@weekly`
 - `@daily`
 - `@hourly`
+- `@minutely`
 
 It calculates itself off the `created` datetime.
 
