@@ -119,6 +119,14 @@ class SchedulerRowsTableTest extends TestCase {
 		$data = [
 			'name' => 'n',
 			'content' => 'c',
+			'frequency' => '@minutely',
+		];
+		$row = $this->SchedulerRows->newEntity($data);
+		$this->assertSame([], $row->getError('frequency'));
+
+		$data = [
+			'name' => 'n',
+			'content' => 'c',
 			'frequency' => 'daily',
 		];
 		$row = $this->SchedulerRows->newEntity($data);

@@ -27,7 +27,10 @@
 		<?php foreach ($shortcuts as $shortcut) { ?>
 			<li>
 				<p>
-					<code><?php echo $expression = (new \Cron\CronExpression($shortcut));?></code> as <code><?php echo h($shortcut); ?></code> shortcut
+					<?php
+					$cronExpression = $shortcut === '@minutely' ? '* * * * *' : $shortcut;
+					?>
+					<code><?php echo $expression = (new \Cron\CronExpression($cronExpression));?></code> as <code><?php echo h($shortcut); ?></code> shortcut
 				</p>
 			</li>
 		<?php } ?>
