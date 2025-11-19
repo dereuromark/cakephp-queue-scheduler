@@ -28,9 +28,9 @@ class RunCommand extends Command {
 	 * @param \Cake\Console\Arguments $args The command arguments.
 	 * @param \Cake\Console\ConsoleIo $io The console io
 	 *
-	 * @return int|null|void The exit code or null for success
+	 * @return int|null The exit code or null for success
 	 */
-	public function execute(Arguments $args, ConsoleIo $io) {
+	public function execute(Arguments $args, ConsoleIo $io): ?int {
 		$scheduler = new Scheduler();
 		$events = $scheduler->events();
 
@@ -42,6 +42,8 @@ class RunCommand extends Command {
 		if ($count < $events->count()) {
 			$io->warning($events->count() - $count . ' events held back (run not finished or still pending in queue)');
 		}
+
+		return null;
 	}
 
 }

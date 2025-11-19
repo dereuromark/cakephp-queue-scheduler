@@ -122,7 +122,7 @@ class SchedulerRowsTable extends Table {
 	 *
 	 * @return bool
 	 */
-	public function validateContent($value, array $context): bool {
+	public function validateContent(mixed $value, array $context): bool {
 		if (!is_string($value) || !$value) {
 			return false;
 		}
@@ -150,7 +150,7 @@ class SchedulerRowsTable extends Table {
 	 *
 	 * @return string|bool
 	 */
-	public function validateParam($value, array $context) {
+	public function validateParam(mixed $value, array $context): string|bool {
 		if (!is_string($value)) {
 			return false;
 		}
@@ -178,7 +178,7 @@ class SchedulerRowsTable extends Table {
 	 *
 	 * @return bool
 	 */
-	public function validateFrequency($value, array $context): bool {
+	public function validateFrequency(mixed $value, array $context): bool {
 		if (!is_string($value) || !$value) {
 			return false;
 		}
