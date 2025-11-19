@@ -63,7 +63,7 @@ class SchedulerRow extends Entity {
 	 *
 	 * @return array<string, string>|string
 	 */
-	public static function types($value = null) {
+	public static function types(array|int|null $value = null): array|string {
 		$options = [
 			static::TYPE_QUEUE_TASK => __('Queue Task'),
 			static::TYPE_CAKE_COMMAND => __('Cake Command'),

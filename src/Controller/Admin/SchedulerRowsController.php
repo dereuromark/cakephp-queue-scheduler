@@ -2,6 +2,7 @@
 
 namespace QueueScheduler\Controller\Admin;
 
+use Cake\Http\Response;
 use QueueScheduler\Controller\AppController;
 
 /**
@@ -26,9 +27,9 @@ class SchedulerRowsController extends AppController {
 	/**
 	 * Index method
 	 *
-	 * @return \Cake\Http\Response|null|void Renders view
+	 * @return void Renders view
 	 */
-	public function index() {
+	public function index(): void {
 		$rows = $this->paginate($this->SchedulerRows);
 
 		$this->set(compact('rows'));
@@ -39,9 +40,9 @@ class SchedulerRowsController extends AppController {
 	 *
 	 * @param string|null $id Row id.
 	 *
-	 * @return \Cake\Http\Response|null|void Renders view
+	 * @return void Renders view
 	 */
-	public function view($id = null) {
+	public function view(?string $id = null): void {
 		$row = $this->SchedulerRows->get($id);
 
 		$this->set(compact('row'));
@@ -50,9 +51,9 @@ class SchedulerRowsController extends AppController {
 	/**
 	 * Add method
 	 *
-	 * @return \Cake\Http\Response|null|void Redirects on successful add, renders view otherwise.
+	 * @return \Cake\Http\Response|null Redirects on successful add, renders view otherwise.
 	 */
-	public function add() {
+	public function add(): ?Response {
 		$row = $this->SchedulerRows->newEmptyEntity();
 		if ($this->request->is('post')) {
 			$row = $this->SchedulerRows->patchEntity($row, $this->request->getData());
@@ -64,6 +65,8 @@ class SchedulerRowsController extends AppController {
 			$this->Flash->error(__('The row could not be saved. Please, try again.'));
 		}
 		$this->set(compact('row'));
+
+		return null;
 	}
 
 	/**
@@ -71,9 +74,9 @@ class SchedulerRowsController extends AppController {
 	 *
 	 * @param string|null $id Row id.
 	 *
-	 * @return \Cake\Http\Response|null|void Redirects on successful edit, renders view otherwise.
+	 * @return \Cake\Http\Response|null Redirects on successful edit, renders view otherwise.
 	 */
-	public function edit($id = null) {
+	public function edit(?string $id = null): ?Response {
 		$row = $this->SchedulerRows->get($id);
 		if ($this->request->is(['patch', 'post', 'put'])) {
 			$row = $this->SchedulerRows->patchEntity($row, $this->request->getData());
@@ -85,14 +88,16 @@ class SchedulerRowsController extends AppController {
 			$this->Flash->error(__('The row could not be saved. Please, try again.'));
 		}
 		$this->set(compact('row'));
+
+		return null;
 	}
 
 	/**
 	 * @param string|null $id Row id.
 	 *
-	 * @return \Cake\Http\Response|null|void Redirects to index.
+	 * @return \Cake\Http\Response|null Redirects to index.
 	 */
-	public function run($id = null) {
+	public function run(?string $id = null): ?Response {
 		$this->request->allowMethod(['post']);
 		$row = $this->SchedulerRows->get($id);
 
@@ -106,9 +111,9 @@ class SchedulerRowsController extends AppController {
 	}
 
 	/**
-	 * @return \Cake\Http\Response|null|void Redirects to index.
+	 * @return \Cake\Http\Response|null Redirects to index.
 	 */
-	public function disableAll() {
+	public function disableAll(): ?Response {
 		$this->request->allowMethod(['post']);
 		$this->SchedulerRows->updateAll(['enabled' => false], ['enabled' => true]);
 
@@ -122,9 +127,9 @@ class SchedulerRowsController extends AppController {
 	 *
 	 * @param string|null $id Row id.
 	 *
-	 * @return \Cake\Http\Response|null|void Redirects to index.
+	 * @return \Cake\Http\Response|null Redirects to index.
 	 */
-	public function delete($id = null) {
+	public function delete(?string $id = null): ?Response {
 		$this->request->allowMethod(['post', 'delete']);
 		$row = $this->SchedulerRows->get($id);
 		if ($this->SchedulerRows->delete($row)) {

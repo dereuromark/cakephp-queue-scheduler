@@ -25,9 +25,9 @@ class QueueSchedulerController extends AppController {
 	/**
 	 * Index method
 	 *
-	 * @return \Cake\Http\Response|null|void Renders view
+	 * @return void Renders view
 	 */
-	public function index() {
+	public function index(): void {
 		$schedulerRows = $this->fetchTable('QueueScheduler.SchedulerRows')
 			->find('active')
 			->all()
