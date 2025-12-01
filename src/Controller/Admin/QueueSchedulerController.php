@@ -4,6 +4,7 @@ namespace QueueScheduler\Controller\Admin;
 
 use Cake\Utility\Hash;
 use Cron\CronExpression;
+use Exception;
 use Locale;
 use Panlatent\CronExpressionDescriptor\ExpressionDescriptor;
 use QueueScheduler\Controller\AppController;
@@ -55,7 +56,7 @@ class QueueSchedulerController extends AppController {
 			}
 			try {
 				$expression = (new CronExpression($interval))->getExpression();
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 				$expression = null;
 				$this->Flash->error(__('Invalid interval') . ': ' . $e->getMessage());
 			}

@@ -359,7 +359,7 @@ class SchedulerRowsTable extends Table {
 
 		try {
 			new CronExpression($value);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			return false;
 		}
 
