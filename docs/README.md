@@ -157,6 +157,26 @@ You can configure the plugin further through
 in your app.php config.
 For details see `config/app.example.php` file.
 
+### Icons
+The backend UI uses icons for better UX. To enable them, configure an icon set in your `config/app.php`:
+```php
+use Templating\View\Icon\BootstrapIcon;
+
+'Icon' => [
+    'sets' => [
+        'bs' => BootstrapIcon::class,
+    ],
+],
+```
+
+Available icon sets from the Tools plugin:
+- `BootstrapIcon` - Bootstrap Icons
+- `FontAwesome4Icon`, `FontAwesome5Icon`, `FontAwesome6Icon` - Font Awesome
+- `FeatherIcon` - Feather Icons
+- `MaterialIcon` - Material Icons
+
+Without icon configuration, the UI will fall back to text-based labels.
+
 ### Plugins
 If you want to further include/exclude plugins, you can use the `plugins` key. Use `-` prefix to exclude.
 ```php
