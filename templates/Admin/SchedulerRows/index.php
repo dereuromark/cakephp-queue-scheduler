@@ -66,9 +66,9 @@
 					<td>
 						<?= $this->element('QueueScheduler.yes_no', ['value' => $row->enabled]) ?>
 						<?php if ($row->enabled && $row->type === $row::TYPE_SHELL_COMMAND && !\Cake\Core\Configure::read('QueueScheduler.allowRaw')) { ?>
-							<span><?php echo $this->Icon->render('stop-circle', [], ['title' => 'Raw commands are currently configured to be not runnable on non-debug system for security reasons.']); ?></span>
+							<span><?php echo $this->element('QueueScheduler.icon', ['name' => 'stop-circle', 'attributes' => ['title' => 'Raw commands are currently configured to be not runnable on non-debug system for security reasons.']]); ?></span>
 						<?php } elseif (!$row->enabled && !($row->type === $row::TYPE_SHELL_COMMAND && !\Cake\Core\Configure::read('QueueScheduler.allowRaw'))) { ?>
-							<?php echo $this->Form->postLink($this->Icon->render('yes', [], ['title' => 'Enable']) . ' ' . __('Enable'), ['controller' => 'SchedulerRows', 'action' => 'edit', $row->id], ['data' => ['enabled' => 1], 'escapeTitle' => false, 'class' => 'btn btn-small btn-success', 'confirm' => 'Sure to enable?']); ?>
+							<?php echo $this->Form->postLink($this->element('QueueScheduler.icon', ['name' => 'yes', 'attributes' => ['title' => 'Enable']]) . ' ' . __('Enable'), ['controller' => 'SchedulerRows', 'action' => 'edit', $row->id], ['data' => ['enabled' => 1], 'escapeTitle' => false, 'class' => 'btn btn-small btn-success', 'confirm' => 'Sure to enable?']); ?>
 						<?php } ?>
 
 						<?php if ($row->last_run) { ?>
@@ -88,10 +88,10 @@
 					<td><?= $this->Time->nice($row->created) ?></td>
 					<td><?= $this->Time->nice($row->modified) ?></td>
 					<td class="actions">
-						<?php echo $this->Html->link($this->Icon->render('view'), ['action' => 'view', $row->id], ['escapeTitle' => false]); ?>
-						<?php echo $this->Html->link($this->Icon->render('edit'), ['action' => 'edit', $row->id], ['escapeTitle' => false]); ?>
-						<?php echo $this->Form->postLink($this->Icon->render('play-circle', [], ['title' => 'Run manually now']), ['action' => 'run', $row->id], ['escapeTitle' => false, 'class' => '', 'confirm' => 'Sure to run it now?']); ?>
-					<?php echo $this->Form->postLink($this->Icon->render('delete'), ['action' => 'delete', $row->id], ['escapeTitle' => false, 'confirm' => __('Are you sure you want to delete # {0}?', $row->id)]); ?>
+						<?php echo $this->Html->link($this->element('QueueScheduler.icon', ['name' => 'view']), ['action' => 'view', $row->id], ['escapeTitle' => false]); ?>
+						<?php echo $this->Html->link($this->element('QueueScheduler.icon', ['name' => 'edit']), ['action' => 'edit', $row->id], ['escapeTitle' => false]); ?>
+						<?php echo $this->Form->postLink($this->element('QueueScheduler.icon', ['name' => 'play-circle', 'attributes' => ['title' => 'Run manually now']]), ['action' => 'run', $row->id], ['escapeTitle' => false, 'class' => '', 'confirm' => 'Sure to run it now?']); ?>
+					<?php echo $this->Form->postLink($this->element('QueueScheduler.icon', ['name' => 'delete']), ['action' => 'delete', $row->id], ['escapeTitle' => false, 'confirm' => __('Are you sure you want to delete # {0}?', $row->id)]); ?>
 					</td>
 				</tr>
 				<?php endforeach; ?>

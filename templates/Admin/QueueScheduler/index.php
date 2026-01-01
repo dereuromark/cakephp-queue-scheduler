@@ -47,7 +47,7 @@
 					<?php if ($queuedJob) { ?>
 					<div class="alert alert-warning">
 						<b><?php echo h($queuedJob->status) ?: 'Queued'?></b>
-						<?php echo $this->Html->link($this->Icon->render('view'), ['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $queuedJob->id], ['escapeTitle' => false]); ?>
+						<?php echo $this->Html->link($this->element('QueueScheduler.icon', ['name' => 'view']), ['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $queuedJob->id], ['escapeTitle' => false]); ?>
 
 						<?php if (!$queuedJob->completed && $queuedJob->fetched) { ?>
 							<?php if (!$queuedJob->failure_message) { ?>
@@ -77,9 +77,9 @@
 				</td>
 				<td class="actions">
 					<?php if (!$queuedJob) { ?>
-						<?php echo $this->Form->postLink($this->Icon->render('play-circle', [], ['title' => 'Run manually now']), ['controller' => 'SchedulerRows', 'action' => 'run', $schedulerRow->id], ['escapeTitle' => false, 'class' => 'btn btn-small btn-success', 'confirm' => 'Sure to run it now?']); ?>
+						<?php echo $this->Form->postLink($this->element('QueueScheduler.icon', ['name' => 'play-circle', 'attributes' => ['title' => 'Run manually now']]), ['controller' => 'SchedulerRows', 'action' => 'run', $schedulerRow->id], ['escapeTitle' => false, 'class' => 'btn btn-small btn-success', 'confirm' => 'Sure to run it now?']); ?>
 					<?php } ?>
-					<?php echo $this->Form->postLink($this->Icon->render('no', [], ['title' => 'Disable']), ['controller' => 'SchedulerRows', 'action' => 'edit', $schedulerRow->id], ['data' => ['enabled' => 0], 'escapeTitle' => false, 'class' => 'btn btn-small btn-danger', 'confirm' => 'Sure to disable?']); ?>
+					<?php echo $this->Form->postLink($this->element('QueueScheduler.icon', ['name' => 'no', 'attributes' => ['title' => 'Disable']]), ['controller' => 'SchedulerRows', 'action' => 'edit', $schedulerRow->id], ['data' => ['enabled' => 0], 'escapeTitle' => false, 'class' => 'btn btn-small btn-danger', 'confirm' => 'Sure to disable?']); ?>
 				</td>
 			</tr>
 		<?php } ?>
@@ -88,7 +88,7 @@
 
 
 	<p>
-	<?= $this->Html->link(__('Details'), ['controller' => 'SchedulerRows', 'action' => 'index'], ['class' => 'btn btn-secondary']) ?> <?php echo $this->Form->postLink($this->Icon->render('no', [], ['title' => 'Disable']) . ' ' . __('Disable all'), ['controller' => 'SchedulerRows', 'action' => 'disableAll'], ['escapeTitle' => false, 'class' => 'btn btn-small btn-danger', 'block' => true,  'confirm' => 'Sure to disable all?']); ?>
+	<?= $this->Html->link(__('Details'), ['controller' => 'SchedulerRows', 'action' => 'index'], ['class' => 'btn btn-secondary']) ?> <?php echo $this->Form->postLink($this->element('QueueScheduler.icon', ['name' => 'no', 'attributes' => ['title' => 'Disable']]) . ' ' . __('Disable all'), ['controller' => 'SchedulerRows', 'action' => 'disableAll'], ['escapeTitle' => false, 'class' => 'btn btn-small btn-danger', 'block' => true,  'confirm' => 'Sure to disable all?']); ?>
 	</p>
 
 </div>
