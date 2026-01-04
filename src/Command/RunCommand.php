@@ -5,7 +5,6 @@ namespace QueueScheduler\Command;
 use Cake\Command\Command;
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
-use Cake\Console\ConsoleOptionParser;
 use QueueScheduler\Scheduler\Scheduler;
 
 /**
@@ -14,14 +13,10 @@ use QueueScheduler\Scheduler\Scheduler;
 class RunCommand extends Command {
 
 	/**
-	 * @param \Cake\Console\ConsoleOptionParser $parser The parser to be defined
-	 *
-	 * @return \Cake\Console\ConsoleOptionParser The built parser.
+	 * @return string
 	 */
-	public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser {
-		$parser = parent::buildOptionParser($parser);
-
-		return $parser;
+	public static function getDescription(): string {
+		return 'Schedule due events into the queue for execution.';
 	}
 
 	/**
