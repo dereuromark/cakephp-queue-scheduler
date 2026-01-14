@@ -2,6 +2,8 @@
 /**
  * @var \App\View\AppView $this
  * @var \QueueScheduler\Model\Entity\SchedulerRow $row
+ * @var array<string, mixed>|null $jobStats
+ * @var array<\Queue\Model\Entity\QueuedJob> $recentJobs
  */
 ?>
 <div class="row">
@@ -12,6 +14,7 @@
 			<li class="nav-item"><?= $this->Form->postLink(__('Run {0}', __('manually')), ['action' => 'run', $row->id], ['confirm' => __('Are you sure you want to run this now?'), 'class' => 'nav-link']) ?></li>
 			<li class="nav-item"><?= $this->Form->postLink(__('Delete {0}', __('Row')), ['action' => 'delete', $row->id], ['confirm' => __('Are you sure you want to delete # {0}?', $row->id), 'class' => 'nav-link']) ?></li>
 			<li class="nav-item"><?= $this->Html->link(__('List {0}', __('Rows')), ['action' => 'index'], ['class' => 'nav-link']) ?></li>
+			<li class="nav-item"><?= $this->Html->link(__('View Jobs in Queue'), ['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'index', '?' => ['reference' => $row->job_reference]], ['class' => 'nav-link']) ?></li>
 		</ul>
 	</aside>
 	<div class="column-responsive column-80 content large-9 medium-8 col-sm-8 col-xs-12">
@@ -102,6 +105,76 @@
 					<?= $this->Text->autoParagraph(h($row->content)); ?>
 				</blockquote>
 			</div>
+
+			<?php if ($jobStats && $jobStats['total_runs']) { ?>
+			<h3><?= __('Job Statistics') ?></h3>
+			<table class="table table-striped">
+				<tr>
+					<th><?= __('Total Runs') ?></th>
+					<td><?= $jobStats['total_runs'] ?></td>
+				</tr>
+				<tr>
+					<th><?= __('Completed') ?></th>
+					<td><?= $jobStats['completed_runs'] ?: 0 ?></td>
+				</tr>
+				<tr>
+					<th><?= __('Failed') ?></th>
+					<td><?= $jobStats['failed_runs'] ?: 0 ?></td>
+				</tr>
+				<?php if ($jobStats['avg_duration'] !== null) { ?>
+				<tr>
+					<th><?= __('Average Duration') ?></th>
+					<td><?= $this->Number->precision($jobStats['avg_duration'], 1) ?> <?= __('seconds') ?></td>
+				</tr>
+				<tr>
+					<th><?= __('Min / Max Duration') ?></th>
+					<td><?= $jobStats['min_duration'] ?> / <?= $jobStats['max_duration'] ?> <?= __('seconds') ?></td>
+				</tr>
+				<?php } ?>
+			</table>
+			<?php } ?>
+
+			<?php if ($recentJobs) { ?>
+			<h3><?= __('Recent Executions') ?></h3>
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th><?= __('Created') ?></th>
+						<th><?= __('Status') ?></th>
+						<th><?= __('Duration') ?></th>
+					</tr>
+				</thead>
+				<tbody>
+				<?php foreach ($recentJobs as $job) { ?>
+					<tr>
+						<td><?= $this->Time->nice($job->created) ?></td>
+						<td>
+							<?php if ($job->completed) { ?>
+								<?php if ($job->failure_message) { ?>
+									<span class="badge badge-danger bg-danger"><?= __('Failed') ?></span>
+								<?php } else { ?>
+									<span class="badge badge-success bg-success"><?= __('Completed') ?></span>
+								<?php } ?>
+							<?php } elseif ($job->fetched) { ?>
+								<span class="badge badge-info bg-info"><?= __('Running') ?></span>
+							<?php } else { ?>
+								<span class="badge badge-secondary bg-secondary"><?= __('Queued') ?></span>
+							<?php } ?>
+						</td>
+						<td>
+							<?php if ($job->fetched && $job->completed) { ?>
+								<?= $job->fetched->diffInSeconds($job->completed) ?> <?= __('seconds') ?>
+							<?php } elseif ($job->fetched) { ?>
+								<?= __('In progress...') ?>
+							<?php } else { ?>
+								-
+							<?php } ?>
+						</td>
+					</tr>
+				<?php } ?>
+				</tbody>
+			</table>
+			<?php } ?>
 
 			<?php if (class_exists('Cron\CronExpression') && $row->isCronExpression()) { ?>
 			<h3>Crontab expression</h3>

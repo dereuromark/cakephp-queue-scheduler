@@ -45,7 +45,73 @@ class SchedulerRowsController extends AppController {
 	public function view(?string $id = null): void {
 		$row = $this->SchedulerRows->get($id);
 
-		$this->set(compact('row'));
+		/** @var \Queue\Model\Table\QueuedJobsTable $queuedJobsTable */
+		$queuedJobsTable = $this->fetchTable('Queue.QueuedJobs');
+		$reference = $row->job_reference;
+
+		// Get all completed jobs for this scheduler to calculate statistics
+		$completedJobs = $queuedJobsTable->find()
+			->select(['fetched', 'completed', 'failure_message'])
+			->where([
+				'reference' => $reference,
+				'completed IS NOT' => null,
+			])
+			->all()
+			->toArray();
+
+		// Calculate statistics in PHP for database portability
+		$jobStats = $this->calculateJobStats($completedJobs);
+
+		// Get total count including non-completed jobs
+		$jobStats['total_runs'] = $queuedJobsTable->find()
+			->where(['reference' => $reference])
+			->count();
+
+		// Get recent job executions
+		$recentJobs = $queuedJobsTable->find()
+			->where(['reference' => $reference])
+			->orderByDesc('created')
+			->limit(10)
+			->all()
+			->toArray();
+
+		$this->set(compact('row', 'jobStats', 'recentJobs'));
+	}
+
+	/**
+	 * Calculate job statistics from completed jobs.
+	 *
+	 * @param array<\Queue\Model\Entity\QueuedJob> $completedJobs
+	 * @return array<string, mixed>
+	 */
+	protected function calculateJobStats(array $completedJobs): array {
+		$stats = [
+			'total_runs' => 0,
+			'completed_runs' => 0,
+			'failed_runs' => 0,
+			'avg_duration' => null,
+			'min_duration' => null,
+			'max_duration' => null,
+		];
+
+		$durations = [];
+		foreach ($completedJobs as $job) {
+			$stats['completed_runs']++;
+			if ($job->failure_message) {
+				$stats['failed_runs']++;
+			}
+			if ($job->fetched && $job->completed) {
+				$durations[] = $job->fetched->diffInSeconds($job->completed);
+			}
+		}
+
+		if ($durations) {
+			$stats['avg_duration'] = array_sum($durations) / count($durations);
+			$stats['min_duration'] = min($durations);
+			$stats['max_duration'] = max($durations);
+		}
+
+		return $stats;
 	}
 
 	/**
