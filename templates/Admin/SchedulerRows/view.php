@@ -14,7 +14,7 @@
 			<li class="nav-item"><?= $this->Form->postLink(__('Run {0}', __('manually')), ['action' => 'run', $row->id], ['confirm' => __('Are you sure you want to run this now?'), 'class' => 'nav-link']) ?></li>
 			<li class="nav-item"><?= $this->Form->postLink(__('Delete {0}', __('Row')), ['action' => 'delete', $row->id], ['confirm' => __('Are you sure you want to delete # {0}?', $row->id), 'class' => 'nav-link']) ?></li>
 			<li class="nav-item"><?= $this->Html->link(__('List {0}', __('Rows')), ['action' => 'index'], ['class' => 'nav-link']) ?></li>
-			<li class="nav-item"><?= $this->Html->link(__('View Jobs in Queue'), ['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'index', '?' => ['reference' => $row->job_reference]], ['class' => 'nav-link']) ?></li>
+			<li class="nav-item"><?= $this->Html->link(__('View Jobs in Queue'), ['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'index', '?' => ['search' => $row->job_reference]], ['class' => 'nav-link']) ?></li>
 		</ul>
 	</aside>
 	<div class="column-responsive column-80 content large-9 medium-8 col-sm-8 col-xs-12">
