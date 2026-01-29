@@ -66,7 +66,13 @@
 				</td>
 				<td>
 					<?php if ($schedulerRow->last_run) { ?>
-						<div><small><?= __('Last Run') ?>: <?php echo $this->Time->nice($schedulerRow->last_run); ?></small></div>
+						<div><small><?= __('Last Run') ?>:
+							<?php if ($schedulerRow->last_queued_job_id) { ?>
+								<?= $this->Html->link($this->Time->nice($schedulerRow->last_run), ['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $schedulerRow->last_queued_job_id], ['escapeTitle' => false]) ?>
+							<?php } else { ?>
+								<?= $this->Time->nice($schedulerRow->last_run) ?>
+							<?php } ?>
+						</small></div>
 					<?php } ?>
 					<?php
 						$nextRun = $schedulerRow->next_run ?: $schedulerRow->calculateNextRun();

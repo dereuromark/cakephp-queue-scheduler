@@ -72,7 +72,13 @@
 						<?php } ?>
 
 						<?php if ($row->last_run) { ?>
-						<div><small><?= __('Last Run') ?>: <?php echo $this->Time->nice($row->last_run); ?></small></div>
+						<div><small><?= __('Last Run') ?>:
+							<?php if ($row->last_queued_job_id) { ?>
+								<?= $this->Html->link($this->Time->nice($row->last_run), ['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $row->last_queued_job_id], ['escapeTitle' => false]) ?>
+							<?php } else { ?>
+								<?= $this->Time->nice($row->last_run) ?>
+							<?php } ?>
+						</small></div>
 						<?php } ?>
 						<?php
 							$nextRun = $row->next_run ?: $row->calculateNextRun();
