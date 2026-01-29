@@ -25,6 +25,7 @@ use Tools\Model\Entity\Entity;
  * @property \Cake\I18n\DateTime|null $created
  * @property \Cake\I18n\DateTime|null $modified
  * @property bool $enabled
+ * @property int|null $last_queued_job_id
  * @property-read string|null $job_task
  * @property-read array $job_data
  * @property-read array $job_config

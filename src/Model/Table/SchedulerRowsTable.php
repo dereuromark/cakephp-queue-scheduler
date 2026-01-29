@@ -42,7 +42,7 @@ class SchedulerRowsTable extends Table {
 	/**
 	 * @var array<string>
 	 */
-	public $scaffoldSkipFields = ['last_run'];
+	public $scaffoldSkipFields = ['last_run', 'last_queued_job_id'];
 
 	/**
 	 * Initialize method
@@ -308,8 +308,9 @@ class SchedulerRowsTable extends Table {
 			return false;
 		}
 
-		$queuedJobsTable->createJob($row->job_task, $row->job_data, $config);
+		$queuedJob = $queuedJobsTable->createJob($row->job_task, $row->job_data, $config);
 		$row->last_run = new DateTime();
+		$row->last_queued_job_id = $queuedJob->id;
 		$this->saveOrFail($row);
 
 		return true;

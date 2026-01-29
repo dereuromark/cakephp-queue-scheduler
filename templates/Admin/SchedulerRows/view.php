@@ -66,7 +66,13 @@
 				</tr>
 				<tr>
 					<th><?= __('Last Run') ?></th>
-					<td><?= $this->Time->nice($row->last_run) ?></td>
+					<td>
+						<?php if ($row->last_run && $row->last_queued_job_id) { ?>
+							<?= $this->Html->link($this->Time->nice($row->last_run), ['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $row->last_queued_job_id], ['escapeTitle' => false]) ?>
+						<?php } else { ?>
+							<?= $this->Time->nice($row->last_run) ?>
+						<?php } ?>
+					</td>
 				</tr>
 				<?php
 				$nextRun = $row->next_run ?: $row->calculateNextRun();
@@ -142,12 +148,13 @@
 						<th><?= __('Created') ?></th>
 						<th><?= __('Status') ?></th>
 						<th><?= __('Duration') ?></th>
+						<th><?= __('Actions') ?></th>
 					</tr>
 				</thead>
 				<tbody>
 				<?php foreach ($recentJobs as $job) { ?>
 					<tr>
-						<td><?= $this->Time->nice($job->created) ?></td>
+						<td><?= $this->Html->link($this->Time->nice($job->created), ['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $job->id], ['escapeTitle' => false]) ?></td>
 						<td>
 							<?php if ($job->completed) { ?>
 								<?php if ($job->failure_message) { ?>
@@ -169,6 +176,9 @@
 							<?php } else { ?>
 								-
 							<?php } ?>
+						</td>
+						<td>
+							<?= $this->Html->link(__('View Job'), ['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $job->id]) ?>
 						</td>
 					</tr>
 				<?php } ?>
