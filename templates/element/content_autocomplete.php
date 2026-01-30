@@ -9,6 +9,7 @@
 $scheduler = $this->Scheduler;
 ?>
 <?= $scheduler->contentDatalists() ?>
+<?= $scheduler->frequencyDatalist() ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 	var typeField = document.getElementById('type');

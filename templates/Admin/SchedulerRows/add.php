@@ -22,9 +22,9 @@
 				<?php
 					echo $this->Form->control('name');
 					echo $this->Form->control('type', ['options' => $row::types()]);
-					echo $this->Form->control('content');
+					echo $this->Form->control('content', ['type' => 'text']);
 					echo $this->Form->control('param');
-					echo $this->Form->control('frequency');
+					echo $this->Form->control('frequency', ['list' => 'frequency-suggestions']);
 					echo $this->Form->control('allow_concurrent');
 
 				echo $this->Form->control('enabled');
