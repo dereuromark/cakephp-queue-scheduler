@@ -5,12 +5,15 @@ namespace QueueScheduler\Command;
 use Cake\Command\Command;
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
+use Cake\Log\LogTrait;
 use QueueScheduler\Scheduler\Scheduler;
 
 /**
  * Run command.
  */
 class RunCommand extends Command {
+
+	use LogTrait;
 
 	/**
 	 * @return string
@@ -35,8 +38,11 @@ class RunCommand extends Command {
 
 		$io->success('Done: ' . $count . ' events scheduled.');
 		if ($count < $events->count()) {
-			$io->warning($events->count() - $count . ' events held back (run not finished or still pending in queue)');
+			$heldBack = $events->count() - $count;
+			$io->warning($heldBack . ' events held back (run not finished or still pending in queue)');
 		}
+
+		$this->log(sprintf('Scheduler: %d/%d events scheduled', $count, $events->count()), 'info');
 
 		return null;
 	}

@@ -148,6 +148,7 @@
 						<th><?= __('Created') ?></th>
 						<th><?= __('Status') ?></th>
 						<th><?= __('Duration') ?></th>
+						<th><?= __('Output') ?></th>
 						<th><?= __('Actions') ?></th>
 					</tr>
 				</thead>
@@ -173,6 +174,21 @@
 								<?= $job->fetched->diffInSeconds($job->completed) ?> <?= __('seconds') ?>
 							<?php } elseif ($job->fetched) { ?>
 								<?= __('In progress...') ?>
+							<?php } else { ?>
+								-
+							<?php } ?>
+						</td>
+						<td>
+							<?php if ($job->output) { ?>
+								<details>
+									<summary><?= __('Show output') ?> (<?= $this->Number->toReadableSize(strlen($job->output)) ?>)</summary>
+									<pre class="job-output"><?= h($job->output) ?></pre>
+								</details>
+							<?php } elseif ($job->failure_message) { ?>
+								<details>
+									<summary class="text-danger"><?= __('Show error') ?></summary>
+									<pre class="job-output"><?= h($job->failure_message) ?></pre>
+								</details>
 							<?php } else { ?>
 								-
 							<?php } ?>
