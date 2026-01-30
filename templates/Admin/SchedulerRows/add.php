@@ -13,6 +13,11 @@
 		</ul>
 	</aside>
 	<div class="column-responsive column-80 form large-9 medium-8 columns col-sm-8 col-12">
+		<?php if (!$this->request->getQueryParams()) { ?>
+			<?= $this->element('QueueScheduler.quick_add') ?>
+			<hr>
+		<?php } ?>
+
 		<div class="rows form content">
 			<h2><?= __('Rows') ?></h2>
 

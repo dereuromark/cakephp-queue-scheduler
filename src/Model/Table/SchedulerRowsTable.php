@@ -73,7 +73,12 @@ class SchedulerRowsTable extends Table {
 			->scalar('name')
 			->maxLength('name', 140)
 			->requirePresence('name', 'create')
-			->notEmptyString('name');
+			->notEmptyString('name')
+			->add('name', 'unique', [
+				'rule' => 'validateUniqueName',
+				'provider' => 'table',
+				'message' => __('This name is already in use.'),
+			]);
 
 		$validator
 			->notEmptyString('type');
@@ -314,6 +319,27 @@ class SchedulerRowsTable extends Table {
 		$this->saveOrFail($row);
 
 		return true;
+	}
+
+	/**
+	 * @param mixed $value
+	 * @param array $context
+	 *
+	 * @return bool
+	 */
+	public function validateUniqueName(mixed $value, array $context): bool {
+		if (!is_string($value) || !$value) {
+			return false;
+		}
+
+		$query = $this->find()
+			->where(['name' => $value]);
+
+		if (!empty($context['data']['id'])) {
+			$query->where(['id !=' => $context['data']['id']]);
+		}
+
+		return $query->count() === 0;
 	}
 
 	/**

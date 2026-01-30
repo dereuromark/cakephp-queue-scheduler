@@ -129,7 +129,12 @@ class SchedulerRowsController extends AppController {
 				return $this->redirect(['action' => 'view', $row->id]);
 			}
 			$this->Flash->error(__('The row could not be saved. Please, try again.'));
+		} else {
+			foreach ($this->request->getQueryParams() as $key => $value) {
+				$row->set($key, $value);
+			}
 		}
+
 		$this->set(compact('row'));
 
 		return null;
