@@ -48,6 +48,53 @@ class SchedulerRowsControllerTest extends TestCase {
 	/**
 	 * @return void
 	 */
+	public function testViewWithJobOutput(): void {
+		$this->disableErrorHandlerMiddleware();
+
+		$queuedJobsTable = $this->fetchTable('Queue.QueuedJobs');
+		$queuedJob = $queuedJobsTable->newEntity([
+			'job_task' => 'QueueScheduler.CommandExecute',
+			'reference' => 'queue-scheduler-1',
+			'output' => 'Command output line 1' . "\n" . 'Command output line 2',
+			'created' => '2024-01-01 00:00:00',
+			'completed' => '2024-01-01 00:00:05',
+		]);
+		$queuedJobsTable->saveOrFail($queuedJob);
+
+		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'view', 1]);
+
+		$this->assertResponseCode(200);
+		$this->assertResponseContains('Recent Executions');
+		$this->assertResponseContains('Show output');
+		$this->assertResponseContains('Command output line 1');
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testViewWithJobFailure(): void {
+		$this->disableErrorHandlerMiddleware();
+
+		$queuedJobsTable = $this->fetchTable('Queue.QueuedJobs');
+		$queuedJob = $queuedJobsTable->newEntity([
+			'job_task' => 'QueueScheduler.CommandExecute',
+			'reference' => 'queue-scheduler-1',
+			'failure_message' => 'Command failed with exit code 1',
+			'created' => '2024-01-01 00:00:00',
+			'completed' => '2024-01-01 00:00:05',
+		]);
+		$queuedJobsTable->saveOrFail($queuedJob);
+
+		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'view', 1]);
+
+		$this->assertResponseCode(200);
+		$this->assertResponseContains('Show error');
+		$this->assertResponseContains('Command failed with exit code 1');
+	}
+
+	/**
+	 * @return void
+	 */
 	public function testAdd(): void {
 		$this->disableErrorHandlerMiddleware();
 
