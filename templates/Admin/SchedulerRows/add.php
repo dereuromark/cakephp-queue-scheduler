@@ -13,6 +13,11 @@
 		</ul>
 	</aside>
 	<div class="column-responsive column-80 form large-9 medium-8 columns col-sm-8 col-12">
+		<?php if (!$this->request->getQueryParams()) { ?>
+			<?= $this->element('QueueScheduler.quick_add') ?>
+			<hr>
+		<?php } ?>
+
 		<div class="rows form content">
 			<h2><?= __('Rows') ?></h2>
 
@@ -22,9 +27,9 @@
 				<?php
 					echo $this->Form->control('name');
 					echo $this->Form->control('type', ['options' => $row::types()]);
-					echo $this->Form->control('content');
+					echo $this->Form->control('content', ['type' => 'text']);
 					echo $this->Form->control('param');
-					echo $this->Form->control('frequency');
+					echo $this->Form->control('frequency', ['list' => 'frequency-suggestions']);
 					echo $this->Form->control('allow_concurrent');
 
 				echo $this->Form->control('enabled');
@@ -33,6 +38,8 @@
 			<?= $this->Form->button(__('Submit')) ?>
 			<?= $this->Form->end() ?>
 		</div>
+
+		<?php echo $this->element('QueueScheduler.content_autocomplete') ?>
 
 		<hr>
 

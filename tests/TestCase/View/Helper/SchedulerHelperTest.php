@@ -65,4 +65,16 @@ class SchedulerHelperTest extends TestCase {
 		$this->assertSame($queueTasks['Queue.Execute'], ExecuteTask::class);
 	}
 
+	/**
+	 * @return void
+	 */
+	public function testContentDatalists(): void {
+		$result = $this->Scheduler->contentDatalists();
+
+		$this->assertStringContainsString('<datalist id="content-commands">', $result);
+		$this->assertStringContainsString('<datalist id="content-queue-tasks">', $result);
+		$this->assertStringContainsString(h(RunCommand::class), $result);
+		$this->assertStringContainsString(h(ExecuteTask::class), $result);
+	}
+
 }

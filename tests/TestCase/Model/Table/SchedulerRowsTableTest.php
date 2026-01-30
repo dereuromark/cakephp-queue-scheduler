@@ -163,6 +163,56 @@ class SchedulerRowsTableTest extends TestCase {
 	/**
 	 * @return void
 	 */
+	public function testValidateUniqueName(): void {
+		$row = $this->SchedulerRows->newEntity([
+			'name' => 'My Unique Task',
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'frequency' => '@daily',
+			'content' => ExampleTask::class,
+			'enabled' => true,
+		]);
+		$this->SchedulerRows->saveOrFail($row);
+
+		// Fixture name should also fail
+		$fixtureConflict = $this->SchedulerRows->newEntity([
+			'name' => 'Lorem ipsum dolor sit amet',
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'frequency' => '@daily',
+			'content' => ExampleTask::class,
+			'enabled' => true,
+		]);
+		$expected = ['unique' => 'This name is already in use.'];
+		$this->assertSame($expected, $fixtureConflict->getError('name'));
+
+		// Same name should fail
+		$duplicate = $this->SchedulerRows->newEntity([
+			'name' => 'My Unique Task',
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'frequency' => '@daily',
+			'content' => ExampleTask::class,
+			'enabled' => true,
+		]);
+		$expected = ['unique' => 'This name is already in use.'];
+		$this->assertSame($expected, $duplicate->getError('name'));
+
+		// Different name should pass
+		$other = $this->SchedulerRows->newEntity([
+			'name' => 'Another Task',
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'frequency' => '@daily',
+			'content' => ExampleTask::class,
+			'enabled' => true,
+		]);
+		$this->assertSame([], $other->getError('name'));
+
+		// Editing existing row with same name should pass
+		$row = $this->SchedulerRows->patchEntity($row, ['name' => 'My Unique Task']);
+		$this->assertSame([], $row->getError('name'));
+	}
+
+	/**
+	 * @return void
+	 */
 	public function testValidateContent(): void {
 		$data = [
 			'name' => 'n',
