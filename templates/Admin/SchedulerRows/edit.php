@@ -39,6 +39,8 @@
 			<?= $this->Form->end() ?>
 		</div>
 
+		<?php echo $this->element('QueueScheduler.content_autocomplete') ?>
+
 		<hr>
 
 		<?php echo $this->element('QueueScheduler.available')?>

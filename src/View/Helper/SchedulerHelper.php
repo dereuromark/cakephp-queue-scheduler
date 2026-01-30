@@ -25,4 +25,25 @@ class SchedulerHelper extends Helper {
 		return (new TaskFinder())->all();
 	}
 
+	/**
+	 * Renders datalist elements for content field autocomplete.
+	 *
+	 * @return string
+	 */
+	public function contentDatalists(): string {
+		$html = '<datalist id="content-commands">';
+		foreach ($this->availableCommands() as $name => $command) {
+			$html .= '<option value="' . h($command) . '" label="' . h($name) . '">';
+		}
+		$html .= '</datalist>';
+
+		$html .= '<datalist id="content-queue-tasks">';
+		foreach ($this->availableQueueTasks() as $name => $queueTask) {
+			$html .= '<option value="' . h($queueTask) . '" label="' . h($name) . '">';
+		}
+		$html .= '</datalist>';
+
+		return $html;
+	}
+
 }
