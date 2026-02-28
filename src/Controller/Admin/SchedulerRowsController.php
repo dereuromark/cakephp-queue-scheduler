@@ -50,6 +50,7 @@ class SchedulerRowsController extends AppController {
 		$reference = $row->job_reference;
 
 		// Get all completed jobs for this scheduler to calculate statistics
+		/** @var array<\Queue\Model\Entity\QueuedJob> $completedJobs */
 		$completedJobs = $queuedJobsTable->find()
 			->select(['fetched', 'completed', 'failure_message'])
 			->where([
