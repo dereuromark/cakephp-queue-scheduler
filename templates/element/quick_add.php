@@ -12,7 +12,7 @@ $scheduler = $this->Scheduler;
 ?>
 <div class="card mb-4">
 	<div class="card-header">
-		<a class="text-decoration-none" data-bs-toggle="collapse" href="#quick-add-body" role="button" aria-expanded="false" aria-controls="quick-add-body">
+		<a class="text-decoration-none" data-toggle="collapse" data-bs-toggle="collapse" href="#quick-add-body" role="button" aria-expanded="false" aria-controls="quick-add-body">
 			<h3 class="mb-0"><?= __('Quick Add') ?> <small>&#9660;</small></h3>
 		</a>
 	</div>
