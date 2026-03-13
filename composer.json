@@ -2,6 +2,13 @@
 	"name": "dereuromark/cakephp-queue-scheduler",
 	"description": "QueueScheduler plugin for CakePHP",
 	"type": "cakephp-plugin",
+	"keywords": [
+		"cakephp",
+		"plugin",
+		"queue",
+		"scheduler",
+		"admin-panel"
+	],
 	"license": "MIT",
 	"require": {
 		"php": ">=8.2",
