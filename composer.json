@@ -1,13 +1,16 @@
 {
 	"name": "dereuromark/cakephp-queue-scheduler",
-	"description": "QueueScheduler plugin for CakePHP",
+	"description": "A CakePHP plugin for scheduling recurring queue jobs with cron expressions",
 	"type": "cakephp-plugin",
 	"keywords": [
 		"cakephp",
 		"plugin",
 		"queue",
 		"scheduler",
-		"admin-panel"
+		"admin-panel",
+		"cron",
+		"automation",
+		"recurring"
 	],
 	"license": "MIT",
 	"require": {
