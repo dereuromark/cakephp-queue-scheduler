@@ -25,10 +25,10 @@ $tasks = $scheduler->availableQueueTasks();
 			   autocomplete="off">
 		<datalist id="quick-add-options">
 			<?php foreach ($commands as $name => $command) { ?>
-				<option value="<?= h($name) ?>" data-type="<?= SchedulerRow::TYPE_CAKE_COMMAND ?>" data-content="<?= h($command) ?>">
+				<option value="<?= h($name) ?> (Command)" data-name="<?= h($name) ?>" data-type="<?= SchedulerRow::TYPE_CAKE_COMMAND ?>" data-content="<?= h($command) ?>">
 			<?php } ?>
 			<?php foreach ($tasks as $name => $task) { ?>
-				<option value="<?= h($name) ?>" data-type="<?= SchedulerRow::TYPE_QUEUE_TASK ?>" data-content="<?= h($task) ?>">
+				<option value="<?= h($name) ?> (Task)" data-name="<?= h($name) ?>" data-type="<?= SchedulerRow::TYPE_QUEUE_TASK ?>" data-content="<?= h($task) ?>">
 			<?php } ?>
 		</datalist>
 		<div class="form-text"><?= __('Select a command or task to pre-fill the form') ?></div>
@@ -43,22 +43,25 @@ document.addEventListener('DOMContentLoaded', function() {
 	var optionsMap = {};
 	document.querySelectorAll('#quick-add-options option').forEach(function(opt) {
 		optionsMap[opt.value] = {
+			name: opt.dataset.name,
 			type: opt.dataset.type,
 			content: opt.dataset.content
 		};
 	});
 
-	searchInput.addEventListener('change', function() {
-		var selected = optionsMap[this.value];
+	function handleSelection() {
+		var selected = optionsMap[searchInput.value];
 		if (selected) {
 			var params = new URLSearchParams({
 				type: selected.type,
 				content: selected.content,
-				name: this.value
+				name: selected.name
 			});
 			window.location.href = window.location.pathname + '?' + params.toString();
 		}
-	});
+	}
+
+	searchInput.addEventListener('change', handleSelection);
 
 	// Also handle Enter key for better UX
 	searchInput.addEventListener('keydown', function(e) {
@@ -66,12 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			var selected = optionsMap[this.value];
 			if (selected) {
 				e.preventDefault();
-				var params = new URLSearchParams({
-					type: selected.type,
-					content: selected.content,
-					name: this.value
-				});
-				window.location.href = window.location.pathname + '?' + params.toString();
+				handleSelection();
 			}
 		}
 	});
