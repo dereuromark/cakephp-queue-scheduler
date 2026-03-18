@@ -20,6 +20,7 @@ trait LoadHelperTrait {
 			'Tools.Format',
 			'Tools.Text',
 			'Tools.Time',
+			'QueueScheduler.Scheduler',
 		];
 		if (Configure::read('Icon.sets')) {
 			$helpers[] = class_exists(IconHelper::class) ? 'Templating.Icon' : 'Tools.Icon';

@@ -5,96 +5,157 @@
  * @var array<\Queue\Model\Entity\QueuedJob> $runningJobs
  */
 ?>
-<nav class="actions large-3 medium-4 columns col-sm-4 col-xs-12" id="actions-sidebar">
-	<ul class="side-nav nav nav-pills flex-column">
-		<li class="nav-item heading"><?= __('Actions') ?></li>
-		<li class="nav-item">
-			<?= $this->Html->link(__('New {0}', __('Row')), ['controller' => 'SchedulerRows', 'action' => 'add'], ['class' => 'nav-link']) ?>
-			<?= $this->Html->link(__('Available {0}', __('Intervals')), ['action' => 'intervals'], ['class' => 'nav-link']) ?>
-		</li>
-	</ul>
-</nav>
-<div class="rows index content large-9 medium-8 columns col-sm-8 col-12">
+<div class="scheduler-dashboard">
+	<div class="d-flex justify-content-between align-items-center mb-4">
+		<h2 class="mb-0">
+			<i class="fas fa-calendar-alt me-2"></i><?= __('Queue Scheduler') ?>
+		</h2>
+		<div>
+			<?= $this->Html->link(
+				'<i class="fas fa-plus me-1"></i>' . __('New Schedule'),
+				['controller' => 'SchedulerRows', 'action' => 'add'],
+				['class' => 'btn btn-primary', 'escape' => false],
+			) ?>
+		</div>
+	</div>
 
-	<h2><?= __('Queue Scheduler') ?></h2>
-	<p>Addon to run commands and queue tasks as crontab like database driven schedule.</p>
+	<p class="text-muted mb-4"><?= __('Addon to run commands and queue tasks as crontab like database driven schedule.') ?></p>
 
-	<h3>Current schedule</h3>
-	<table class="table table-sm table-striped">
-		<thead>
-		<tr>
-			<th><?= 'Name' ?></th>
-			<th><?= 'Frequency' ?></th>
-			<th><?= 'Log' ?></th>
-			<th class="actions"><?= __('Actions') ?></th>
-		</tr>
-		</thead>
-		<tbody>
-		<?php foreach ($schedulerRows as $schedulerRow) { ?>
-			<?php
-			$queuedJob = $runningJobs[$schedulerRow->job_reference] ?? null;
-			?>
-			<tr>
-				<td>
-					<?= $this->Html->link($schedulerRow->name, ['controller' => 'SchedulerRows', 'action' => 'view', $schedulerRow->id]) ?>
-					<div>
-						<small><?= $schedulerRow::types($schedulerRow->type) ?></small>
-					</div>
-				</td>
-				<td>
-					<?= h($schedulerRow->frequency) ?>
+	<div class="card">
+		<div class="card-header">
+			<i class="fas fa-clock me-2"></i><?= __('Current Schedule') ?>
+		</div>
+		<div class="card-body p-0">
+			<div class="table-responsive">
+				<table class="table table-hover scheduler-table mb-0">
+					<thead>
+						<tr>
+							<th><?= __('Name') ?></th>
+							<th><?= __('Frequency') ?></th>
+							<th><?= __('Log') ?></th>
+							<th class="actions text-end"><?= __('Actions') ?></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ($schedulerRows as $schedulerRow) { ?>
+							<?php
+							$queuedJob = $runningJobs[$schedulerRow->job_reference] ?? null;
+							?>
+							<tr>
+								<td>
+									<?= $this->Html->link(
+										h($schedulerRow->name),
+										['controller' => 'SchedulerRows', 'action' => 'view', $schedulerRow->id],
+										['class' => 'fw-semibold'],
+									) ?>
+									<div>
+										<small class="text-muted"><?= $schedulerRow::types($schedulerRow->type) ?></small>
+									</div>
+								</td>
+								<td>
+									<code><?= h($schedulerRow->frequency) ?></code>
 
-					<?php if ($queuedJob) { ?>
-					<div class="alert alert-warning">
-						<b><?php echo h($queuedJob->status) ?: 'Queued'?></b>
-						<?php echo $this->Html->link($this->element('QueueScheduler.icon', ['name' => 'view']), ['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $queuedJob->id], ['escapeTitle' => false]); ?>
+									<?php if ($queuedJob) { ?>
+										<div class="alert alert-job-running mt-2 mb-0 p-2">
+											<strong><?= h($queuedJob->status) ?: __('Queued') ?></strong>
+											<?= $this->Html->link(
+												'<i class="fas fa-eye"></i>',
+												['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $queuedJob->id],
+												['escape' => false, 'class' => 'ms-1'],
+											) ?>
 
-						<?php if (!$queuedJob->completed && $queuedJob->fetched) { ?>
-							<?php if (!$queuedJob->failure_message) { ?>
-								<?php echo $this->QueueProgress->progress($queuedJob) ?>
-								<br>
-								<?php
-								$textProgressBar = $this->QueueProgress->progressBar($queuedJob, 18);
-								echo $this->QueueProgress->htmlProgressBar($queuedJob, $textProgressBar);
-								?>
-							<?php } else { ?>
-								<i><?php echo $this->Queue->failureStatus($queuedJob); ?></i>
-							<?php } ?>
+											<?php if (!$queuedJob->completed && $queuedJob->fetched) { ?>
+												<?php if (!$queuedJob->failure_message) { ?>
+													<div class="mt-1">
+														<?= $this->QueueProgress->progress($queuedJob) ?>
+														<br>
+														<?php
+														$textProgressBar = $this->QueueProgress->progressBar($queuedJob, 18);
+														echo $this->QueueProgress->htmlProgressBar($queuedJob, $textProgressBar);
+														?>
+													</div>
+												<?php } else { ?>
+													<div class="mt-1">
+														<i class="text-danger"><?= $this->Queue->failureStatus($queuedJob) ?></i>
+													</div>
+												<?php } ?>
+											<?php } ?>
+										</div>
+									<?php } ?>
+								</td>
+								<td>
+									<?php if ($schedulerRow->last_run) { ?>
+										<div>
+											<small class="text-muted"><?= __('Last Run') ?>:
+												<?php if ($schedulerRow->last_queued_job_id) { ?>
+													<?= $this->Html->link(
+														$this->Time->nice($schedulerRow->last_run),
+														['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $schedulerRow->last_queued_job_id],
+														['escapeTitle' => false],
+													) ?>
+												<?php } else { ?>
+													<?= $this->Time->nice($schedulerRow->last_run) ?>
+												<?php } ?>
+											</small>
+										</div>
+									<?php } ?>
+									<?php
+									$nextRun = $schedulerRow->next_run ?: $schedulerRow->calculateNextRun();
+									?>
+									<?php if ($nextRun) { ?>
+										<div>
+											<small class="text-muted"><?= __('Next Run') ?>: <?= $this->Time->nice($nextRun) ?></small>
+										</div>
+									<?php } ?>
+								</td>
+								<td class="actions text-end">
+									<?php if (!$queuedJob) { ?>
+										<?= $this->Form->postLink(
+											'<i class="fas fa-play-circle"></i>',
+											['controller' => 'SchedulerRows', 'action' => 'run', $schedulerRow->id],
+											[
+												'escapeTitle' => false,
+												'class' => 'btn btn-sm btn-success me-1',
+												'title' => __('Run manually now'),
+												'confirm' => __('Sure to run it now?'),
+											],
+										) ?>
+									<?php } ?>
+									<?= $this->Form->postLink(
+										'<i class="fas fa-times"></i>',
+										['controller' => 'SchedulerRows', 'action' => 'edit', $schedulerRow->id],
+										[
+											'data' => ['enabled' => 0],
+											'escapeTitle' => false,
+											'class' => 'btn btn-sm btn-danger',
+											'title' => __('Disable'),
+											'confirm' => __('Sure to disable?'),
+										],
+									) ?>
+								</td>
+							</tr>
 						<?php } ?>
-					</div>
-					<?php } ?>
-				</td>
-				<td>
-					<?php if ($schedulerRow->last_run) { ?>
-						<div><small><?= __('Last Run') ?>:
-							<?php if ($schedulerRow->last_queued_job_id) { ?>
-								<?= $this->Html->link($this->Time->nice($schedulerRow->last_run), ['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $schedulerRow->last_queued_job_id], ['escapeTitle' => false]) ?>
-							<?php } else { ?>
-								<?= $this->Time->nice($schedulerRow->last_run) ?>
-							<?php } ?>
-						</small></div>
-					<?php } ?>
-					<?php
-						$nextRun = $schedulerRow->next_run ?: $schedulerRow->calculateNextRun();
-					?>
-					<?php if ($nextRun) { ?>
-						<div><small><?= __('Next Run') ?>: <?php echo $this->Time->nice($nextRun); ?></small></div>
-					<?php } ?>
-				</td>
-				<td class="actions">
-					<?php if (!$queuedJob) { ?>
-						<?php echo $this->Form->postLink($this->element('QueueScheduler.icon', ['name' => 'play-circle', 'attributes' => ['title' => 'Run manually now']]), ['controller' => 'SchedulerRows', 'action' => 'run', $schedulerRow->id], ['escapeTitle' => false, 'class' => 'btn btn-small btn-success', 'confirm' => 'Sure to run it now?']); ?>
-					<?php } ?>
-					<?php echo $this->Form->postLink($this->element('QueueScheduler.icon', ['name' => 'no', 'attributes' => ['title' => 'Disable']]), ['controller' => 'SchedulerRows', 'action' => 'edit', $schedulerRow->id], ['data' => ['enabled' => 0], 'escapeTitle' => false, 'class' => 'btn btn-small btn-danger', 'confirm' => 'Sure to disable?']); ?>
-				</td>
-			</tr>
-		<?php } ?>
-		</tbody>
-	</table>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
 
-
-	<p>
-	<?= $this->Html->link(__('Details'), ['controller' => 'SchedulerRows', 'action' => 'index'], ['class' => 'btn btn-secondary']) ?> <?php echo $this->Form->postLink($this->element('QueueScheduler.icon', ['name' => 'no', 'attributes' => ['title' => 'Disable']]) . ' ' . __('Disable all'), ['controller' => 'SchedulerRows', 'action' => 'disableAll'], ['escapeTitle' => false, 'class' => 'btn btn-small btn-danger', 'block' => true,  'confirm' => 'Sure to disable all?']); ?>
-	</p>
-
+	<div class="mt-3">
+		<?= $this->Html->link(
+			'<i class="fas fa-list me-1"></i>' . __('All Schedules'),
+			['controller' => 'SchedulerRows', 'action' => 'index'],
+			['class' => 'btn btn-secondary me-2', 'escape' => false],
+		) ?>
+		<?= $this->Form->postLink(
+			'<i class="fas fa-times me-1"></i>' . __('Disable All'),
+			['controller' => 'SchedulerRows', 'action' => 'disableAll'],
+			[
+				'escapeTitle' => false,
+				'class' => 'btn btn-danger',
+				'confirm' => __('Sure to disable all?'),
+				'block' => true,
+			],
+		) ?>
+	</div>
 </div>

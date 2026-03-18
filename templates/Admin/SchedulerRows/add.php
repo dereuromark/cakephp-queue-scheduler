@@ -4,45 +4,81 @@
  * @var \QueueScheduler\Model\Entity\SchedulerRow $row
  */
 ?>
-<div class="row">
-	<aside class="column large-3 medium-4 columns col-sm-4 col-12">
-		<ul class="side-nav nav nav-pills flex-column">
-			<li class="nav-item heading"><?= __('Actions') ?></li>
-			<li class="nav-item"><?= $this->Html->link(__('List Rows'), ['action' => 'index'], ['class' => 'nav-link']) ?></li>
-			<li class="nav-item"><?= $this->Html->link(__('Available {0}', __('Intervals')), ['controller' => 'QueueScheduler', 'action' => 'intervals'], ['class' => 'nav-link']) ?></li>
-		</ul>
-	</aside>
-	<div class="column-responsive column-80 form large-9 medium-8 columns col-sm-8 col-12">
-		<?php if (!$this->request->getQueryParams()) { ?>
-			<?= $this->element('QueueScheduler.quick_add') ?>
-			<hr>
-		<?php } ?>
+<div class="scheduler-rows-add">
+	<div class="d-flex justify-content-between align-items-center mb-4">
+		<h2 class="mb-0">
+			<i class="fas fa-plus me-2"></i><?= __('Add Schedule') ?>
+		</h2>
+		<div>
+			<?= $this->Html->link(
+				'<i class="fas fa-arrow-left me-1"></i>' . __('Back'),
+				['action' => 'index'],
+				['class' => 'btn btn-secondary me-2', 'escape' => false],
+			) ?>
+			<?= $this->Html->link(
+				'<i class="fas fa-clock me-1"></i>' . __('Intervals Help'),
+				['controller' => 'QueueScheduler', 'action' => 'intervals'],
+				['class' => 'btn btn-outline-secondary', 'escape' => false],
+			) ?>
+		</div>
+	</div>
 
-		<div class="rows form content">
-			<h2><?= __('Rows') ?></h2>
+	<?php if (!$this->request->getQueryParams()) { ?>
+		<?= $this->element('QueueScheduler.quick_add') ?>
+	<?php } ?>
 
+	<div class="card">
+		<div class="card-header">
+			<i class="fas fa-edit me-2"></i><?= __('Schedule Details') ?>
+		</div>
+		<div class="card-body">
 			<?= $this->Form->create($row) ?>
-			<fieldset>
-				<legend><?= __('Add Row') ?></legend>
-				<?php
-					echo $this->Form->control('name');
-					echo $this->Form->control('type', ['options' => $row::types()]);
-					echo $this->Form->control('content', ['type' => 'text']);
-					echo $this->Form->control('param');
-					echo $this->Form->control('frequency', ['list' => 'frequency-suggestions']);
-					echo $this->Form->control('allow_concurrent');
-
-				echo $this->Form->control('enabled');
-				?>
-			</fieldset>
-			<?= $this->Form->button(__('Submit')) ?>
+			<div class="row">
+				<div class="col-md-6 mb-3">
+					<?= $this->Form->control('name', ['class' => 'form-control']) ?>
+				</div>
+				<div class="col-md-6 mb-3">
+					<?= $this->Form->control('type', ['options' => $row::types(), 'class' => 'form-select']) ?>
+				</div>
+			</div>
+			<div class="mb-3">
+				<?= $this->Form->control('content', ['type' => 'text', 'class' => 'form-control']) ?>
+			</div>
+			<div class="mb-3">
+				<?= $this->Form->control('param', ['class' => 'form-control']) ?>
+			</div>
+			<div class="row">
+				<div class="col-md-6 mb-3">
+					<?= $this->Form->control('frequency', ['list' => 'frequency-suggestions', 'class' => 'form-control']) ?>
+				</div>
+				<div class="col-md-3 mb-3">
+					<?= $this->Form->control('allow_concurrent', ['class' => 'form-check-input']) ?>
+				</div>
+				<div class="col-md-3 mb-3">
+					<?= $this->Form->control('enabled', ['class' => 'form-check-input']) ?>
+				</div>
+			</div>
+			<div class="mt-3">
+				<?= $this->Form->button('<i class="fas fa-save me-1"></i>' . __('Save'), ['class' => 'btn btn-primary', 'escapeTitle' => false]) ?>
+			</div>
 			<?= $this->Form->end() ?>
 		</div>
-
-		<?php echo $this->element('QueueScheduler.content_autocomplete') ?>
-
-		<hr>
-
-		<?php echo $this->element('QueueScheduler.available')?>
 	</div>
+
+	<?= $this->element('QueueScheduler.content_autocomplete') ?>
+
+	<?php if ($this->request->getQueryParams()) { ?>
+		<div class="card mt-4">
+			<div class="card-header">
+				<a class="text-decoration-none" data-bs-toggle="collapse" href="#available-content" role="button" aria-expanded="false" aria-controls="available-content">
+					<i class="fas fa-list me-2"></i><?= __('Available Commands & Tasks') ?> <small>&#9660;</small>
+				</a>
+			</div>
+			<div class="collapse" id="available-content">
+				<div class="card-body">
+					<?= $this->element('QueueScheduler.available') ?>
+				</div>
+			</div>
+		</div>
+	<?php } ?>
 </div>
