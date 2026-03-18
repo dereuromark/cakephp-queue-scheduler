@@ -32,6 +32,14 @@ class QueueSchedulerController extends QueueSchedulerAppController {
 	}
 
 	/**
+	 * Available commands and tasks reference.
+	 *
+	 * @return void
+	 */
+	public function available(): void {
+	}
+
+	/**
 	 * @return void
 	 */
 	public function intervals(): void {

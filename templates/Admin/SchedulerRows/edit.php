@@ -67,17 +67,4 @@
 	</div>
 
 	<?= $this->element('QueueScheduler.content_autocomplete') ?>
-
-	<div class="card mt-4">
-		<div class="card-header">
-			<a class="text-decoration-none" data-bs-toggle="collapse" href="#available-content" role="button" aria-expanded="false" aria-controls="available-content">
-				<i class="fas fa-list me-2"></i><?= __('Available Commands & Tasks') ?> <small>&#9660;</small>
-			</a>
-		</div>
-		<div class="collapse" id="available-content">
-			<div class="card-body">
-				<?= $this->element('QueueScheduler.available') ?>
-			</div>
-		</div>
-	</div>
 </div>

@@ -34,6 +34,9 @@ $action = $request ? $request->getParam('action') : '';
 	<div class="nav-section">
 		<div class="nav-section-title"><?= __('Reference') ?></div>
 		<nav class="nav flex-column">
+			<a class="nav-link<?= $controller === 'QueueScheduler' && $action === 'available' ? ' active' : '' ?>" href="<?= $this->Url->build(['plugin' => 'QueueScheduler', 'prefix' => 'Admin', 'controller' => 'QueueScheduler', 'action' => 'available']) ?>">
+				<i class="fas fa-list"></i><?= __('Commands & Tasks') ?>
+			</a>
 			<a class="nav-link<?= $controller === 'QueueScheduler' && $action === 'intervals' ? ' active' : '' ?>" href="<?= $this->Url->build(['plugin' => 'QueueScheduler', 'prefix' => 'Admin', 'controller' => 'QueueScheduler', 'action' => 'intervals']) ?>">
 				<i class="fas fa-clock"></i><?= __('Intervals Help') ?>
 			</a>
