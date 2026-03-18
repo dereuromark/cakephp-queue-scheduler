@@ -8,6 +8,7 @@
 		"queue",
 		"scheduler",
 		"admin-panel",
+		"standalone-ui",
 		"cron",
 		"automation",
 		"recurring"
