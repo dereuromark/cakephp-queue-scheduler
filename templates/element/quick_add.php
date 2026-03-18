@@ -12,19 +12,19 @@ $scheduler = $this->Scheduler;
 ?>
 <div class="card mb-4">
 	<div class="card-header">
-		<a class="text-decoration-none" data-toggle="collapse" data-bs-toggle="collapse" href="#quick-add-body" role="button" aria-expanded="false" aria-controls="quick-add-body">
-			<h3 class="mb-0"><?= __('Quick Add') ?> <small>&#9660;</small></h3>
+		<a class="text-decoration-none" data-bs-toggle="collapse" href="#quick-add-body" role="button" aria-expanded="false" aria-controls="quick-add-body">
+			<i class="fas fa-bolt me-2"></i><?= __('Quick Add') ?> <small>&#9660;</small>
 		</a>
 	</div>
 	<div class="collapse" id="quick-add-body">
 		<div class="card-body">
 			<div class="row">
-				<div class="col-md-6">
-					<h4><?= __('Cake Commands') ?></h4>
+				<div class="col-md-6 mb-3 mb-md-0">
+					<h5><i class="fas fa-terminal me-2"></i><?= __('Cake Commands') ?></h5>
 					<div class="list-group">
 						<?php foreach ($scheduler->availableCommands() as $name => $command) { ?>
 							<?= $this->Html->link(
-								h($name) . '<br><small class="text-muted"><code>' . h($command) . '</code></small>',
+								'<strong>' . h($name) . '</strong><br><small class="text-muted"><code>' . h($command) . '</code></small>',
 								['action' => 'add', '?' => [
 									'type' => SchedulerRow::TYPE_CAKE_COMMAND,
 									'content' => $command,
@@ -37,11 +37,11 @@ $scheduler = $this->Scheduler;
 				</div>
 
 				<div class="col-md-6">
-					<h4><?= __('Queue Tasks') ?></h4>
+					<h5><i class="fas fa-tasks me-2"></i><?= __('Queue Tasks') ?></h5>
 					<div class="list-group">
 						<?php foreach ($scheduler->availableQueueTasks() as $name => $queueTask) { ?>
 							<?= $this->Html->link(
-								h($name) . '<br><small class="text-muted"><code>' . h($queueTask) . '</code></small>',
+								'<strong>' . h($name) . '</strong><br><small class="text-muted"><code>' . h($queueTask) . '</code></small>',
 								['action' => 'add', '?' => [
 									'type' => SchedulerRow::TYPE_QUEUE_TASK,
 									'content' => $queueTask,

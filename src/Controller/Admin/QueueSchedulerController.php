@@ -7,21 +7,9 @@ use Cron\CronExpression;
 use Exception;
 use Locale;
 use Panlatent\CronExpressionDescriptor\ExpressionDescriptor;
-use QueueScheduler\Controller\AppController;
 use QueueScheduler\Model\Entity\SchedulerRow;
 
-class QueueSchedulerController extends AppController {
-
-	use LoadHelperTrait;
-
-	/**
-	 * @return void
-	 */
-	public function initialize(): void {
-		parent::initialize();
-
-		$this->loadHelpers();
-	}
+class QueueSchedulerController extends QueueSchedulerAppController {
 
 	/**
 	 * Index method

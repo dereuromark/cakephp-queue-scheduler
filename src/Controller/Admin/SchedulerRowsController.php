@@ -3,7 +3,6 @@
 namespace QueueScheduler\Controller\Admin;
 
 use Cake\Http\Response;
-use QueueScheduler\Controller\AppController;
 
 /**
  * Rows Controller
@@ -11,18 +10,7 @@ use QueueScheduler\Controller\AppController;
  * @method \Cake\Datasource\ResultSetInterface<\QueueScheduler\Model\Entity\SchedulerRow> paginate(\Cake\Datasource\RepositoryInterface|\Cake\Datasource\QueryInterface|string|null $object = null, array $settings = [])
  * @property \QueueScheduler\Model\Table\SchedulerRowsTable $SchedulerRows
  */
-class SchedulerRowsController extends AppController {
-
-	use LoadHelperTrait;
-
-	/**
-	 * @return void
-	 */
-	public function initialize(): void {
-		parent::initialize();
-
-		$this->loadHelpers();
-	}
+class SchedulerRowsController extends QueueSchedulerAppController {
 
 	/**
 	 * Index method
