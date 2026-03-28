@@ -144,6 +144,6 @@
 	</div>
 
 	<div class="mt-3">
-		<?= $this->element('Tools.pagination') ?>
+		<?= $this->element('QueueScheduler.pagination') ?>
 	</div>
 </div>
