@@ -289,6 +289,9 @@ if ($request && $request->getParam('controller') === 'QueueScheduler' && $reques
 			border-radius: 0.375rem;
 			border: 1px solid #dee2e6;
 			overflow-x: auto;
+			white-space: pre-wrap;
+			word-wrap: break-word;
+			max-width: 100%;
 		}
 
 		pre code {
