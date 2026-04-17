@@ -43,7 +43,6 @@ class QueueSchedulerController extends QueueSchedulerAppController {
 	 * @return void
 	 */
 	public function intervals(): void {
-
 		if ($this->request->is(['post', 'put'])) {
 			$interval = $this->request->getData('interval');
 			// Convert @minutely to standard cron expression
