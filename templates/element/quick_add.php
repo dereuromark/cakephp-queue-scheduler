@@ -34,7 +34,8 @@ $tasks = $scheduler->availableQueueTasks();
 		<div class="form-text"><?= __('Select a command or task to pre-fill the form') ?></div>
 	</div>
 </div>
-<script>
+<?php $cspNonce = (string)$this->getRequest()->getAttribute('cspNonce', ''); ?>
+<script<?= $cspNonce !== '' ? ' nonce="' . h($cspNonce) . '"' : '' ?>>
 document.addEventListener('DOMContentLoaded', function() {
 	var searchInput = document.getElementById('quick-add-search');
 	if (!searchInput) return;

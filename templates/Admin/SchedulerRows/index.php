@@ -73,14 +73,17 @@
 											<i class="fas fa-exclamation-triangle"></i>
 										</span>
 									<?php } elseif (!$row->enabled && !($row->type === $row::TYPE_SHELL_COMMAND && !\Cake\Core\Configure::read('QueueScheduler.allowRaw'))) { ?>
-										<?= $this->Form->postLink(
+										<?= $this->Form->postButton(
 											'<i class="fas fa-check me-1"></i>' . __('Enable'),
 											['action' => 'edit', $row->id],
 											[
 												'data' => ['enabled' => 1],
 												'escapeTitle' => false,
 												'class' => 'btn btn-sm btn-success',
-												'confirm' => __('Sure to enable?'),
+												'form' => [
+													'class' => 'd-inline',
+													'data-confirm-message' => __('Sure to enable?'),
+												],
 											],
 										) ?>
 									<?php } ?>
@@ -124,15 +127,31 @@
 										['action' => 'edit', $row->id],
 										['escapeTitle' => false, 'class' => 'btn btn-sm btn-outline-secondary me-1', 'title' => __('Edit')],
 									) ?>
-									<?= $this->Form->postLink(
+									<?= $this->Form->postButton(
 										'<i class="fas fa-play-circle"></i>',
 										['action' => 'run', $row->id],
-										['escapeTitle' => false, 'class' => 'btn btn-sm btn-outline-success me-1', 'title' => __('Run manually now'), 'confirm' => __('Sure to run it now?')],
+										[
+											'escapeTitle' => false,
+											'class' => 'btn btn-sm btn-outline-success me-1',
+											'title' => __('Run manually now'),
+											'form' => [
+												'class' => 'd-inline',
+												'data-confirm-message' => __('Sure to run it now?'),
+											],
+										],
 									) ?>
-									<?= $this->Form->postLink(
+									<?= $this->Form->postButton(
 										'<i class="fas fa-trash"></i>',
 										['action' => 'delete', $row->id],
-										['escapeTitle' => false, 'class' => 'btn btn-sm btn-outline-danger', 'title' => __('Delete'), 'confirm' => __('Are you sure you want to delete # {0}?', $row->id)],
+										[
+											'escapeTitle' => false,
+											'class' => 'btn btn-sm btn-outline-danger',
+											'title' => __('Delete'),
+											'form' => [
+												'class' => 'd-inline',
+												'data-confirm-message' => __('Are you sure you want to delete # {0}?', $row->id),
+											],
+										],
 									) ?>
 								</td>
 							</tr>
