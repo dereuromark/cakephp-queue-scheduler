@@ -15,6 +15,8 @@ $request = $this->getRequest();
 if ($request && $request->getParam('controller') === 'QueueScheduler' && $request->getParam('action') === 'index') {
 	$autoRefresh = (int)Configure::read('QueueScheduler.dashboardAutoRefresh') ?: 0;
 }
+$cspNonce = (string)$this->getRequest()->getAttribute('cspNonce', '');
+$nonceAttr = $cspNonce !== '' ? ' nonce="' . h($cspNonce) . '"' : '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -404,7 +406,7 @@ if ($request && $request->getParam('controller') === 'QueueScheduler' && $reques
 	<!-- Bootstrap 5.3.3 JS Bundle -->
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
-	<script>
+	<script<?= $nonceAttr ?>>
 		document.addEventListener('DOMContentLoaded', function() {
 			// Initialize tooltips
 			var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -412,7 +414,7 @@ if ($request && $request->getParam('controller') === 'QueueScheduler' && $reques
 				return new bootstrap.Tooltip(tooltipTriggerEl);
 			});
 
-			// Confirmation dialogs for postLink forms
+			// Confirmation dialogs for postButton forms (CSP-safe replacement for postLink + confirm)
 			document.querySelectorAll('form[data-confirm-message]').forEach(function(form) {
 				form.addEventListener('submit', function(e) {
 					if (!confirm(this.dataset.confirmMessage)) {

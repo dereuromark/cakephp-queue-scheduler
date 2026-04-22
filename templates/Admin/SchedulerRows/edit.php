@@ -15,10 +15,17 @@
 				['action' => 'index'],
 				['class' => 'btn btn-secondary me-2', 'escape' => false],
 			) ?>
-			<?= $this->Form->postLink(
+			<?= $this->Form->postButton(
 				'<i class="fas fa-trash me-1"></i>' . __('Delete'),
 				['action' => 'delete', $row->id],
-				['class' => 'btn btn-danger me-2', 'escape' => false, 'confirm' => __('Are you sure you want to delete # {0}?', $row->id)],
+				[
+					'class' => 'btn btn-danger me-2',
+					'escape' => false,
+					'form' => [
+						'class' => 'd-inline',
+						'data-confirm-message' => __('Are you sure you want to delete # {0}?', $row->id),
+					],
+				],
 			) ?>
 			<?= $this->Html->link(
 				'<i class="fas fa-clock me-1"></i>' . __('Intervals Help'),

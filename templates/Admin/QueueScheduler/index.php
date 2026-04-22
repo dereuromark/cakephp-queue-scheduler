@@ -110,18 +110,21 @@
 								</td>
 								<td class="actions text-end">
 									<?php if (!$queuedJob) { ?>
-										<?= $this->Form->postLink(
+										<?= $this->Form->postButton(
 											'<i class="fas fa-play-circle"></i>',
 											['controller' => 'SchedulerRows', 'action' => 'run', $schedulerRow->id],
 											[
 												'escapeTitle' => false,
 												'class' => 'btn btn-sm btn-success me-1',
 												'title' => __('Run manually now'),
-												'confirm' => __('Sure to run it now?'),
+												'form' => [
+													'class' => 'd-inline',
+													'data-confirm-message' => __('Sure to run it now?'),
+												],
 											],
 										) ?>
 									<?php } ?>
-									<?= $this->Form->postLink(
+									<?= $this->Form->postButton(
 										'<i class="fas fa-times"></i>',
 										['controller' => 'SchedulerRows', 'action' => 'edit', $schedulerRow->id],
 										[
@@ -129,7 +132,10 @@
 											'escapeTitle' => false,
 											'class' => 'btn btn-sm btn-danger',
 											'title' => __('Disable'),
-											'confirm' => __('Sure to disable?'),
+											'form' => [
+												'class' => 'd-inline',
+												'data-confirm-message' => __('Sure to disable?'),
+											],
 										],
 									) ?>
 								</td>
@@ -147,14 +153,16 @@
 			['controller' => 'SchedulerRows', 'action' => 'index'],
 			['class' => 'btn btn-secondary me-2', 'escape' => false],
 		) ?>
-		<?= $this->Form->postLink(
+		<?= $this->Form->postButton(
 			'<i class="fas fa-times me-1"></i>' . __('Disable All'),
 			['controller' => 'SchedulerRows', 'action' => 'disableAll'],
 			[
 				'escapeTitle' => false,
 				'class' => 'btn btn-danger',
-				'confirm' => __('Sure to disable all?'),
-				'block' => true,
+				'form' => [
+					'class' => 'd-inline',
+					'data-confirm-message' => __('Sure to disable all?'),
+				],
 			],
 		) ?>
 	</div>

@@ -10,7 +10,8 @@ $scheduler = $this->Scheduler;
 ?>
 <?= $scheduler->contentDatalists() ?>
 <?= $scheduler->frequencyDatalist() ?>
-<script>
+<?php $cspNonce = (string)$this->getRequest()->getAttribute('cspNonce', ''); ?>
+<script<?= $cspNonce !== '' ? ' nonce="' . h($cspNonce) . '"' : '' ?>>
 document.addEventListener('DOMContentLoaded', function() {
 	var typeField = document.getElementById('type');
 	var contentField = document.getElementById('content');

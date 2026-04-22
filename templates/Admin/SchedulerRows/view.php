@@ -17,15 +17,29 @@
 				['action' => 'edit', $row->id],
 				['class' => 'btn btn-primary me-2', 'escape' => false],
 			) ?>
-			<?= $this->Form->postLink(
+			<?= $this->Form->postButton(
 				'<i class="fas fa-play-circle me-1"></i>' . __('Run Now'),
 				['action' => 'run', $row->id],
-				['class' => 'btn btn-success me-2', 'escape' => false, 'confirm' => __('Are you sure you want to run this now?')],
+				[
+					'class' => 'btn btn-success me-2',
+					'escape' => false,
+					'form' => [
+						'class' => 'd-inline',
+						'data-confirm-message' => __('Are you sure you want to run this now?'),
+					],
+				],
 			) ?>
-			<?= $this->Form->postLink(
+			<?= $this->Form->postButton(
 				'<i class="fas fa-trash me-1"></i>' . __('Delete'),
 				['action' => 'delete', $row->id],
-				['class' => 'btn btn-danger', 'escape' => false, 'confirm' => __('Are you sure you want to delete # {0}?', $row->id)],
+				[
+					'class' => 'btn btn-danger',
+					'escape' => false,
+					'form' => [
+						'class' => 'd-inline',
+						'data-confirm-message' => __('Are you sure you want to delete # {0}?', $row->id),
+					],
+				],
 			) ?>
 		</div>
 	</div>
@@ -72,14 +86,17 @@
 								<?= $this->element('QueueScheduler.yes_no', ['value' => $row->enabled]) ?>
 								<?= $row->enabled ? __('Yes') : __('No') ?>
 								<?php if (!$row->enabled) { ?>
-									<?= $this->Form->postLink(
+									<?= $this->Form->postButton(
 										'<i class="fas fa-check me-1"></i>' . __('Enable'),
 										['action' => 'edit', $row->id],
 										[
 											'data' => ['enabled' => 1],
 											'escapeTitle' => false,
 											'class' => 'btn btn-sm btn-success ms-2',
-											'confirm' => __('Sure to enable?'),
+											'form' => [
+												'class' => 'd-inline',
+												'data-confirm-message' => __('Sure to enable?'),
+											],
 										],
 									) ?>
 								<?php } ?>
