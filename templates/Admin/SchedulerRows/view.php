@@ -53,7 +53,7 @@
 				<div class="card-body">
 					<table class="table table-striped mb-0">
 						<tr>
-							<th style="width: 40%"><?= __('Type') ?></th>
+							<th class="scheduler-col-w-40"><?= __('Type') ?></th>
 							<td><?= $row::types($row->type) ?></td>
 						</tr>
 						<?php if ($row->config) { ?>
@@ -122,7 +122,7 @@
 				<div class="card-body">
 					<table class="table table-striped mb-0">
 						<tr>
-							<th style="width: 40%"><?= __('Last Run') ?></th>
+							<th class="scheduler-col-w-40"><?= __('Last Run') ?></th>
 							<td>
 								<?php if ($row->last_run && $row->last_queued_job_id) { ?>
 									<?= $this->Html->link(

@@ -83,6 +83,10 @@ $nonceAttr = $cspNonce !== '' ? ' nonce="' . h($cspNonce) . '"' : '';
 			background: var(--scheduler-sidebar-bg);
 		}
 
+		/* Column-width utilities (replace inline `<th style="width:N%">`
+		   so admin tables stay strict-CSP compatible). */
+		.scheduler-col-w-40 { width: 40%; }
+
 		.scheduler-sidebar .nav-section {
 			padding: 0 1rem;
 			margin-bottom: 1.5rem;
