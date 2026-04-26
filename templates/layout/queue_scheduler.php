@@ -78,6 +78,15 @@ $nonceAttr = $cspNonce !== '' ? ' nonce="' . h($cspNonce) . '"' : '';
 			overflow-y: auto;
 		}
 
+		/* Mobile nav offcanvas — same background as sidebar */
+		.scheduler-mobile-nav-bg {
+			background: var(--scheduler-sidebar-bg);
+		}
+
+		/* Column-width utilities (replace inline `<th style="width:N%">`
+		   so admin tables stay strict-CSP compatible). */
+		.scheduler-col-w-40 { width: 40%; }
+
 		.scheduler-sidebar .nav-section {
 			padding: 0 1rem;
 			margin-bottom: 1.5rem;
@@ -363,7 +372,7 @@ $nonceAttr = $cspNonce !== '' ? ' nonce="' . h($cspNonce) . '"' : '';
 	</nav>
 
 	<!-- Mobile Offcanvas Navigation -->
-	<div class="offcanvas offcanvas-start" tabindex="-1" id="mobileNav" aria-labelledby="mobileNavLabel" style="background: linear-gradient(135deg, #4a2c6a 0%, #2d1a42 100%);">
+	<div class="offcanvas offcanvas-start scheduler-mobile-nav-bg" tabindex="-1" id="mobileNav" aria-labelledby="mobileNavLabel">
 		<div class="offcanvas-header border-bottom border-secondary">
 			<h5 class="offcanvas-title text-white" id="mobileNavLabel">
 				<i class="fas fa-calendar-alt me-2"></i>Queue Scheduler
