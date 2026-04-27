@@ -13,7 +13,7 @@
 			<?= $this->Html->link(
 				'<i class="fas fa-plus me-1"></i>' . __('New Schedule'),
 				['action' => 'add'],
-				['class' => 'btn btn-primary', 'escape' => false],
+				['class' => 'btn btn-primary', 'escapeTitle' => false],
 			) ?>
 		</div>
 	</div>

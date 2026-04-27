@@ -14,7 +14,7 @@
 			<?= $this->Html->link(
 				'<i class="fas fa-arrow-left me-1"></i>' . __('Back'),
 				['controller' => 'SchedulerRows', 'action' => 'index'],
-				['class' => 'btn btn-secondary', 'escape' => false],
+				['class' => 'btn btn-secondary', 'escapeTitle' => false],
 			) ?>
 		</div>
 	</div>

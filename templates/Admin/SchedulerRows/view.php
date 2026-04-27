@@ -15,7 +15,7 @@
 			<?= $this->Html->link(
 				'<i class="fas fa-edit me-1"></i>' . __('Edit'),
 				['action' => 'edit', $row->id],
-				['class' => 'btn btn-primary me-2', 'escape' => false],
+				['class' => 'btn btn-primary me-2', 'escapeTitle' => false],
 			) ?>
 			<?= $this->Form->postButton(
 				'<i class="fas fa-play-circle me-1"></i>' . __('Run Now'),
