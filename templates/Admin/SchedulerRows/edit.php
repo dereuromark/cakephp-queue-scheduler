@@ -13,7 +13,7 @@
 			<?= $this->Html->link(
 				'<i class="fas fa-arrow-left me-1"></i>' . __('Back'),
 				['action' => 'index'],
-				['class' => 'btn btn-secondary me-2', 'escape' => false],
+				['class' => 'btn btn-secondary me-2', 'escapeTitle' => false],
 			) ?>
 			<?= $this->Form->postButton(
 				'<i class="fas fa-trash me-1"></i>' . __('Delete'),
@@ -30,7 +30,7 @@
 			<?= $this->Html->link(
 				'<i class="fas fa-clock me-1"></i>' . __('Intervals Help'),
 				['controller' => 'QueueScheduler', 'action' => 'intervals'],
-				['class' => 'btn btn-outline-secondary', 'escape' => false],
+				['class' => 'btn btn-outline-secondary', 'escapeTitle' => false],
 			) ?>
 		</div>
 	</div>

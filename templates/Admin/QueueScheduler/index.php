@@ -14,7 +14,7 @@
 			<?= $this->Html->link(
 				'<i class="fas fa-plus me-1"></i>' . __('New Schedule'),
 				['controller' => 'SchedulerRows', 'action' => 'add'],
-				['class' => 'btn btn-primary', 'escape' => false],
+				['class' => 'btn btn-primary', 'escapeTitle' => false],
 			) ?>
 		</div>
 	</div>
@@ -61,7 +61,7 @@
 											<?= $this->Html->link(
 												'<i class="fas fa-eye"></i>',
 												['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $queuedJob->id],
-												['escape' => false, 'class' => 'ms-1'],
+												['escapeTitle' => false, 'class' => 'ms-1'],
 											) ?>
 
 											<?php if (!$queuedJob->completed && $queuedJob->fetched) { ?>
@@ -151,7 +151,7 @@
 		<?= $this->Html->link(
 			'<i class="fas fa-list me-1"></i>' . __('All Schedules'),
 			['controller' => 'SchedulerRows', 'action' => 'index'],
-			['class' => 'btn btn-secondary me-2', 'escape' => false],
+			['class' => 'btn btn-secondary me-2', 'escapeTitle' => false],
 		) ?>
 		<?= $this->Form->postButton(
 			'<i class="fas fa-times me-1"></i>' . __('Disable All'),
