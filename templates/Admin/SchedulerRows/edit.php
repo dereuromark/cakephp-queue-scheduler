@@ -20,7 +20,7 @@
 				['action' => 'delete', $row->id],
 				[
 					'class' => 'btn btn-danger me-2',
-					'escape' => false,
+					'escapeTitle' => false,
 					'form' => [
 						'class' => 'd-inline',
 						'data-confirm-message' => __('Are you sure you want to delete # {0}?', $row->id),
