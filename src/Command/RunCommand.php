@@ -4,6 +4,7 @@ namespace QueueScheduler\Command;
 
 use Cake\Command\Command;
 use Cake\Console\Arguments;
+use Cake\Console\CommandInterface;
 use Cake\Console\ConsoleIo;
 use Cake\Log\LogTrait;
 use QueueScheduler\Scheduler\Scheduler;
@@ -31,20 +32,25 @@ class RunCommand extends Command {
 	public function execute(Arguments $args, ConsoleIo $io): ?int {
 		$scheduler = new Scheduler();
 		$events = $scheduler->events();
+		$total = $events->count();
 
-		$io->out(sprintf('%s events due for scheduling', $events->count()));
+		$io->out(sprintf('%s events due for scheduling', $total));
 
 		$count = $scheduler->schedule($events);
+		$failures = $scheduler->lastRunFailureCount();
+		$heldBack = $total - $count - $failures;
 
 		$io->success('Done: ' . $count . ' events scheduled.');
-		if ($count < $events->count()) {
-			$heldBack = $events->count() - $count;
+		if ($heldBack > 0) {
 			$io->warning($heldBack . ' events held back (run not finished or still pending in queue)');
 		}
+		if ($failures > 0) {
+			$io->error(sprintf('%d events failed to schedule (see log)', $failures));
+		}
 
-		$this->log(sprintf('Scheduler: %d/%d events scheduled', $count, $events->count()), 'info');
+		$this->log(sprintf('Scheduler: %d/%d events scheduled (%d failed)', $count, $total, $failures), 'info');
 
-		return null;
+		return $failures > 0 ? CommandInterface::CODE_ERROR : null;
 	}
 
 }

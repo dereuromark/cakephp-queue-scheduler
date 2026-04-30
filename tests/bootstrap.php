@@ -6,6 +6,8 @@ use Cake\Chronos\Chronos;
 use Cake\Core\Configure;
 use Cake\Database\Connection;
 use Cake\Datasource\ConnectionManager;
+use Cake\Log\Engine\FileLog;
+use Cake\Log\Log;
 use Cake\TestSuite\Fixture\SchemaLoader;
 use Templating\View\Icon\BootstrapIcon;
 use TestApp\Controller\AppController;
@@ -81,6 +83,19 @@ $cache = [
 ];
 
 Cache::setConfig($cache);
+
+Log::setConfig('error', [
+	'className' => FileLog::class,
+	'path' => LOGS,
+	'file' => 'error',
+	'levels' => ['warning', 'error', 'critical', 'alert', 'emergency'],
+]);
+Log::setConfig('debug', [
+	'className' => FileLog::class,
+	'path' => LOGS,
+	'file' => 'debug',
+	'levels' => ['notice', 'info', 'debug'],
+]);
 
 class_alias(AppController::class, 'App\Controller\AppController');
 
