@@ -117,7 +117,11 @@ class SchedulerRow extends Entity {
 	 */
 	public function calculateNextInterval(): ?DateInterval {
 		if (substr($this->frequency, 0, 1) === '+') {
-			return DateInterval::createFromDateString(substr($this->frequency, 1));
+			$interval = @DateInterval::createFromDateString(substr($this->frequency, 1));
+
+			// PHP 8.2 returns false on parse failure, 8.3+ throws. Stubs differ across versions.
+			// @phpstan-ignore-next-line instanceof.alwaysTrue
+			return $interval instanceof DateInterval ? $interval : null;
 		}
 		if (substr($this->frequency, 0, 1) === 'P') {
 			return new DateInterval($this->frequency);
@@ -141,7 +145,8 @@ class SchedulerRow extends Entity {
 
 		// Cron expression: always honor the schedule, even on the first run.
 		try {
-			$dateTime = (new CronExpression(static::normalizeCronExpression($this->frequency)))->getNextRunDate();
+			$cron = new CronExpression(static::normalizeCronExpression($this->frequency));
+			$dateTime = $cron->getNextRunDate();
 		} catch (Exception $e) {
 			return null;
 		}

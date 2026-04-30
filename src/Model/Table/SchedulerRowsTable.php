@@ -417,12 +417,14 @@ class SchedulerRowsTable extends Table {
 	 */
 	protected function validateFrequencyAsStringInterval(string $value): bool {
 		try {
-			DateInterval::createFromDateString($value);
+			$interval = @DateInterval::createFromDateString($value);
 		} catch (Exception $e) {
 			return false;
 		}
 
-		return true;
+		// PHP 8.2 returns false on parse failure, 8.3+ throws. Stubs differ across versions.
+		// @phpstan-ignore-next-line instanceof.alwaysTrue
+		return $interval instanceof DateInterval;
 	}
 
 	/**
