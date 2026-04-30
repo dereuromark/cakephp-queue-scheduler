@@ -8,9 +8,9 @@ use Cake\TestSuite\TestCase;
 use Queue\Console\Io;
 use Queue\Model\QueueException;
 use QueueScheduler\Queue\Task\CommandExecuteTask;
+use TestApp\Command\TestMultiWordCommand;
 use TestApp\Command\TestNamedCommand;
 use TestApp\Command\TestOutputCommand;
-use TestApp\Command\TestRootedCommand;
 use Tools\Command\InflectCommand;
 
 class CommandExecuteTaskTest extends TestCase {
@@ -191,33 +191,35 @@ class CommandExecuteTaskTest extends TestCase {
 	}
 
 	/**
-	 * Counterpart to the regression above: commands that already have a
-	 * space-formatted name (BaseCommand's default `cake unknown`, custom
-	 * roots like `app foo`) must NOT be rewritten — preserving caller
-	 * intent matters when commands are scheduled with non-default roots.
+	 * Counterpart to the regression above: commands whose name already
+	 * contains a space — multi-word commands like `cache clear`,
+	 * `plugin assets symlink`, or this plugin's own `scheduler run` — must
+	 * NOT be rewritten. Rewriting would call `setName('cake ' . defaultName())`
+	 * which returns only the leaf token (e.g. `cake clear`), corrupting the
+	 * command's identity by dropping the namespace prefix.
 	 *
-	 * The test command emits its live `getName()` so we assert on the
-	 * actual name observed during execution. A rewrite would produce
-	 * `name=cake rooted` instead of `name=app rooted`.
+	 * The test command emits its live `getName()` so we assert on the actual
+	 * name observed during execution. A regression that re-enabled rewriting
+	 * on multi-word names would surface here.
 	 *
 	 * @return void
 	 */
-	public function testRunDoesNotRewriteAlreadyFormattedName(): void {
+	public function testRunDoesNotRewriteMultiWordCommandName(): void {
 		$out = new StubConsoleOutput();
 		$err = new StubConsoleOutput();
 		$io = new Io(new ConsoleIo($out, $err));
 		$task = new CommandExecuteTask($io);
 
-		// TestRootedCommand sets $name to "app rooted" (non-`cake` root)
-		// and prints its live getName(). The task must leave it alone.
+		// TestMultiWordCommand sets $name to "cache clear" and prints its
+		// live getName(). The task must leave it alone.
 		$data = [
-			'class' => TestRootedCommand::class,
+			'class' => TestMultiWordCommand::class,
 			'args' => [],
 		];
 		$task->run($data, 0);
 
-		$this->assertTextContains('name=app rooted', $out->output());
-		$this->assertTextNotContains('name=cake rooted', $out->output());
+		$this->assertTextContains('name=cache clear', $out->output());
+		$this->assertTextNotContains('name=cake clear', $out->output());
 	}
 
 }
