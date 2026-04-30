@@ -2,6 +2,7 @@
 
 namespace QueueScheduler\Test\TestCase\Command;
 
+use Cake\Cache\Cache;
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\Core\Configure;
 use Cake\I18n\DateTime;
@@ -165,6 +166,72 @@ class RunCommandTest extends TestCase {
 
 		$this->assertExitCode(0);
 		$this->assertOutputContains('pcntl extension not loaded');
+	}
+
+	/**
+	 * After a successful pass, the heartbeat key must be present in the
+	 * configured cache so the admin UI can surface "scheduler is alive".
+	 *
+	 * @return void
+	 */
+	public function testRunWritesHeartbeatToCache(): void {
+		Cache::delete(RunCommand::HEARTBEAT_KEY, 'default');
+
+		$before = time();
+		$this->exec('scheduler run');
+		$after = time();
+
+		$this->assertExitCode(0);
+		$lastTick = Cache::read(RunCommand::HEARTBEAT_KEY, 'default');
+		$this->assertIsInt($lastTick);
+		$this->assertGreaterThanOrEqual($before, $lastTick);
+		$this->assertLessThanOrEqual($after, $lastTick);
+	}
+
+	/**
+	 * The heartbeat must respect the QueueScheduler.cacheConfig override so
+	 * apps with a dedicated Redis/Memcached config can route the key there.
+	 *
+	 * @return void
+	 */
+	public function testRunHeartbeatHonorsCacheConfigOverride(): void {
+		Cache::setConfig('queue_scheduler_test', [
+			'className' => 'File',
+			'path' => CACHE,
+			'prefix' => 'queue_scheduler_test_',
+			'duration' => '+5 minutes',
+		]);
+		Configure::write('QueueScheduler.cacheConfig', 'queue_scheduler_test');
+
+		try {
+			Cache::delete(RunCommand::HEARTBEAT_KEY, 'queue_scheduler_test');
+			Cache::delete(RunCommand::HEARTBEAT_KEY, 'default');
+
+			$this->exec('scheduler run');
+
+			$this->assertExitCode(0);
+			$this->assertIsInt(Cache::read(RunCommand::HEARTBEAT_KEY, 'queue_scheduler_test'));
+			$this->assertNull(Cache::read(RunCommand::HEARTBEAT_KEY, 'default'));
+		} finally {
+			Configure::delete('QueueScheduler.cacheConfig');
+			Cache::delete(RunCommand::HEARTBEAT_KEY, 'queue_scheduler_test');
+			Cache::drop('queue_scheduler_test');
+		}
+	}
+
+	/**
+	 * --dry-run must not bump the heartbeat — otherwise smoke-testing a row
+	 * silently masks a stalled scheduler.
+	 *
+	 * @return void
+	 */
+	public function testDryRunDoesNotWriteHeartbeat(): void {
+		Cache::delete(RunCommand::HEARTBEAT_KEY, 'default');
+
+		$this->exec('scheduler run --dry-run');
+
+		$this->assertExitCode(0);
+		$this->assertNull(Cache::read(RunCommand::HEARTBEAT_KEY, 'default'));
 	}
 
 	public function testLoopExitsCleanlyWhenLockHeld(): void {

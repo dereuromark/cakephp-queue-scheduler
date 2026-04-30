@@ -2,6 +2,7 @@
 
 namespace QueueScheduler\Command;
 
+use Cake\Cache\Cache;
 use Cake\Collection\Collection;
 use Cake\Command\Command;
 use Cake\Console\Arguments;
@@ -21,6 +22,14 @@ use Throwable;
 class RunCommand extends Command {
 
 	use LogTrait;
+
+	/**
+	 * Cache key holding the unix timestamp of the last successful scheduling
+	 * pass. Read by the admin index page to surface "scheduler is alive".
+	 *
+	 * @var string
+	 */
+	public const HEARTBEAT_KEY = 'QueueScheduler.lastTick';
 
 	/**
 	 * Maximum seconds to wait for the lock before giving up. Tied to the
@@ -256,6 +265,8 @@ class RunCommand extends Command {
 		$scheduled = $scheduler->schedule($events);
 		$failed = $scheduler->lastRunFailureCount();
 
+		$this->writeHeartbeat();
+
 		return ['total' => $total, 'scheduled' => $scheduled, 'failed' => $failed];
 	}
 
@@ -280,6 +291,27 @@ class RunCommand extends Command {
 		}
 
 		return ['events' => $events, 'total' => $uncapped, 'uncapped' => $uncapped, 'capped' => false];
+	}
+
+	/**
+	 * Bump the heartbeat key so the admin UI can tell whether cron is
+	 * still firing. Called only after a real (non-dry-run) pass completes
+	 * — dry runs intentionally don't touch it so smoke tests can't mask a
+	 * stalled scheduler.
+	 *
+	 * Cache write failures are swallowed and logged: heartbeat reporting
+	 * is observability, not the critical path, so a Redis blip must not
+	 * fail the cron.
+	 *
+	 * @return void
+	 */
+	protected function writeHeartbeat(): void {
+		$config = (string)(Configure::read('QueueScheduler.cacheConfig') ?? 'default');
+		try {
+			Cache::write(static::HEARTBEAT_KEY, time(), $config);
+		} catch (Throwable $e) {
+			$this->log(sprintf('Scheduler: heartbeat write failed (%s): %s', $config, $e->getMessage()), 'warning');
+		}
 	}
 
 	/**
@@ -328,6 +360,8 @@ class RunCommand extends Command {
 		$count = $scheduler->schedule($events);
 		$failures = $scheduler->lastRunFailureCount();
 		$heldBack = $total - $count - $failures;
+
+		$this->writeHeartbeat();
 
 		$io->success('Done: ' . $count . ' events scheduled.');
 		if ($heldBack > 0) {

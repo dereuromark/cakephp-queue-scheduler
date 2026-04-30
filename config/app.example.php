@@ -35,6 +35,21 @@ return [
 
 		// Auto-refresh dashboard (in seconds, 0 = disabled)
 		'dashboardAutoRefresh' => 0,
+
+		// Cache config that the scheduler heartbeat is written to and read
+		// from. The admin index page shows a "Scheduler healthy / stale /
+		// never run" pill based on this.
+		// Defaults to 'default'. For multi-host deployments, point this at
+		// a shared backend (Redis/Memcached) so the web tier can see a
+		// heartbeat written by the CLI tier.
+		//'cacheConfig' => 'default',
+
+		// Maximum age (in seconds) of the heartbeat before the admin page
+		// reports the scheduler as stale. Default 65: 60s for the cron
+		// interval plus a few seconds of slack for pass duration and cron
+		// jitter (the heartbeat is written at the *end* of a pass, not the
+		// start). Raise it if you run cron less often than every minute.
+		//'healthyWithinSeconds' => 65,
 	],
 	// Icon configuration for the backend UI (optional, but recommended for better UX)
 	// Without this, the UI will use Font Awesome icons from CDN when using the standalone layout.

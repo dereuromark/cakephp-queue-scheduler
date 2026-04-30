@@ -3,7 +3,18 @@
  * @var \App\View\AppView $this
  * @var iterable<\QueueScheduler\Model\Entity\SchedulerRow> $schedulerRows
  * @var array<\Queue\Model\Entity\QueuedJob> $runningJobs
+ * @var array{lastTick: int|null, healthy: bool, ageSeconds: int|null, thresholdSeconds: int} $schedulerStatus
  */
+
+if ($schedulerStatus['lastTick'] !== null) {
+	$lastTickDt = (new \Cake\I18n\DateTime())->setTimestamp($schedulerStatus['lastTick']);
+	$relTime = method_exists($this->Time, 'relLengthOfTime')
+		? $this->Time->relLengthOfTime($lastTickDt)
+		: $this->Time->timeAgoInWords($lastTickDt);
+} else {
+	$lastTickDt = null;
+	$relTime = null;
+}
 ?>
 <div class="scheduler-dashboard">
 	<div class="d-flex justify-content-between align-items-center mb-4">
@@ -19,7 +30,34 @@
 		</div>
 	</div>
 
-	<p class="text-muted mb-4"><?= __('Addon to run commands and queue tasks as crontab like database driven schedule.') ?></p>
+	<p class="text-muted mb-2"><?= __('Addon to run commands and queue tasks as crontab like database driven schedule.') ?></p>
+
+	<div class="mb-4">
+		<?php if ($schedulerStatus['lastTick'] === null) { ?>
+			<span
+				class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle"
+				title="<?= h(__('Cron has not invoked the scheduler yet, or the cache config is not shared between web and CLI.')) ?>"
+			>
+				<i class="fas fa-pause-circle me-1"></i><?= __('Scheduler: never run') ?>
+			</span>
+		<?php } elseif ($schedulerStatus['healthy']) { ?>
+			<span
+				class="badge bg-success-subtle text-success-emphasis border border-success-subtle"
+				title="<?= h(__('Last tick {0}', $lastTickDt ? $this->Time->nice($lastTickDt) : '')) ?>"
+			>
+				<i class="fas fa-check-circle me-1"></i><?= __('Scheduler healthy') ?>
+				<span class="text-muted ms-1">&middot; <?= h($relTime) ?></span>
+			</span>
+		<?php } else { ?>
+			<span
+				class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle"
+				title="<?= h(__('Last tick was {0}s ago; threshold is {1}s. Check that cron is invoking `bin/cake scheduler run`.', $schedulerStatus['ageSeconds'], $schedulerStatus['thresholdSeconds'])) ?>"
+			>
+				<i class="fas fa-exclamation-triangle me-1"></i><?= __('Scheduler stale') ?>
+				<span class="text-muted ms-1">&middot; <?= h($relTime) ?></span>
+			</span>
+		<?php } ?>
+	</div>
 
 	<div class="card">
 		<div class="card-header">
