@@ -11,18 +11,40 @@ use Throwable;
 class CommandFinder {
 
 	/**
+	 * Per-process cache keyed by the loaded plugin set.
+	 *
+	 * @var array<string, array<string, string>>
+	 */
+	protected static array $cache = [];
+
+	/**
 	 * @return array<string, string>
 	 */
 	public function all(): array {
-		$commands = $this->list('Command');
 		$plugins = Plugin::loaded();
+		$cacheKey = implode(',', $plugins);
+
+		if (isset(static::$cache[$cacheKey])) {
+			return static::$cache[$cacheKey];
+		}
+
+		$commands = $this->list('Command');
 		foreach ($plugins as $plugin) {
 			$commands += $this->list('Command', $plugin);
 		}
 
 		ksort($commands);
 
-		return $commands;
+		return static::$cache[$cacheKey] = $commands;
+	}
+
+	/**
+	 * Clear the in-process cache. Mainly for tests.
+	 *
+	 * @return void
+	 */
+	public static function clearCache(): void {
+		static::$cache = [];
 	}
 
 	/**
