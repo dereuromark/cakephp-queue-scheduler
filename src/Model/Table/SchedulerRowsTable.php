@@ -88,7 +88,6 @@ class SchedulerRowsTable extends Table {
 			->requirePresence('content', 'create')
 			->notEmptyString('content')
 			->add('content', 'validateContent', [
-				'role' => 'validateContent',
 				'provider' => 'table',
 			]);
 
@@ -96,7 +95,6 @@ class SchedulerRowsTable extends Table {
 			->scalar('param')
 			->allowEmptyString('param')
 			->add('param', 'validateParam', [
-				'role' => 'validateParam',
 				'provider' => 'table',
 			]);
 
@@ -106,7 +104,6 @@ class SchedulerRowsTable extends Table {
 			->requirePresence('frequency', 'create')
 			->notEmptyString('frequency')
 			->add('frequency', 'validateFrequency', [
-				'role' => 'validateFrequency',
 				'provider' => 'table',
 			]);
 
