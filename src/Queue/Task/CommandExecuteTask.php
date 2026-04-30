@@ -13,11 +13,16 @@ class CommandExecuteTask extends Task {
 	/**
 	 * @param array<string, mixed> $data The array passed to QueuedJobsTable::createJob()
 	 * @param int $jobId The id of the QueuedJob entity
+	 * @throws \Queue\Model\QueueException When the command class is missing, unknown, or not a CommandInterface.
 	 * @return void
 	 */
 	public function run(array $data, int $jobId): void {
+		$class = $data['class'] ?? null;
+		if (!is_string($class) || !class_exists($class) || !is_a($class, CommandInterface::class, true)) {
+			throw new QueueException('Invalid command class: ' . var_export($class, true));
+		}
+
 		/** @var class-string<\Cake\Console\CommandInterface> $class */
-		$class = $data['class'];
 		$args = $data['args'] ?? [];
 
 		$stdout = tmpfile();

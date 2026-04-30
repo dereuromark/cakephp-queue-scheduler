@@ -92,6 +92,52 @@ class CommandExecuteTaskTest extends TestCase {
 	/**
 	 * @return void
 	 */
+	public function testRunRejectsUnknownClass(): void {
+		$out = new StubConsoleOutput();
+		$err = new StubConsoleOutput();
+		$io = new Io(new ConsoleIo($out, $err));
+		$task = new CommandExecuteTask($io);
+
+		$data = ['class' => 'NotARealClass\\DoesNotExist'];
+
+		$this->expectException(QueueException::class);
+		$this->expectExceptionMessage('Invalid command class');
+		$task->run($data, 0);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testRunRejectsNonCommandClass(): void {
+		$out = new StubConsoleOutput();
+		$err = new StubConsoleOutput();
+		$io = new Io(new ConsoleIo($out, $err));
+		$task = new CommandExecuteTask($io);
+
+		$data = ['class' => static::class];
+
+		$this->expectException(QueueException::class);
+		$this->expectExceptionMessage('Invalid command class');
+		$task->run($data, 0);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testRunRejectsMissingClassKey(): void {
+		$out = new StubConsoleOutput();
+		$err = new StubConsoleOutput();
+		$io = new Io(new ConsoleIo($out, $err));
+		$task = new CommandExecuteTask($io);
+
+		$this->expectException(QueueException::class);
+		$this->expectExceptionMessage('Invalid command class');
+		$task->run([], 0);
+	}
+
+	/**
+	 * @return void
+	 */
 	public function testRunFailureStillForwardsOutput(): void {
 		$out = new StubConsoleOutput();
 		$err = new StubConsoleOutput();
