@@ -19,6 +19,19 @@ return [
 		// - true: Isolated admin that doesn't depend on the host app
 		'standalone' => false,
 
+		// Admin access gate. REQUIRED — the host app MUST set this to a Closure
+		// that returns true to grant access to /admin/queue-scheduler/...; anything
+		// else (unset, non-Closure, returns false, returns a truthy non-bool, or
+		// throws) yields a 403. The plugin can configure arbitrary scheduled
+		// command execution; accidental exposure is harmful, so the default
+		// policy is deny. Independent of `standalone` — runs in both modes.
+		// Example — admin role check on the cakephp/authentication identity:
+		'adminAccess' => function (\Cake\Http\ServerRequest $request): bool {
+			$identity = $request->getAttribute('identity');
+
+			return $identity !== null && in_array('admin', (array)$identity->roles, true);
+		},
+
 		// Auto-refresh dashboard (in seconds, 0 = disabled)
 		'dashboardAutoRefresh' => 0,
 	],
