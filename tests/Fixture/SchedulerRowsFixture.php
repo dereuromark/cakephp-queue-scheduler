@@ -20,7 +20,7 @@ class SchedulerRowsFixture extends TestFixture {
 		'type' => ['type' => 'tinyinteger', 'length' => null, 'unsigned' => false, 'null' => false, 'default' => '0', 'comment' => '', 'precision' => null],
 		'content' => ['type' => 'text', 'length' => null, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null],
 		'param' => ['type' => 'text', 'length' => null, 'null' => true, 'default' => null, 'comment' => '', 'precision' => null],
-		'job_config' => ['type' => 'text', 'length' => null, 'null' => true, 'default' => null, 'comment' => 'JSON-encoded queue config (priority, queue, group, notBefore, ...).', 'precision' => null],
+		'job_config' => ['type' => 'text', 'length' => null, 'null' => true, 'default' => null, 'comment' => 'JSON-encoded queue config. Allowed keys: priority (int 1-10), group (string).', 'precision' => null],
 		'frequency' => ['type' => 'string', 'length' => 140, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null],
 		'last_run' => ['type' => 'datetime', 'length' => null, 'precision' => null, 'null' => true, 'default' => null, 'comment' => ''],
 		'next_run' => ['type' => 'datetime', 'length' => null, 'precision' => null, 'null' => true, 'default' => null, 'comment' => ''],

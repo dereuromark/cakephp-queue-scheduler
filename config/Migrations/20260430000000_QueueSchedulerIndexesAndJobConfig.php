@@ -14,7 +14,7 @@ class QueueSchedulerIndexesAndJobConfig extends BaseMigration {
 			->addColumn('job_config', 'text', [
 				'default' => null,
 				'null' => true,
-				'comment' => 'JSON-encoded queue config (priority, queue, group, notBefore, ...).',
+				'comment' => 'JSON-encoded queue config. Allowed keys: priority (int 1-10), group (string).',
 			])
 			->addIndex(['enabled', 'next_run'], ['name' => 'enabled_next_run'])
 			->addIndex(['name'], ['name' => 'unique_name', 'unique' => true])
