@@ -46,6 +46,28 @@ class SchedulerRowsControllerTest extends TestCase {
 	}
 
 	/**
+	 * Param block must render and any HTML inside must be escaped.
+	 *
+	 * @return void
+	 */
+	public function testViewRendersParamBlockEscaped(): void {
+		$this->disableErrorHandlerMiddleware();
+
+		$rowsTable = $this->fetchTable('QueueScheduler.SchedulerRows');
+		$row = $rowsTable->get(1);
+		// Fixture row is type=1 (Cake command); validateCakeCommandParam expects a JSON array.
+		$row->param = '["<script>alert(1)</script>"]';
+		$rowsTable->saveOrFail($row);
+
+		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'view', 1]);
+
+		$this->assertResponseCode(200);
+		$this->assertResponseContains('Config');
+		$this->assertResponseNotContains('<script>alert(1)</script>');
+		$this->assertResponseContains('&lt;script&gt;');
+	}
+
+	/**
 	 * @return void
 	 */
 	public function testViewWithJobOutput(): void {
