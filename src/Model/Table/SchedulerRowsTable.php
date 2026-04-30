@@ -15,6 +15,7 @@ use Cake\Validation\Validator;
 use Cron\CronExpression;
 use DateInterval;
 use Exception;
+use InvalidArgumentException;
 use QueueScheduler\Model\Entity\SchedulerRow;
 use RuntimeException;
 
@@ -417,7 +418,15 @@ class SchedulerRowsTable extends Table {
 	 */
 	protected function validateFrequencyAsStringInterval(string $value): bool {
 		try {
-			DateInterval::createFromDateString($value);
+			// PHP 8.2 returns false on parse failure; 8.3+ throws. The explicit throw
+			// below normalizes the false return into the same exception path so the
+			// catch below is reachable on both versions (otherwise phpstan on 8.2
+			// flags it as a dead catch since the function has no documented throws there).
+			/** @var \DateInterval|false $interval */
+			$interval = @DateInterval::createFromDateString($value);
+			if (!$interval instanceof DateInterval) {
+				throw new InvalidArgumentException('Invalid interval string: ' . $value);
+			}
 		} catch (Exception $e) {
 			return false;
 		}

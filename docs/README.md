@@ -58,6 +58,39 @@ Tip: Use `bin/cake scheduler run` without additional elements as basic command f
 - `--limit=N` (alias `-l N`) — cap the number of events dispatched on this
   tick. The remainder stays due for the next run. Helps drain a backlog
   gracefully after downtime instead of flooding the queue all at once.
+- `--duration=N|auto` — enable loop mode. Either an integer of seconds the
+  command should keep scheduling, or the literal `auto` to fill the time
+  until just before the next minute boundary. Requires `--interval`.
+- `--interval=N` — in loop mode, the seconds to sleep between scheduling
+  passes. The smallest practical row frequency. Requires `--duration`.
+
+#### Sub-minute scheduling
+
+Cron's minimum granularity is one minute. To run rows at sub-minute
+frequencies (e.g. `+10 seconds`, `PT5S`), use loop mode:
+
+```cronexp
+* * * * * cd /path-to-your-project && bin/cake scheduler run --duration=auto --interval=10 >> /dev/null 2>&1
+```
+
+Each cron tick launches a process that loops `schedule()` calls every 10
+seconds until just before the next minute, then exits. A file lock at
+`tmp/queue_scheduler.lock` (override with `Configure::write('QueueScheduler.lockPath', ...)`)
+prevents two processes from overlapping. If a slow iteration overruns the
+boundary, the next cron-launched process blocks on the lock for up to 30
+seconds and picks up where the previous left off — there is no coverage
+gap for normal slowdowns.
+
+`--interval` is the global floor, not a per-row property: a row with
+`+5 seconds` frequency and `--interval=10` fires every 10s, not every 5s.
+Set `--interval` to the finest granularity any of your rows needs.
+
+**Multi-host caveat:** the default `FileLock` is single-host only. Two
+app servers running this cron entry against the same database will each
+hold their own local lock and double-schedule. If you run multiple
+schedulers, implement `QueueScheduler\Scheduler\Lock\LockInterface` with
+a DB advisory lock or Redis backend and inject via a custom subclass of
+`RunCommand`.
 
 The command exits with a non-zero status if any row threw while being
 scheduled (a row being held back because a previous run is still queued

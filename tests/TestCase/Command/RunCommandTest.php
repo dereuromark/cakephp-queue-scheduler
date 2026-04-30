@@ -3,8 +3,11 @@
 namespace QueueScheduler\Test\TestCase\Command;
 
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
+use Cake\Core\Configure;
 use Cake\I18n\DateTime;
 use Cake\TestSuite\TestCase;
+use QueueScheduler\Command\RunCommand;
+use ReflectionMethod;
 
 /**
  * QueueScheduler\Command\RunCommand Test Case
@@ -77,6 +80,125 @@ class RunCommandTest extends TestCase {
 		$this->assertExitCode(0);
 		$this->assertOutputContains('2 events due; capping to 1 (--limit)');
 		$this->assertOutputContains('Dry run: 1 events would have been scheduled.');
+	}
+
+	public function testLoopFlagsRequireBothPresent(): void {
+		$this->exec('scheduler run --duration=10');
+
+		$this->assertExitError();
+		$this->assertErrorContains('--duration requires --interval');
+	}
+
+	public function testLoopFlagsRejectIntervalAlone(): void {
+		$this->exec('scheduler run --interval=5');
+
+		$this->assertExitError();
+		$this->assertErrorContains('--interval requires --duration');
+	}
+
+	public function testLoopFlagsRejectIntervalBelowOne(): void {
+		$this->exec('scheduler run --duration=10 --interval=0');
+
+		$this->assertExitError();
+		$this->assertErrorContains('--interval must be at least 1 second');
+	}
+
+	public function testLoopFlagsRejectNonNumericInterval(): void {
+		$this->exec('scheduler run --duration=10 --interval=abc');
+
+		$this->assertExitError();
+		$this->assertErrorContains('--interval must be a positive integer');
+	}
+
+	public function testLoopFlagsRejectDurationBelowInterval(): void {
+		$this->exec('scheduler run --duration=5 --interval=10');
+
+		$this->assertExitError();
+		$this->assertErrorContains('--duration must be greater than or equal to --interval');
+	}
+
+	public function testLoopRunsMultipleIterationsAndLogsSummary(): void {
+		// --duration=2 --interval=1 → expect ~2 iterations within ~2 seconds.
+		$start = microtime(true);
+		$this->exec('scheduler run --duration=2 --interval=1');
+		$elapsed = microtime(true) - $start;
+
+		$this->assertExitCode(0);
+		$this->assertGreaterThanOrEqual(2.0, $elapsed);
+		$this->assertLessThan(4.0, $elapsed);
+		// At least 2 iterations recorded in the summary line.
+		$this->assertOutputRegExp('/Scheduler loop: [2-9]\d* iterations/');
+	}
+
+	public function testComputeEndTimeAutoTargetsNextMinuteBoundary(): void {
+		$command = new RunCommand();
+		$method = new ReflectionMethod($command, 'computeEndTime');
+
+		$endTime = $method->invoke($command, 'auto');
+
+		$now = microtime(true);
+		$nextMinuteBoundary = (floor($now / 60) + 1) * 60;
+		// endTime should be 0.5s before the next minute boundary; allow
+		// 0.1s slack for the time elapsed between our computation and
+		// the assertion.
+		$this->assertEqualsWithDelta($nextMinuteBoundary - 0.5, $endTime, 0.1);
+	}
+
+	public function testComputeEndTimeFixedDurationAddsToNow(): void {
+		$command = new RunCommand();
+		$method = new ReflectionMethod($command, 'computeEndTime');
+
+		$before = microtime(true);
+		$endTime = $method->invoke($command, '5');
+		$after = microtime(true);
+
+		$this->assertGreaterThanOrEqual($before + 5, $endTime);
+		$this->assertLessThanOrEqual($after + 5, $endTime);
+	}
+
+	public function testLoopWarnsWhenPcntlMissing(): void {
+		if (extension_loaded('pcntl')) {
+			$this->markTestSkipped('pcntl is loaded; soft-degrade path cannot be exercised here.');
+		}
+
+		$this->exec('scheduler run --duration=2 --interval=1');
+
+		$this->assertExitCode(0);
+		$this->assertOutputContains('pcntl extension not loaded');
+	}
+
+	public function testLoopExitsCleanlyWhenLockHeld(): void {
+		// Use a custom lock path under TMP so we can pre-acquire it.
+		$lockPath = TMP . 'queue_scheduler_locked_' . uniqid() . '.lock';
+		Configure::write('QueueScheduler.lockPath', $lockPath);
+
+		// Acquire the lock from this test process before invoking the command.
+		$holder = fopen($lockPath, 'c');
+		$this->assertNotFalse($holder);
+		$this->assertTrue(flock($holder, LOCK_EX));
+
+		// Override the lock acquire timeout so we don't wait 30s.
+		// We do this by writing a Configure key the command honors (added below).
+		Configure::write('QueueScheduler.lockAcquireTimeout', 1);
+
+		try {
+			$start = microtime(true);
+			$this->exec('scheduler run --duration=10 --interval=1');
+			$elapsed = microtime(true) - $start;
+
+			$this->assertExitCode(0);
+			$this->assertErrorContains('lock acquire timed out');
+			$this->assertGreaterThanOrEqual(1.0, $elapsed);
+			$this->assertLessThan(2.5, $elapsed);
+		} finally {
+			flock($holder, LOCK_UN);
+			fclose($holder);
+			if (file_exists($lockPath)) {
+				unlink($lockPath);
+			}
+			Configure::delete('QueueScheduler.lockPath');
+			Configure::delete('QueueScheduler.lockAcquireTimeout');
+		}
 	}
 
 }
