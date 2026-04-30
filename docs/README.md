@@ -247,6 +247,20 @@ Available icon sets from the Tools plugin:
 
 Without icon configuration, the UI will fall back to text-based labels.
 
+### Admin layout
+
+`QueueScheduler.adminLayout` controls which layout the admin views render in:
+
+- `null` (default) — uses the plugin's isolated `QueueScheduler.queue_scheduler` Bootstrap 5 layout. The admin works without depending on the host app's CSS/JS pipeline.
+- `false` — disables the plugin layout entirely; views fall back to the host app's default layout. Use this when you want the admin to inherit your app chrome.
+- `string` — a specific layout name, e.g. `'AdminTheme.admin'`, when you want to embed the admin in a custom theme.
+
+This is independent of `QueueScheduler.standalone` (which controls whether the admin extends the host's `AppController`); see the Security section for that toggle.
+
+### Dashboard auto-refresh
+
+`QueueScheduler.dashboardAutoRefresh` (integer, seconds; default `0`) sets a meta-refresh interval on the admin dashboard so it polls itself for fresh state without manual reload. `0` disables auto-refresh; a typical value is `30` or `60`.
+
 ### Plugins
 If you want to further include/exclude plugins, you can use the `plugins` key. Use `-` prefix to exclude.
 ```php
