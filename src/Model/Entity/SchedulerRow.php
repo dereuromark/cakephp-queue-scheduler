@@ -7,7 +7,6 @@ use Cron\CronExpression;
 use DateInterval;
 use Exception;
 use Queue\Queue\Config;
-use RuntimeException;
 use Tools\Model\Entity\Entity;
 
 /**
@@ -114,21 +113,17 @@ class SchedulerRow extends Entity {
 	}
 
 	/**
-	 * @throws \Exception
 	 * @return \DateInterval|null
 	 */
 	public function calculateNextInterval(): ?DateInterval {
-		$i = null;
 		if (substr($this->frequency, 0, 1) === '+') {
-			$i = DateInterval::createFromDateString(substr($this->frequency, 1));
-			if ($i === false) {
-				throw new RuntimeException('Cannot create interval from date string `' . $this->frequency . '`');
-			}
-		} elseif (substr($this->frequency, 0, 1) === 'P') {
-			$i = new DateInterval($this->frequency);
+			return DateInterval::createFromDateString(substr($this->frequency, 1));
+		}
+		if (substr($this->frequency, 0, 1) === 'P') {
+			return new DateInterval($this->frequency);
 		}
 
-		return $i;
+		return null;
 	}
 
 	/**
@@ -187,7 +182,7 @@ class SchedulerRow extends Entity {
 	}
 
 	/**
-	 *@see \QueueScheduler\Model\Entity\SchedulerRow::$job_task
+	 * @see \QueueScheduler\Model\Entity\SchedulerRow::$job_task
 	 * @return string|null
 	 */
 	protected function _getJobTask(): ?string {
@@ -202,7 +197,7 @@ class SchedulerRow extends Entity {
 	}
 
 	/**
-	 *@see \QueueScheduler\Model\Entity\SchedulerRow::$job_data
+	 * @see \QueueScheduler\Model\Entity\SchedulerRow::$job_data
 	 * @return array
 	 */
 	protected function _getJobData(): array {
@@ -249,7 +244,7 @@ class SchedulerRow extends Entity {
 	}
 
 	/**
-	 *@see \QueueScheduler\Model\Entity\SchedulerRow::$job_reference
+	 * @see \QueueScheduler\Model\Entity\SchedulerRow::$job_reference
 	 * @return string
 	 */
 	protected function _getJobReference(): string {

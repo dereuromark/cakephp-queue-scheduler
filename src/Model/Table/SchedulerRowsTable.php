@@ -42,7 +42,7 @@ class SchedulerRowsTable extends Table {
 	/**
 	 * @var array<string>
 	 */
-	public $scaffoldSkipFields = ['last_run', 'last_queued_job_id'];
+	public array $scaffoldSkipFields = ['last_run', 'last_queued_job_id'];
 
 	/**
 	 * Initialize method
@@ -380,13 +380,12 @@ class SchedulerRowsTable extends Table {
 	 */
 	protected function validateFrequencyAsStringInterval(string $value): bool {
 		try {
-			$result = DateInterval::createFromDateString($value);
-
+			DateInterval::createFromDateString($value);
 		} catch (Exception $e) {
 			return false;
 		}
 
-		return $result !== false;
+		return true;
 	}
 
 	/**
@@ -473,7 +472,7 @@ class SchedulerRowsTable extends Table {
 			return false;
 		}
 
-		$array = json_decode($value, true, 512, JSON_PRETTY_PRINT);
+		$array = json_decode($value, true);
 
 		return is_array($array) && !empty($array);
 	}
@@ -492,7 +491,7 @@ class SchedulerRowsTable extends Table {
 			return false;
 		}
 
-		$array = json_decode($value, true, 512, JSON_PRETTY_PRINT);
+		$array = json_decode($value, true);
 
 		return is_array($array) && !empty($array);
 	}

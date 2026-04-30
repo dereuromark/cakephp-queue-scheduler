@@ -46,6 +46,11 @@
 	},
 	"prefer-stable": true,
 	"minimum-stability": "stable",
+	"extra": {
+		"branch-alias": {
+			"dev-master": "0.2.x-dev"
+		}
+	},
 	"scripts": {
 		"stan": "phpstan analyze",
 		"stan-tests": "phpstan analyze -c tests/phpstan.neon",
