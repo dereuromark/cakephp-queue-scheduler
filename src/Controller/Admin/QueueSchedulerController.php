@@ -39,14 +39,16 @@ class QueueSchedulerController extends QueueSchedulerAppController {
 
 	/**
 	 * Read the heartbeat written by RunCommand and decide whether the
-	 * scheduler is healthy. Default threshold is 61 seconds (one minute
-	 * of cron slack); apps that run cron less often can raise it via
+	 * scheduler is healthy. Default threshold is 65 seconds: 60s for the
+	 * minutely cron interval plus a few seconds of slack for pass duration
+	 * and cron jitter (the heartbeat is written at the end of a pass, not
+	 * the start). Apps that run cron less often can raise it via
 	 * `QueueScheduler.healthyWithinSeconds`.
 	 *
 	 * @return array{lastTick: int|null, healthy: bool, ageSeconds: int|null, thresholdSeconds: int}
 	 */
 	protected function buildSchedulerStatus(): array {
-		$threshold = (int)(Configure::read('QueueScheduler.healthyWithinSeconds') ?? 61);
+		$threshold = (int)(Configure::read('QueueScheduler.healthyWithinSeconds') ?? 65);
 		$cacheConfig = (string)(Configure::read('QueueScheduler.cacheConfig') ?? 'default');
 
 		$lastTick = null;

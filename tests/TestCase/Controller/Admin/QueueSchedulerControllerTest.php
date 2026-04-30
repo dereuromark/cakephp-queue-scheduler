@@ -81,7 +81,7 @@ class QueueSchedulerControllerTest extends TestCase {
 
 	/**
 	 * Stale heartbeat (older than the threshold) → unhealthy. Default
-	 * threshold is 61s; this test writes a 5-minute-old timestamp.
+	 * threshold is 65s; this test writes a 5-minute-old timestamp.
 	 *
 	 * @return void
 	 */

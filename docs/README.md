@@ -274,7 +274,7 @@ Internally, `RunCommand` writes a unix timestamp to the cache key `QueueSchedule
 Two configs control it:
 
 - `QueueScheduler.cacheConfig` (string, default `'default'`) — the CakePHP cache config the heartbeat is written to and read from. Multi-host deployments **must** point this at a shared backend (Redis/Memcached); the default file cache is per-host, so a heartbeat written by the cron host will not be visible from the admin host.
-- `QueueScheduler.healthyWithinSeconds` (int, default `61`) — maximum age of the heartbeat before the page flips to "stale". `61` suits a `* * * * *` cron entry; raise it if you run the scheduler less often (e.g. `*/5 * * * *` would want at least `301`).
+- `QueueScheduler.healthyWithinSeconds` (int, default `65`) — maximum age of the heartbeat before the page flips to "stale". `65` suits a `* * * * *` cron entry: 60 seconds for the interval plus a few seconds of slack for pass duration and cron jitter (the heartbeat is written at the *end* of a pass, not the start). Raise it if you run the scheduler less often — e.g. `*/5 * * * *` would want at least `305`.
 
 A cache backend that is unavailable at read time is treated as "never run" so the page does not 500. Cache write failures inside `RunCommand` are logged at warning level and do not fail the cron.
 

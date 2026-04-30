@@ -45,10 +45,11 @@ return [
 		//'cacheConfig' => 'default',
 
 		// Maximum age (in seconds) of the heartbeat before the admin page
-		// reports the scheduler as stale. Default 61, which suits the
-		// recommended `* * * * *` cron entry. Raise it if you run cron
-		// less often than every minute.
-		//'healthyWithinSeconds' => 61,
+		// reports the scheduler as stale. Default 65: 60s for the cron
+		// interval plus a few seconds of slack for pass duration and cron
+		// jitter (the heartbeat is written at the *end* of a pass, not the
+		// start). Raise it if you run cron less often than every minute.
+		//'healthyWithinSeconds' => 65,
 	],
 	// Icon configuration for the backend UI (optional, but recommended for better UX)
 	// Without this, the UI will use Font Awesome icons from CDN when using the standalone layout.
