@@ -71,6 +71,38 @@ class RowTest extends TestCase {
 	 *
 	 * @return void
 	 */
+	/**
+	 * @return void
+	 */
+	public function testJobConfigDecodesJson(): void {
+		$row = new SchedulerRow();
+		$row->set('job_config', '{"priority":5,"queue":"batch"}');
+
+		$this->assertSame(['priority' => 5, 'queue' => 'batch'], $row->job_config);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testJobConfigEmptyOrInvalidFallsBackToEmptyArray(): void {
+		$row = new SchedulerRow();
+		$this->assertSame([], $row->job_config);
+
+		$row->set('job_config', '');
+		$this->assertSame([], $row->job_config);
+
+		// Malformed JSON falls through to [] rather than throwing.
+		$row->set('job_config', '{not json');
+		$this->assertSame([], $row->job_config);
+
+		// JSON scalar (not object/array) → []
+		$row->set('job_config', '"foo"');
+		$this->assertSame([], $row->job_config);
+	}
+
+	/**
+	 * @return void
+	 */
 	public function testIsDueAtBoundary(): void {
 		$row = new SchedulerRow();
 		$row->frequency = '@daily';

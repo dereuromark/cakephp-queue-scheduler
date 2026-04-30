@@ -62,6 +62,12 @@
 								<td><pre class="mb-0"><?= h(json_encode(json_decode($row->param, true), JSON_PRETTY_PRINT)) ?></pre></td>
 							</tr>
 						<?php } ?>
+						<?php if ($row->job_config) { ?>
+							<tr>
+								<th><?= __('Job Config') ?></th>
+								<td><pre class="mb-0"><?= h(json_encode($row->job_config, JSON_PRETTY_PRINT)) ?></pre></td>
+							</tr>
+						<?php } ?>
 						<tr>
 							<th><?= __('Frequency') ?></th>
 							<td>

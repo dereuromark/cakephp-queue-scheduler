@@ -59,6 +59,10 @@ class SchedulerRowsTable extends Table {
 		$this->setPrimaryKey('id');
 
 		$this->addBehavior('Timestamp');
+
+		// Stored as JSON text but exposed as array in PHP — Cake handles the
+		// encode/decode round-trip transparently.
+		$this->getSchema()->setColumnType('job_config', 'json');
 	}
 
 	/**
@@ -95,6 +99,13 @@ class SchedulerRowsTable extends Table {
 			->scalar('param')
 			->allowEmptyString('param')
 			->add('param', 'validateParam', [
+				'provider' => 'table',
+			]);
+
+		$validator
+			->scalar('job_config')
+			->allowEmptyString('job_config')
+			->add('job_config', 'validateJobConfig', [
 				'provider' => 'table',
 			]);
 
@@ -172,6 +183,29 @@ class SchedulerRowsTable extends Table {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Validate the JSON-encoded queue config. Must be a JSON object (not array
+	 * or scalar) so it can be merged into the createJob() $config arg as a
+	 * keyed map. Empty values are allowed via allowEmptyString().
+	 *
+	 * @param mixed $value
+	 * @param array $context
+	 *
+	 * @return bool
+	 */
+	public function validateJobConfig(mixed $value, array $context): bool {
+		if (!is_string($value) || $value === '') {
+			return false;
+		}
+		if (!str_starts_with($value, '{') || !str_ends_with($value, '}')) {
+			return false;
+		}
+
+		$decoded = json_decode($value, true);
+
+		return is_array($decoded);
 	}
 
 	/**

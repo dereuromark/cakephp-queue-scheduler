@@ -213,6 +213,62 @@ class SchedulerRowsTableTest extends TestCase {
 	/**
 	 * @return void
 	 */
+	public function testValidateJobConfig(): void {
+		$baseData = [
+			'name' => 'JobConfig test',
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'content' => ExampleTask::class,
+			'frequency' => '@daily',
+		];
+
+		// Empty allowed.
+		$row = $this->SchedulerRows->newEntity($baseData);
+		$this->assertSame([], $row->getError('job_config'));
+
+		// Valid JSON object passes.
+		$row = $this->SchedulerRows->newEntity(
+			$baseData + ['job_config' => '{"priority":5,"queue":"batch"}'],
+		);
+		$this->assertSame([], $row->getError('job_config'));
+
+		// Malformed JSON rejected.
+		$row = $this->SchedulerRows->newEntity(
+			$baseData + ['job_config' => '{not json'],
+		);
+		$this->assertNotEmpty($row->getError('job_config'));
+
+		// JSON array (not object) rejected — config must be a keyed map.
+		$row = $this->SchedulerRows->newEntity(
+			$baseData + ['job_config' => '[1,2,3]'],
+		);
+		$this->assertNotEmpty($row->getError('job_config'));
+	}
+
+	/**
+	 * job_config is stored as JSON text and exposed as an array — round-trip
+	 * through save/reload must preserve the structure verbatim so it can be
+	 * merged into createJob()'s $config arg by run().
+	 *
+	 * @return void
+	 */
+	public function testJobConfigRoundTripsThroughSave(): void {
+		$row = $this->SchedulerRows->newEntity([
+			'name' => 'JobConfig flow test',
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'content' => ExampleTask::class,
+			'frequency' => '@daily',
+			'job_config' => '{"priority":5,"queue":"batch"}',
+			'enabled' => true,
+		]);
+		$this->SchedulerRows->saveOrFail($row);
+
+		$reloaded = $this->SchedulerRows->get($row->id);
+		$this->assertSame(['priority' => 5, 'queue' => 'batch'], $reloaded->job_config);
+	}
+
+	/**
+	 * @return void
+	 */
 	public function testValidateContent(): void {
 		$data = [
 			'name' => 'n',

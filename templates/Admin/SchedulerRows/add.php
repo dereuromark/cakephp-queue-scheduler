@@ -47,6 +47,16 @@
 			<div class="mb-3">
 				<?= $this->Form->control('param', ['class' => 'form-control']) ?>
 			</div>
+			<div class="mb-3">
+				<?= $this->Form->control('job_config', [
+					'type' => 'textarea',
+					'rows' => 3,
+					'class' => 'form-control',
+					'label' => __('Job Config (JSON)'),
+					'placeholder' => '{"priority": 5, "queue": "batch"}',
+					'help' => __('Optional. Queue config merged into createJob(): priority, queue, group, notBefore, ...'),
+				]) ?>
+			</div>
 			<div class="row">
 				<div class="col-md-6 mb-3">
 					<?= $this->Form->control('frequency', ['list' => 'frequency-suggestions', 'class' => 'form-control']) ?>

@@ -28,7 +28,7 @@ use Tools\Model\Entity\Entity;
  * @property int|null $last_queued_job_id
  * @property-read string|null $job_task
  * @property-read array $job_data
- * @property-read array $job_config
+ * @property-read array<string, mixed> $job_config
  * @property-read string $job_reference
  */
 class SchedulerRow extends Entity {
@@ -225,10 +225,26 @@ class SchedulerRow extends Entity {
 	}
 
 	/**
-	 *@see \QueueScheduler\Model\Entity\SchedulerRow::$job_config
-	 * @return array
+	 * Always return an array so SchedulerRowsTable::run() can merge into it
+	 * without guarding. The column uses Cake's `json` type, so values from the
+	 * DB or marshalled input arrive here as arrays, but a direct
+	 * $entity->set('job_config', '...json string...') is also tolerated.
+	 *
+	 * @see \QueueScheduler\Model\Entity\SchedulerRow::$job_config
+	 * @param mixed $value Decoded array, raw JSON string, or null.
+	 * @return array<string, mixed>
 	 */
-	protected function _getJobConfig(): array {
+	protected function _getJobConfig(mixed $value): array {
+		if (is_array($value)) {
+			return $value;
+		}
+		if (is_string($value) && $value !== '') {
+			$decoded = json_decode($value, true);
+			if (is_array($decoded)) {
+				return $decoded;
+			}
+		}
+
 		return [];
 	}
 
