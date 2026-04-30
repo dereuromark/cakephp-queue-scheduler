@@ -98,7 +98,7 @@ class SchedulerRow extends Entity {
 
 		$dateTime = new DateTime();
 		if ($nextRun) {
-			return $nextRun->timestamp < $dateTime->timestamp;
+			return $nextRun->timestamp <= $dateTime->timestamp;
 		}
 
 		$nextInterval = $this->calculateNextInterval();
@@ -107,7 +107,7 @@ class SchedulerRow extends Entity {
 				return true;
 			}
 
-			return $this->last_run->add($nextInterval)->timestamp < $dateTime->timestamp;
+			return $this->last_run->add($nextInterval)->timestamp <= $dateTime->timestamp;
 		}
 
 		return (new CronExpression($this->normalizeCronExpression($this->frequency)))->isDue($dateTime->toDateTimeString());
@@ -136,16 +136,15 @@ class SchedulerRow extends Entity {
 	 * @return \Cake\I18n\DateTime|null
 	 */
 	public function calculateNextRun(): ?DateTime {
-		$dateTime = $this->last_run;
-		if ($dateTime === null) {
-			return new DateTime();
+		$lastRun = $this->last_run;
+		$interval = $this->calculateNextInterval();
+
+		if ($interval) {
+			// Interval-based: first run is "now", subsequent runs are last_run + interval.
+			return $lastRun === null ? new DateTime() : $lastRun->add($interval);
 		}
 
-		$i = $this->calculateNextInterval();
-		if ($i) {
-			return $dateTime->add($i);
-		}
-
+		// Cron expression: always honor the schedule, even on the first run.
 		try {
 			$dateTime = (new CronExpression($this->normalizeCronExpression($this->frequency)))->getNextRunDate();
 		} catch (Exception $e) {
