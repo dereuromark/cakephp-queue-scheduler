@@ -10,6 +10,7 @@ use Queue\Model\QueueException;
 use QueueScheduler\Queue\Task\CommandExecuteTask;
 use TestApp\Command\TestNamedCommand;
 use TestApp\Command\TestOutputCommand;
+use TestApp\Command\TestRootedCommand;
 use Tools\Command\InflectCommand;
 
 class CommandExecuteTaskTest extends TestCase {
@@ -195,6 +196,10 @@ class CommandExecuteTaskTest extends TestCase {
 	 * roots like `app foo`) must NOT be rewritten — preserving caller
 	 * intent matters when commands are scheduled with non-default roots.
 	 *
+	 * The test command emits its live `getName()` so we assert on the
+	 * actual name observed during execution. A rewrite would produce
+	 * `name=cake rooted` instead of `name=app rooted`.
+	 *
 	 * @return void
 	 */
 	public function testRunDoesNotRewriteAlreadyFormattedName(): void {
@@ -203,16 +208,16 @@ class CommandExecuteTaskTest extends TestCase {
 		$io = new Io(new ConsoleIo($out, $err));
 		$task = new CommandExecuteTask($io);
 
-		// TestOutputCommand inherits BaseCommand's default `cake unknown`,
-		// so its getName() already contains a space. The task should
-		// leave it alone.
+		// TestRootedCommand sets $name to "app rooted" (non-`cake` root)
+		// and prints its live getName(). The task must leave it alone.
 		$data = [
-			'class' => TestOutputCommand::class,
+			'class' => TestRootedCommand::class,
 			'args' => [],
 		];
 		$task->run($data, 0);
 
-		$this->assertTextContains('stdout line one', $out->output());
+		$this->assertTextContains('name=app rooted', $out->output());
+		$this->assertTextNotContains('name=cake rooted', $out->output());
 	}
 
 }
