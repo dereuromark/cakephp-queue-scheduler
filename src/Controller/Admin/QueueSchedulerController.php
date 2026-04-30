@@ -45,12 +45,8 @@ class QueueSchedulerController extends QueueSchedulerAppController {
 	public function intervals(): void {
 		if ($this->request->is(['post', 'put'])) {
 			$interval = $this->request->getData('interval');
-			// Convert @minutely to standard cron expression
-			if ($interval === '@minutely') {
-				$interval = '* * * * *';
-			}
 			try {
-				$expression = (new CronExpression($interval))->getExpression();
+				$expression = (new CronExpression(SchedulerRow::normalizeCronExpression((string)$interval)))->getExpression();
 			} catch (Exception $e) {
 				$expression = null;
 				$this->Flash->error(__('Invalid interval') . ': ' . $e->getMessage());

@@ -70,8 +70,7 @@
 									<?php if (class_exists('Panlatent\CronExpressionDescriptor\ExpressionDescriptor')) { ?>
 										<div class="mt-1 text-muted">
 											<?php
-											$frequency = $row->frequency === '@minutely' ? '* * * * *' : $row->frequency;
-											$expression = new \Cron\CronExpression($frequency);
+											$expression = new \Cron\CronExpression(\QueueScheduler\Model\Entity\SchedulerRow::normalizeCronExpression($row->frequency));
 											$locale = Locale::getDefault();
 											echo (new \Panlatent\CronExpressionDescriptor\ExpressionDescriptor($expression, $locale, true))->getDescription();
 											?>
@@ -312,8 +311,7 @@
 			<div class="card-body">
 				<p class="text-muted"><?= __('If you want to port this into a native crontab line, copy and paste the following:') ?></p>
 				<?php
-				$frequency = $row->frequency === '@minutely' ? '* * * * *' : $row->frequency;
-				$expression = new \Cron\CronExpression($frequency);
+				$expression = new \Cron\CronExpression(\QueueScheduler\Model\Entity\SchedulerRow::normalizeCronExpression($row->frequency));
 				?>
 				<pre class="mb-0"><?= $expression ?></pre>
 			</div>

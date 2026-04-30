@@ -376,13 +376,8 @@ class SchedulerRowsTable extends Table {
 	 * @return bool
 	 */
 	protected function validateFrequencyAsCronExpression(string $value): bool {
-		// Convert @minutely to standard cron expression
-		if ($value === '@minutely') {
-			$value = '* * * * *';
-		}
-
 		try {
-			new CronExpression($value);
+			new CronExpression(SchedulerRow::normalizeCronExpression($value));
 		} catch (Exception $e) {
 			return false;
 		}

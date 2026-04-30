@@ -30,8 +30,7 @@
 						<?php foreach ($shortcuts as $shortcut) { ?>
 							<li class="mb-2">
 								<?php
-								$cronExpression = $shortcut === '@minutely' ? '* * * * *' : $shortcut;
-								$expression = new \Cron\CronExpression($cronExpression);
+								$expression = new \Cron\CronExpression(\QueueScheduler\Model\Entity\SchedulerRow::normalizeCronExpression($shortcut));
 								?>
 								<code><?= $expression ?></code> as <code><?= h($shortcut) ?></code>
 							</li>

@@ -110,7 +110,7 @@ class SchedulerRow extends Entity {
 			return $this->last_run->add($nextInterval)->timestamp <= $dateTime->timestamp;
 		}
 
-		return (new CronExpression($this->normalizeCronExpression($this->frequency)))->isDue($dateTime->toDateTimeString());
+		return (new CronExpression(static::normalizeCronExpression($this->frequency)))->isDue($dateTime->toDateTimeString());
 	}
 
 	/**
@@ -146,7 +146,7 @@ class SchedulerRow extends Entity {
 
 		// Cron expression: always honor the schedule, even on the first run.
 		try {
-			$dateTime = (new CronExpression($this->normalizeCronExpression($this->frequency)))->getNextRunDate();
+			$dateTime = (new CronExpression(static::normalizeCronExpression($this->frequency)))->getNextRunDate();
 		} catch (Exception $e) {
 			return null;
 		}
@@ -155,12 +155,13 @@ class SchedulerRow extends Entity {
 	}
 
 	/**
-	 * Normalize cron expression shortcuts to standard cron format.
+	 * Normalize cron expression shortcuts (e.g. @minutely) into standard
+	 * five-field cron format the upstream CronExpression library accepts.
 	 *
 	 * @param string $expression
 	 * @return string
 	 */
-	protected function normalizeCronExpression(string $expression): string {
+	public static function normalizeCronExpression(string $expression): string {
 		if ($expression === '@minutely') {
 			return '* * * * *';
 		}
