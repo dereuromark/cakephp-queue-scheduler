@@ -48,6 +48,19 @@ Add this in your crontab to run the scheduler every minute:
 ```
 Tip: Use `bin/cake scheduler run` without additional elements as basic command for local development/testing.
 
+### Run a single scheduler instance
+
+> [!IMPORTANT]
+> Always run **exactly one** `scheduler run` instance against a given database. Two cron entries — whether on the same host or across hosts — race on `last_run` / `next_run` and can dispatch the same row twice in a single window. Workers can scale horizontally; the scheduler dispatcher must not.
+
+The default `FileLock` (`tmp/queue_scheduler.lock`) only guards against overlap on the **same host**: it stops a slow tick from colliding with the next cron-launched tick locally. It does nothing across hosts, because each host has its own filesystem.
+
+Recommended deployments:
+
+- **Single-host app:** one cron entry on that host. Done.
+- **Multi-host app:** designate one host as the "cron host" and put the cron entry only there. The scheduler dispatches into the queue; the actual jobs are then picked up by `bin/cake queue worker` running on as many hosts as you like. Dispatch is centralized; execution scales out.
+- **Multi-host with no fixed cron host** (e.g. autoscaling fleets where any node may run cron): replace `FileLock` with a cross-host lock — implement `QueueScheduler\Scheduler\Lock\LockInterface` against a DB advisory lock (`GET_LOCK` on MySQL, `pg_try_advisory_lock` on Postgres) or Redis (`SET NX EX`), then inject it via a custom subclass of `RunCommand`. Only with a real cross-host lock is it safe to have more than one cron entry firing at the scheduler.
+
 ### Command flags
 
 `bin/cake scheduler run` accepts:
@@ -85,12 +98,7 @@ gap for normal slowdowns.
 `+5 seconds` frequency and `--interval=10` fires every 10s, not every 5s.
 Set `--interval` to the finest granularity any of your rows needs.
 
-**Multi-host caveat:** the default `FileLock` is single-host only. Two
-app servers running this cron entry against the same database will each
-hold their own local lock and double-schedule. If you run multiple
-schedulers, implement `QueueScheduler\Scheduler\Lock\LockInterface` with
-a DB advisory lock or Redis backend and inject via a custom subclass of
-`RunCommand`.
+The single-runner rule from the [Run a single scheduler instance](#run-a-single-scheduler-instance) section applies here too: one cron entry against one database, even in loop mode. The lock guards same-host overlap; cross-host coordination still requires swapping `FileLock` for a DB advisory lock or Redis backend.
 
 The command exits with a non-zero status if any row threw while being
 scheduled (a row being held back because a previous run is still queued
