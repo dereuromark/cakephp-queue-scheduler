@@ -2,6 +2,8 @@
 
 namespace QueueScheduler\Test\TestCase\Controller\Admin;
 
+use Cake\Core\Configure;
+use Cake\Http\Exception\ForbiddenException;
 use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 
@@ -30,6 +32,84 @@ class SchedulerRowsControllerTest extends TestCase {
 		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'index']);
 
 		$this->assertResponseCode(200);
+	}
+
+	/**
+	 * Without a configured QueueScheduler.adminAccess gate, the backend must
+	 * fail closed (403). The test bootstrap installs a permissive default;
+	 * we delete it for this test only.
+	 *
+	 * @return void
+	 */
+	public function testAdminAccessGateUnconfiguredYields403(): void {
+		$this->disableErrorHandlerMiddleware();
+		Configure::delete('QueueScheduler.adminAccess');
+
+		$this->expectException(ForbiddenException::class);
+		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'index']);
+	}
+
+	/**
+	 * A non-Closure value (e.g. someone setting a string by mistake) is also
+	 * treated as unconfigured.
+	 *
+	 * @return void
+	 */
+	public function testAdminAccessGateNonClosureYields403(): void {
+		$this->disableErrorHandlerMiddleware();
+		Configure::write('QueueScheduler.adminAccess', 'not a closure');
+
+		$this->expectException(ForbiddenException::class);
+		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'index']);
+	}
+
+	/**
+	 * A gate that returns false rejects the request.
+	 *
+	 * @return void
+	 */
+	public function testAdminAccessGateFalseYields403(): void {
+		$this->disableErrorHandlerMiddleware();
+		Configure::write('QueueScheduler.adminAccess', fn () => false);
+
+		$this->expectException(ForbiddenException::class);
+		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'index']);
+	}
+
+	/**
+	 * Anything other than literal true is rejected (no truthy-coercion).
+	 *
+	 * @return void
+	 */
+	public function testAdminAccessGateRequiresStrictTrue(): void {
+		$this->disableErrorHandlerMiddleware();
+		Configure::write('QueueScheduler.adminAccess', fn () => 1);
+
+		$this->expectException(ForbiddenException::class);
+		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'index']);
+	}
+
+	/**
+	 * The gate receives the request, so closures can inspect it (path,
+	 * identity attribute, headers, etc.) before deciding.
+	 *
+	 * @return void
+	 */
+	public function testAdminAccessGateReceivesRequest(): void {
+		$this->disableErrorHandlerMiddleware();
+
+		$received = null;
+		Configure::write('QueueScheduler.adminAccess', function ($request) use (&$received): bool {
+			$received = $request;
+
+			return true;
+		});
+
+		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'index']);
+
+		$this->assertResponseCode(200);
+		$this->assertNotNull($received);
+		$this->assertStringContainsString('queue-scheduler', $received->getPath());
 	}
 
 	/**

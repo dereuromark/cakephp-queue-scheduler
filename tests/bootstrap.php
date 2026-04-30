@@ -61,6 +61,11 @@ Configure::write('Icon', [
 
 Configure::write('debug', true);
 
+// Permissive default for test runs. Production installs MUST configure their
+// own Closure (default-deny). Individual tests may override with their own
+// Configure::write to exercise the deny path.
+Configure::write('QueueScheduler.adminAccess', fn () => true);
+
 $cache = [
 	'default' => [
 		'engine' => 'File',

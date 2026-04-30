@@ -234,9 +234,52 @@ composer require panlatent/cron-expression-descriptor
 
 
 ### Security
-Make sure that the admin backend (GUI) is secure through ACL and can only be reached by admins.
 
-For security reasons you can by default only run Cake command and Queue types in non-debug mode.
-Allowing any shell script can potentially be a security risk.
-As such, only use `QueueScheduler.allowRaw` "raw command execution" on a secure and containered environment, e.g. staging.
+The scheduler admin backend can configure arbitrary scheduled command execution
+(Cake commands, Queue tasks, and — when explicitly enabled — shell commands).
+Treat the URL like SSH access: it must be locked down.
+
+#### `QueueScheduler.adminAccess` (required, default-deny)
+
+The plugin **fails closed** by default. The host application MUST set
+`QueueScheduler.adminAccess` to a `Closure` that receives the current request
+and returns literal `true` to grant access. Anything else — unset, non-Closure,
+returns `false`, returns a truthy non-bool, or throws — yields a `403`.
+
+```php
+// In config/bootstrap.php (or wherever your plugin config lives):
+
+// Example 1 — admin role check (cakephp/authentication identity):
+Configure::write('QueueScheduler.adminAccess', function (\Cake\Http\ServerRequest $request): bool {
+    $identity = $request->getAttribute('identity');
+    return $identity !== null && in_array('admin', (array)$identity->roles, true);
+});
+
+// Example 2 — IP allow-list for a private staging environment:
+Configure::write('QueueScheduler.adminAccess', function (\Cake\Http\ServerRequest $request): bool {
+    return in_array($request->clientIp(), ['10.0.0.5', '10.0.0.6'], true);
+});
+
+// Example 3 — wide-open on local dev only (do NOT ship this to production):
+if (Configure::read('debug')) {
+    Configure::write('QueueScheduler.adminAccess', fn () => true);
+}
+```
+
+The gate runs in `beforeFilter` for every admin controller in the plugin and
+plays nicely with the cakephp/authorization plugin (it calls
+`skipAuthorization()` so the policy layer doesn't double-reject).
+
+This is independent of `QueueScheduler.standalone` — even in standalone mode
+(where the host's `AppController` setup is bypassed), the access gate still
+runs. Standalone mode is the "skip host auth components" axis;
+`adminAccess` is the "who is allowed in" axis.
+
+#### Shell command execution
+
+`QueueScheduler.allowRaw` enables the `Shell Command` row type in production.
+It is off by default and Shell rows are filtered out of `findActive()` unless
+either `debug=true` or `allowRaw=true` is set. Only enable it on a secured,
+contained environment — combined with a permissive `adminAccess` gate, raw
+shell execution becomes RCE-as-a-feature.
 
