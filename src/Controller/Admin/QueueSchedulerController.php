@@ -2,12 +2,16 @@
 
 namespace QueueScheduler\Controller\Admin;
 
+use Cake\Cache\Cache;
+use Cake\Core\Configure;
 use Cake\Utility\Hash;
 use Cron\CronExpression;
 use Exception;
 use Locale;
 use Panlatent\CronExpressionDescriptor\ExpressionDescriptor;
+use QueueScheduler\Command\RunCommand;
 use QueueScheduler\Model\Entity\SchedulerRow;
+use Throwable;
 
 class QueueSchedulerController extends QueueSchedulerAppController {
 
@@ -28,7 +32,50 @@ class QueueSchedulerController extends QueueSchedulerAppController {
 			->toArray();
 		$runningJobs = Hash::combine($runningJobs, '{n}.reference', '{n}');
 
-		$this->set(compact('schedulerRows', 'runningJobs'));
+		$schedulerStatus = $this->buildSchedulerStatus();
+
+		$this->set(compact('schedulerRows', 'runningJobs', 'schedulerStatus'));
+	}
+
+	/**
+	 * Read the heartbeat written by RunCommand and decide whether the
+	 * scheduler is healthy. Default threshold is 61 seconds (one minute
+	 * of cron slack); apps that run cron less often can raise it via
+	 * `QueueScheduler.healthyWithinSeconds`.
+	 *
+	 * @return array{lastTick: int|null, healthy: bool, ageSeconds: int|null, thresholdSeconds: int}
+	 */
+	protected function buildSchedulerStatus(): array {
+		$threshold = (int)(Configure::read('QueueScheduler.healthyWithinSeconds') ?? 61);
+		$cacheConfig = (string)(Configure::read('QueueScheduler.cacheConfig') ?? 'default');
+
+		$lastTick = null;
+		try {
+			$value = Cache::read(RunCommand::HEARTBEAT_KEY, $cacheConfig);
+			if (is_int($value)) {
+				$lastTick = $value;
+			}
+		} catch (Throwable) {
+			// Cache backend hiccup — treat as "no signal", same as never-run.
+		}
+
+		if ($lastTick === null) {
+			return [
+				'lastTick' => null,
+				'healthy' => false,
+				'ageSeconds' => null,
+				'thresholdSeconds' => $threshold,
+			];
+		}
+
+		$age = max(0, time() - $lastTick);
+
+		return [
+			'lastTick' => $lastTick,
+			'healthy' => $age <= $threshold,
+			'ageSeconds' => $age,
+			'thresholdSeconds' => $threshold,
+		];
 	}
 
 	/**

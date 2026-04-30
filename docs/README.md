@@ -261,6 +261,23 @@ This is independent of `QueueScheduler.standalone` (which controls whether the a
 
 `QueueScheduler.dashboardAutoRefresh` (integer, seconds; default `0`) sets a meta-refresh interval on the admin dashboard so it polls itself for fresh state without manual reload. `0` disables auto-refresh; a typical value is `30` or `60`.
 
+### Scheduler health indicator
+
+The admin index page shows a small pill next to the page header indicating whether cron is actively invoking the scheduler:
+
+- **Scheduler healthy** — `bin/cake scheduler run` completed a non-dry-run pass within the threshold window.
+- **Scheduler stale** — last successful pass is older than the threshold; cron has likely stopped firing or the cron entry is misconfigured.
+- **Scheduler: never run** — no heartbeat has been recorded yet (fresh install) or web and CLI are looking at different cache configs.
+
+Internally, `RunCommand` writes a unix timestamp to the cache key `QueueScheduler.lastTick` at the end of every successful pass; the admin controller reads it and compares against the threshold. `--dry-run` deliberately does **not** bump the heartbeat, so smoke-testing a single row will not mask a stalled scheduler.
+
+Two configs control it:
+
+- `QueueScheduler.cacheConfig` (string, default `'default'`) — the CakePHP cache config the heartbeat is written to and read from. Multi-host deployments **must** point this at a shared backend (Redis/Memcached); the default file cache is per-host, so a heartbeat written by the cron host will not be visible from the admin host.
+- `QueueScheduler.healthyWithinSeconds` (int, default `61`) — maximum age of the heartbeat before the page flips to "stale". `61` suits a `* * * * *` cron entry; raise it if you run the scheduler less often (e.g. `*/5 * * * *` would want at least `301`).
+
+A cache backend that is unavailable at read time is treated as "never run" so the page does not 500. Cache write failures inside `RunCommand` are logged at warning level and do not fail the cron.
+
 ### Plugins
 If you want to further include/exclude plugins, you can use the `plugins` key. Use `-` prefix to exclude.
 ```php
