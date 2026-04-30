@@ -5,8 +5,9 @@ namespace QueueScheduler\Model\Entity;
 use Cake\I18n\DateTime;
 use Cron\CronExpression;
 use DateInterval;
-use Exception;
+use InvalidArgumentException;
 use Queue\Queue\Config;
+use RuntimeException;
 use Tools\Model\Entity\Entity;
 
 /**
@@ -117,10 +118,11 @@ class SchedulerRow extends Entity {
 	 */
 	public function calculateNextInterval(): ?DateInterval {
 		if (substr($this->frequency, 0, 1) === '+') {
+			// PHP 8.2 returns false on parse failure, 8.3+ throws. The @var pins the
+			// union so phpstan accepts the instanceof check on both 8.2 and 8.3+ stubs.
+			/** @var \DateInterval|false $interval */
 			$interval = @DateInterval::createFromDateString(substr($this->frequency, 1));
 
-			// PHP 8.2 returns false on parse failure, 8.3+ throws. Stubs differ across versions.
-			// @phpstan-ignore-next-line instanceof.alwaysTrue
 			return $interval instanceof DateInterval ? $interval : null;
 		}
 		if (substr($this->frequency, 0, 1) === 'P') {
@@ -144,10 +146,13 @@ class SchedulerRow extends Entity {
 		}
 
 		// Cron expression: always honor the schedule, even on the first run.
+		// Catch the specific exception types declared by the cron-expression library
+		// (constructor throws InvalidArgumentException; getNextRunDate throws
+		// RuntimeException) so phpstan does not flag a broader catch as "dead".
 		try {
 			$cron = new CronExpression(static::normalizeCronExpression($this->frequency));
 			$dateTime = $cron->getNextRunDate();
-		} catch (Exception $e) {
+		} catch (InvalidArgumentException | RuntimeException $e) {
 			return null;
 		}
 

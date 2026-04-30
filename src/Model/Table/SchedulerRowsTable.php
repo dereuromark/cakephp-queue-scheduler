@@ -417,13 +417,14 @@ class SchedulerRowsTable extends Table {
 	 */
 	protected function validateFrequencyAsStringInterval(string $value): bool {
 		try {
+			// PHP 8.2 returns false on parse failure, 8.3+ throws. The @var pins the
+			// union so phpstan accepts the instanceof check on both 8.2 and 8.3+ stubs.
+			/** @var \DateInterval|false $interval */
 			$interval = @DateInterval::createFromDateString($value);
 		} catch (Exception $e) {
 			return false;
 		}
 
-		// PHP 8.2 returns false on parse failure, 8.3+ throws. Stubs differ across versions.
-		// @phpstan-ignore-next-line instanceof.alwaysTrue
 		return $interval instanceof DateInterval;
 	}
 
