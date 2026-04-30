@@ -2,6 +2,7 @@
 
 namespace QueueScheduler\Queue\Task;
 
+use Cake\Console\BaseCommand;
 use Cake\Console\CommandInterface;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOutput;
@@ -33,6 +34,19 @@ class CommandExecuteTask extends Task {
 		);
 
 		$command = new $class();
+		// Match what `Cake\Console\CommandRunner` does before running a
+		// command: prefix `defaultName()` with the root ("cake") so the
+		// name has the space `BaseCommand::getOptionParser()` expects
+		// when it does `[$root, $name] = explode(' ', $this->name, 2)`.
+		// Without this, any command whose getOptionParser() runs throws
+		// `TypeError: ConsoleOptionParser::__construct(): Argument #1
+		// ($command) must be of type string, null given`.
+		// The str_contains guard preserves names that already include a
+		// root (default `cake unknown`, custom roots like `app foo`), so
+		// only single-token overrides like `'clear_sessions'` get fixed.
+		if ($command instanceof BaseCommand && !str_contains($command->getName(), ' ')) {
+			$command->setName('cake ' . $command::defaultName());
+		}
 		$exitCode = $command->run($args, $io);
 
 		// Forward captured output to $this->io for Processor capture
