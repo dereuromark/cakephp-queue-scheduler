@@ -93,6 +93,7 @@ class SchedulerRowsTable extends Table {
 			->notEmptyString('content')
 			->add('content', 'validateContent', [
 				'provider' => 'table',
+				'message' => __('Content does not match the chosen type. Use a Task class (or "Plugin.Task" alias) for Queue tasks, a Command class (or "Plugin.Command" alias) for Cake commands, or a shell command string.'),
 			]);
 
 		$validator
@@ -100,6 +101,7 @@ class SchedulerRowsTable extends Table {
 			->allowEmptyString('param')
 			->add('param', 'validateParam', [
 				'provider' => 'table',
+				'message' => __('Param must be a JSON object {…} for Queue tasks or a JSON array […] for Cake commands. Shell commands cannot have a param.'),
 			]);
 
 		$validator
@@ -107,6 +109,7 @@ class SchedulerRowsTable extends Table {
 			->allowEmptyString('job_config')
 			->add('job_config', 'validateJobConfig', [
 				'provider' => 'table',
+				'message' => __('Job Config must be a JSON object with allowed keys only: priority (int 1-10) and group (string).'),
 			]);
 
 		$validator
@@ -116,6 +119,7 @@ class SchedulerRowsTable extends Table {
 			->notEmptyString('frequency')
 			->add('frequency', 'validateFrequency', [
 				'provider' => 'table',
+				'message' => __('Must be a cron expression ("0 11 * * *"), an @-shortcut ("@daily", "@minutely"), a relative interval ("+30 seconds"), or an ISO 8601 duration ("P2D").'),
 			]);
 
 		$validator
@@ -186,9 +190,20 @@ class SchedulerRowsTable extends Table {
 	}
 
 	/**
-	 * Validate the JSON-encoded queue config. Must be a JSON object (not array
-	 * or scalar) so it can be merged into the createJob() $config arg as a
-	 * keyed map. Empty values are allowed via allowEmptyString().
+	 * Validate the JSON-encoded queue config. Must be a JSON object whose keys
+	 * are limited to the few that actually do something at scheduling time:
+	 *
+	 * - priority: int 1-10 (lower runs sooner)
+	 * - group: non-empty string (matches `cake queue worker --group=...`)
+	 *
+	 * Other Queue\Config\JobConfig keys are intentionally not exposed here:
+	 * `notBefore` is meaningless for cron-driven dispatch (cron already controls
+	 * timing), `reference` is set by the scheduler itself, and `status` is a
+	 * runtime field overwritten on the first progress tick.
+	 *
+	 * Unknown keys are rejected to surface typos like `priorty` instead of
+	 * silently dropping them and emitting a dynamic-property deprecation
+	 * notice from JobConfig::fromArray().
 	 *
 	 * @param mixed $value
 	 * @param array $context
@@ -204,8 +219,30 @@ class SchedulerRowsTable extends Table {
 		}
 
 		$decoded = json_decode($value, true);
+		if (!is_array($decoded)) {
+			return false;
+		}
 
-		return is_array($decoded);
+		foreach ($decoded as $key => $val) {
+			if ($key === 'priority') {
+				if (!is_int($val) || $val < 1 || $val > 10) {
+					return false;
+				}
+
+				continue;
+			}
+			if ($key === 'group') {
+				if (!is_string($val) || $val === '') {
+					return false;
+				}
+
+				continue;
+			}
+
+			return false;
+		}
+
+		return true;
 	}
 
 	/**

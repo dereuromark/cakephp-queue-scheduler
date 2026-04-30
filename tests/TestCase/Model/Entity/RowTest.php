@@ -76,9 +76,9 @@ class RowTest extends TestCase {
 	 */
 	public function testJobConfigDecodesJson(): void {
 		$row = new SchedulerRow();
-		$row->set('job_config', '{"priority":5,"queue":"batch"}');
+		$row->set('job_config', '{"priority":5,"group":"batch"}');
 
-		$this->assertSame(['priority' => 5, 'queue' => 'batch'], $row->job_config);
+		$this->assertSame(['priority' => 5, 'group' => 'batch'], $row->job_config);
 	}
 
 	/**

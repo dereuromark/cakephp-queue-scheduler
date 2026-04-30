@@ -130,7 +130,9 @@ class SchedulerRowsTableTest extends TestCase {
 			'frequency' => 'daily',
 		];
 		$row = $this->SchedulerRows->newEntity($data);
-		$expected = ['validateFrequency' => 'The provided value is invalid'];
+		$expected = [
+			'validateFrequency' => 'Must be a cron expression ("0 11 * * *"), an @-shortcut ("@daily", "@minutely"), a relative interval ("+30 seconds"), or an ISO 8601 duration ("P2D").',
+		];
 		$this->assertSame($expected, $row->getError('frequency'));
 
 		$data = [
@@ -156,7 +158,9 @@ class SchedulerRowsTableTest extends TestCase {
 			'frequency' => '+ x',
 		];
 		$row = $this->SchedulerRows->newEntity($data);
-		$expected = ['validateFrequency' => 'The provided value is invalid'];
+		$expected = [
+			'validateFrequency' => 'Must be a cron expression ("0 11 * * *"), an @-shortcut ("@daily", "@minutely"), a relative interval ("+30 seconds"), or an ISO 8601 duration ("P2D").',
+		];
 		$this->assertSame($expected, $row->getError('frequency'));
 	}
 
@@ -221,27 +225,37 @@ class SchedulerRowsTableTest extends TestCase {
 			'frequency' => '@daily',
 		];
 
-		// Empty allowed.
-		$row = $this->SchedulerRows->newEntity($baseData);
-		$this->assertSame([], $row->getError('job_config'));
+		$cases = [
+			// label => [json, expectValid]
+			'empty allowed' => ['', true],
+			'valid priority+group' => ['{"priority":5,"group":"batch"}', true],
+			'valid priority only' => ['{"priority":1}', true],
+			'valid group only' => ['{"group":"nightly"}', true],
+			'malformed json' => ['{not json', false],
+			'json array not object' => ['[1,2,3]', false],
+			'unknown key (typo)' => ['{"priorty":5}', false],
+			'unknown key (queue not group)' => ['{"queue":"batch"}', false],
+			'priority as string' => ['{"priority":"5"}', false],
+			'priority below range' => ['{"priority":0}', false],
+			'priority above range' => ['{"priority":11}', false],
+			'group not string' => ['{"group":42}', false],
+			'group empty string' => ['{"group":""}', false],
+		];
 
-		// Valid JSON object passes.
-		$row = $this->SchedulerRows->newEntity(
-			$baseData + ['job_config' => '{"priority":5,"queue":"batch"}'],
-		);
-		$this->assertSame([], $row->getError('job_config'));
+		foreach ($cases as $label => [$json, $expectValid]) {
+			$data = $baseData;
+			if ($json !== '') {
+				$data['job_config'] = $json;
+			}
+			$row = $this->SchedulerRows->newEntity($data);
+			$errors = $row->getError('job_config');
 
-		// Malformed JSON rejected.
-		$row = $this->SchedulerRows->newEntity(
-			$baseData + ['job_config' => '{not json'],
-		);
-		$this->assertNotEmpty($row->getError('job_config'));
-
-		// JSON array (not object) rejected — config must be a keyed map.
-		$row = $this->SchedulerRows->newEntity(
-			$baseData + ['job_config' => '[1,2,3]'],
-		);
-		$this->assertNotEmpty($row->getError('job_config'));
+			if ($expectValid) {
+				$this->assertSame([], $errors, "Expected '$label' ($json) to validate, got: " . json_encode($errors));
+			} else {
+				$this->assertNotEmpty($errors, "Expected '$label' ($json) to be rejected.");
+			}
+		}
 	}
 
 	/**
@@ -257,13 +271,13 @@ class SchedulerRowsTableTest extends TestCase {
 			'type' => SchedulerRow::TYPE_QUEUE_TASK,
 			'content' => ExampleTask::class,
 			'frequency' => '@daily',
-			'job_config' => '{"priority":5,"queue":"batch"}',
+			'job_config' => '{"priority":5,"group":"batch"}',
 			'enabled' => true,
 		]);
 		$this->SchedulerRows->saveOrFail($row);
 
 		$reloaded = $this->SchedulerRows->get($row->id);
-		$this->assertSame(['priority' => 5, 'queue' => 'batch'], $reloaded->job_config);
+		$this->assertSame(['priority' => 5, 'group' => 'batch'], $reloaded->job_config);
 	}
 
 	/**

@@ -40,6 +40,12 @@
 			<i class="fas fa-cog me-2"></i><?= __('Schedule Details') ?>
 		</div>
 		<div class="card-body">
+			<?php
+			$this->Form->setConfig('errorClass', 'is-invalid');
+			$this->Form->setTemplates([
+				'error' => '<div class="invalid-feedback d-block" id="{{id}}">{{content}}</div>',
+			]);
+			?>
 			<?= $this->Form->create($row) ?>
 			<div class="row">
 				<div class="col-md-6 mb-3">
@@ -61,8 +67,8 @@
 					'rows' => 3,
 					'class' => 'form-control',
 					'label' => __('Job Config (JSON)'),
-					'placeholder' => '{"priority": 5, "queue": "batch"}',
-					'help' => __('Optional. Queue config merged into createJob(): priority, queue, group, notBefore, ...'),
+					'placeholder' => '{"priority": 5, "group": "batch"}',
+					'help' => __('Optional JSON object. Allowed keys: priority (1-10, lower runs sooner; default 5) and group (worker group, matches `cake queue worker --group=...`).'),
 				]) ?>
 			</div>
 			<div class="row">

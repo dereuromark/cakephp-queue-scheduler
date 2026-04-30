@@ -48,6 +48,21 @@ Add this in your crontab to run the scheduler every minute:
 ```
 Tip: Use `bin/cake scheduler run` without additional elements as basic command for local development/testing.
 
+### Command flags
+
+`bin/cake scheduler run` accepts:
+
+- `--dry-run` — list events that would be dispatched without enqueueing them or
+  updating `last_run`. Useful for diagnosing "why is X not firing yet" or
+  smoke-testing a freshly added row.
+- `--limit=N` (alias `-l N`) — cap the number of events dispatched on this
+  tick. The remainder stays due for the next run. Helps drain a backlog
+  gracefully after downtime instead of flooding the queue all at once.
+
+The command exits with a non-zero status if any row threw while being
+scheduled (a row being held back because a previous run is still queued
+is **not** counted as a failure).
+
 ### Scheduling Queue Tasks
 
 You can directly add Queue Tasks using `Plugin.Name` syntax or FQCN.
@@ -92,6 +107,28 @@ sh /some/shell.sh
 ```
 
 This type does not need the param textarea as all args are directly passed along the command here.
+
+### Job Config (queue routing & priority)
+
+The optional **Job Config** field accepts a JSON object that is merged into
+the `QueuedJobsTable::createJob()` call. Allowed keys:
+
+| Key | Type | Effect |
+|---|---|---|
+| `priority` | int 1-10 | Lower runs sooner. Default is 5. |
+| `group` | string | Worker group; matches `bin/cake queue worker --group=...`. Lets you route scheduled jobs to a dedicated worker pool. |
+
+Example: route a nightly cleanup to a low-priority batch worker:
+```json
+{"priority": 8, "group": "batch"}
+```
+
+Other `Queue\Config\JobConfig` keys (`notBefore`, `status`, `reference`) are
+intentionally **not** accepted — `notBefore` is meaningless for cron-driven
+dispatch (cron already controls timing), `reference` is set automatically
+to `queue-scheduler-{id}`, and `status` is a runtime field overwritten on
+the first progress tick. Unknown keys are rejected at save time so typos
+like `prioirty` surface immediately instead of silently being ignored.
 
 ## Schedule Frequency Options
 
