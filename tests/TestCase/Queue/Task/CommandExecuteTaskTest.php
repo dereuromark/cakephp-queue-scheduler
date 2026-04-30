@@ -8,6 +8,7 @@ use Cake\TestSuite\TestCase;
 use Queue\Console\Io;
 use Queue\Model\QueueException;
 use QueueScheduler\Queue\Task\CommandExecuteTask;
+use TestApp\Command\TestNamedCommand;
 use TestApp\Command\TestOutputCommand;
 use Tools\Command\InflectCommand;
 
@@ -158,6 +159,60 @@ class CommandExecuteTaskTest extends TestCase {
 		// Output should still be forwarded before the exception
 		$this->assertTextContains('stdout line one', $out->output());
 		$this->assertTextContains('stderr warning line', $err->output());
+	}
+
+	/**
+	 * Regression: most app commands set `$name` to a single bare token
+	 * (e.g. `'clear_sessions'`), expecting `Cake\Console\CommandRunner`
+	 * to rewrite it to `"cake clear_sessions"` before running. When the
+	 * scheduler invokes such a command, CommandExecuteTask must do the
+	 * same — otherwise BaseCommand::getOptionParser() does
+	 * `explode(' ', $this->name, 2)`, returns a null second element, and
+	 * `new ConsoleOptionParser(null)` throws a TypeError.
+	 *
+	 * @return void
+	 */
+	public function testRunPrefixesCommandNameForOptionParser(): void {
+		$out = new StubConsoleOutput();
+		$err = new StubConsoleOutput();
+		$io = new Io(new ConsoleIo($out, $err));
+		$task = new CommandExecuteTask($io);
+
+		$data = [
+			'class' => TestNamedCommand::class,
+			'args' => [],
+		];
+
+		// Without the setName fix this throws TypeError, not QueueException.
+		$task->run($data, 0);
+
+		$this->assertTextContains('test_named ran', $out->output());
+	}
+
+	/**
+	 * Counterpart to the regression above: commands that already have a
+	 * space-formatted name (BaseCommand's default `cake unknown`, custom
+	 * roots like `app foo`) must NOT be rewritten — preserving caller
+	 * intent matters when commands are scheduled with non-default roots.
+	 *
+	 * @return void
+	 */
+	public function testRunDoesNotRewriteAlreadyFormattedName(): void {
+		$out = new StubConsoleOutput();
+		$err = new StubConsoleOutput();
+		$io = new Io(new ConsoleIo($out, $err));
+		$task = new CommandExecuteTask($io);
+
+		// TestOutputCommand inherits BaseCommand's default `cake unknown`,
+		// so its getName() already contains a space. The task should
+		// leave it alone.
+		$data = [
+			'class' => TestOutputCommand::class,
+			'args' => [],
+		];
+		$task->run($data, 0);
+
+		$this->assertTextContains('stdout line one', $out->output());
 	}
 
 }
