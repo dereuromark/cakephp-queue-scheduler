@@ -68,7 +68,7 @@ $formatDuration = static function (int $seconds): string {
 		<?php } else { ?>
 			<span
 				class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle"
-				title="<?= h(__('Last tick was {0}s ago; threshold is {1}s. Check that cron is invoking `bin/cake scheduler run`.', $schedulerStatus['ageSeconds'], $schedulerStatus['thresholdSeconds'])) ?>"
+				title="<?= h(__('Last tick was {0} ago; threshold is {1}. Check that cron is invoking `bin/cake scheduler run`.', $formatDuration((int)$schedulerStatus['ageSeconds']), $formatDuration($schedulerStatus['thresholdSeconds']))) ?>"
 			>
 				<i class="fas fa-exclamation-triangle me-1"></i><?= __('Scheduler stale') ?>
 				<span class="text-muted ms-1">&middot; <?= h($relTime) ?></span>
@@ -87,14 +87,17 @@ $formatDuration = static function (int $seconds): string {
 						<tr>
 							<th><?= __('Name') ?></th>
 							<th><?= __('Frequency') ?></th>
-							<th><?= __('Log') ?></th>
+							<th><?= __('Status') ?></th>
 							<th class="actions text-end"><?= __('Actions') ?></th>
 						</tr>
 					</thead>
 					<tbody>
+						<?php $rowCount = 0; ?>
 						<?php foreach ($schedulerRows as $schedulerRow) { ?>
 							<?php
+							$rowCount++;
 							$queuedJob = $runningJobs[$schedulerRow->job_reference] ?? null;
+							$frequencyDescription = $schedulerRow->getFrequencyDescription();
 							?>
 							<tr>
 								<td>
@@ -108,17 +111,20 @@ $formatDuration = static function (int $seconds): string {
 									</div>
 								</td>
 								<td>
-									<code><?= h($schedulerRow->frequency) ?></code>
-
+									<code<?= $frequencyDescription ? ' title="' . h($frequencyDescription) . '"' : '' ?>><?= h($schedulerRow->frequency) ?></code>
+									<?php if ($frequencyDescription) { ?>
+										<div><small class="text-muted"><?= h($frequencyDescription) ?></small></div>
+									<?php } ?>
+								</td>
+								<td>
 									<?php if ($queuedJob) { ?>
-										<div class="alert alert-job-running mt-2 mb-0 p-2">
-											<strong><?= h($queuedJob->status) ?: __('Queued') ?></strong>
-											<?= $this->Html->link(
-												'<i class="fas fa-eye"></i>',
-												['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $queuedJob->id],
-												['escapeTitle' => false, 'class' => 'ms-1'],
-											) ?>
-
+										<div class="alert alert-job-running mb-2 p-2">
+											<strong>
+												<?= $this->Html->link(
+													h($queuedJob->status) ?: __('Queued'),
+													['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $queuedJob->id],
+												) ?>
+											</strong>
 											<?php if (!$queuedJob->completed && $queuedJob->fetched) { ?>
 												<?php if (!$queuedJob->failure_message) { ?>
 													<div class="mt-1">
@@ -137,13 +143,13 @@ $formatDuration = static function (int $seconds): string {
 											<?php } ?>
 										</div>
 									<?php } ?>
-								</td>
-								<td>
 									<?php if ($schedulerRow->last_run) { ?>
 										<?php
 										$lastJob = $schedulerRow->last_queued_job;
 										$durationLabel = null;
-										$durationClass = '';
+										$durationClass = 'text-muted';
+										$lastRunFailed = $lastJob && $lastJob->failure_message;
+										$lastRunSucceeded = $lastJob && $lastJob->completed && !$lastJob->failure_message;
 										if ($lastJob && $lastJob->fetched && $lastJob->completed) {
 											$durationSec = max(0, $lastJob->completed->getTimestamp() - $lastJob->fetched->getTimestamp());
 											$durationLabel = $formatDuration($durationSec);
@@ -151,28 +157,31 @@ $formatDuration = static function (int $seconds): string {
 											if ($intervalSec !== null && $intervalSec > 0) {
 												$ratio = $durationSec / $intervalSec;
 												if ($ratio >= 1.0) {
-													$durationClass = ' class="text-danger"';
+													$durationClass = 'text-danger fw-semibold';
 												} elseif ($ratio >= 0.8) {
-													$durationClass = ' class="text-warning"';
+													$durationClass = 'text-warning fw-semibold';
 												}
 											}
 										}
 										?>
-										<div>
-											<small class="text-muted"><?= __('Last Run') ?>:
-												<?php if ($schedulerRow->last_queued_job_id) { ?>
-													<?= $this->Html->link(
-														$this->Time->nice($schedulerRow->last_run),
-														['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $schedulerRow->last_queued_job_id],
-														['escapeTitle' => false],
-													) ?>
-												<?php } else { ?>
-													<?= $this->Time->nice($schedulerRow->last_run) ?>
-												<?php } ?>
-												<?php if ($durationLabel !== null) { ?>
-													<span<?= $durationClass ?>>(<?= h($durationLabel) ?>)</span>
-												<?php } ?>
-											</small>
+										<div class="small">
+											<?php if ($lastRunFailed) { ?>
+												<i class="fas fa-times-circle text-danger me-1" title="<?= h(__('Last run failed')) ?>" aria-label="<?= h(__('Last run failed')) ?>"></i>
+											<?php } elseif ($lastRunSucceeded) { ?>
+												<i class="fas fa-check-circle text-success me-1" title="<?= h(__('Last run succeeded')) ?>" aria-label="<?= h(__('Last run succeeded')) ?>"></i>
+											<?php } ?>
+											<span class="text-muted"><?= __('Last Run') ?>:</span>
+											<?php if ($schedulerRow->last_queued_job_id) { ?>
+												<?= $this->Html->link(
+													$this->Time->nice($schedulerRow->last_run),
+													['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $schedulerRow->last_queued_job_id],
+												) ?>
+											<?php } else { ?>
+												<?= $this->Time->nice($schedulerRow->last_run) ?>
+											<?php } ?>
+											<?php if ($durationLabel !== null) { ?>
+												<span class="<?= h($durationClass) ?>">(<?= h($durationLabel) ?>)</span>
+											<?php } ?>
 										</div>
 									<?php } ?>
 									<?php
@@ -180,42 +189,55 @@ $formatDuration = static function (int $seconds): string {
 									$nextRunOverdue = $nextRun && $nextRun->getTimestamp() < time();
 									?>
 									<?php if ($nextRun) { ?>
-										<div>
-											<small class="text-muted"><?= __('Next Run') ?>: <?= $this->Time->nice($nextRun) ?>
-												<span<?= $nextRunOverdue ? ' class="text-danger"' : '' ?>>(<?= h($this->Time->timeAgoInWords($nextRun)) ?>)</span>
-											</small>
+										<div class="small">
+											<span class="text-muted"><?= __('Next Run') ?>: <?= $this->Time->nice($nextRun) ?></span>
+											<span class="<?= $nextRunOverdue ? 'text-danger fw-semibold' : 'text-muted' ?>">(<?= h($this->Time->timeAgoInWords($nextRun)) ?>)</span>
 										</div>
 									<?php } ?>
 								</td>
 								<td class="actions text-end">
 									<?php if (!$queuedJob) { ?>
 										<?= $this->Form->postButton(
-											'<i class="fas fa-play-circle"></i>',
+											'<i class="fas fa-play-circle" aria-hidden="true"></i>',
 											['controller' => 'SchedulerRows', 'action' => 'run', $schedulerRow->id],
 											[
 												'escapeTitle' => false,
 												'class' => 'btn btn-sm btn-success me-1',
 												'title' => __('Run manually now'),
+												'aria-label' => __('Run manually now'),
 												'form' => [
-													'class' => 'd-inline',
+													'class' => 'd-inline js-scheduler-run-form',
 													'data-confirm-message' => __('Sure to run it now?'),
 												],
 											],
 										) ?>
 									<?php } ?>
 									<?= $this->Form->postButton(
-										'<i class="fas fa-times"></i>',
+										'<i class="fas fa-pause-circle" aria-hidden="true"></i>',
 										['controller' => 'SchedulerRows', 'action' => 'edit', $schedulerRow->id],
 										[
 											'data' => ['enabled' => 0],
 											'escapeTitle' => false,
-											'class' => 'btn btn-sm btn-danger',
+											'class' => 'btn btn-sm btn-warning',
 											'title' => __('Disable'),
+											'aria-label' => __('Disable'),
 											'form' => [
 												'class' => 'd-inline',
 												'data-confirm-message' => __('Sure to disable?'),
 											],
 										],
+									) ?>
+								</td>
+							</tr>
+						<?php } ?>
+						<?php if ($rowCount === 0) { ?>
+							<tr>
+								<td colspan="4" class="text-center text-muted py-4">
+									<i class="fas fa-calendar-plus mb-2 d-block fs-4" aria-hidden="true"></i>
+									<?= __('No schedules yet.') ?>
+									<?= $this->Html->link(
+										__('Create your first schedule'),
+										['controller' => 'SchedulerRows', 'action' => 'add'],
 									) ?>
 								</td>
 							</tr>
@@ -233,11 +255,11 @@ $formatDuration = static function (int $seconds): string {
 			['class' => 'btn btn-secondary me-2', 'escapeTitle' => false],
 		) ?>
 		<?= $this->Form->postButton(
-			'<i class="fas fa-times me-1"></i>' . __('Disable All'),
+			'<i class="fas fa-pause-circle me-1"></i>' . __('Disable All'),
 			['controller' => 'SchedulerRows', 'action' => 'disableAll'],
 			[
 				'escapeTitle' => false,
-				'class' => 'btn btn-danger',
+				'class' => 'btn btn-warning',
 				'form' => [
 					'class' => 'd-inline',
 					'data-confirm-message' => __('Sure to disable all?'),
@@ -246,3 +268,49 @@ $formatDuration = static function (int $seconds): string {
 		) ?>
 	</div>
 </div>
+<script>
+(function () {
+	var spinnerHtml = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i>';
+	document.addEventListener('submit', function (e) {
+		var form = e.target;
+		if (!form.classList || !form.classList.contains('js-scheduler-run-form')) {
+			return;
+		}
+		e.preventDefault();
+		e.stopImmediatePropagation();
+		var message = form.getAttribute('data-confirm-message') || 'Are you sure?';
+		if (!window.confirm(message)) {
+			return;
+		}
+		var button = form.querySelector('button');
+		var originalHtml = button.innerHTML;
+		button.disabled = true;
+		button.innerHTML = spinnerHtml;
+		fetch(form.action, {
+			method: 'POST',
+			body: new FormData(form),
+			headers: {
+				'X-Requested-With': 'XMLHttpRequest',
+				'Accept': 'application/json'
+			},
+			credentials: 'same-origin'
+		}).then(function (r) {
+			return r.ok ? r.json() : Promise.reject(new Error('http_' + r.status));
+		}).then(function (data) {
+			if (data && data.success) {
+				// Brief delay so the worker has a chance to pick up the job
+				// and the reloaded page can show running-state UI.
+				setTimeout(function () { window.location.reload(); }, 800);
+			} else {
+				button.disabled = false;
+				button.innerHTML = originalHtml;
+				window.alert((data && data.message) || 'Failed to queue job.');
+			}
+		}).catch(function () {
+			button.disabled = false;
+			button.innerHTML = originalHtml;
+			window.alert('Network error while queueing job.');
+		});
+	}, true);
+})();
+</script>

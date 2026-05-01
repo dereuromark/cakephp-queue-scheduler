@@ -7,6 +7,8 @@ use Cron\CronExpression;
 use DateInterval;
 use DateTimeImmutable;
 use InvalidArgumentException;
+use Locale;
+use Panlatent\CronExpressionDescriptor\ExpressionDescriptor;
 use Queue\Queue\Config;
 use RuntimeException;
 use Tools\Model\Entity\Entity;
@@ -213,6 +215,62 @@ class SchedulerRow extends Entity {
 		$i = $this->calculateNextInterval();
 
 		return $i === null;
+	}
+
+	/**
+	 * Human-readable description of the frequency, suitable for tooltips
+	 * or muted helper text. Cron expressions are described via the
+	 * panlatent/cron-expression-descriptor library when available; interval-
+	 * style frequencies (e.g. "+5 minutes", "PT5M") are described as
+	 * "Every X" using the same DateInterval the next-run calc uses.
+	 *
+	 * @return string|null Description, or null if the frequency cannot be
+	 *                     parsed or no descriptor library is available.
+	 */
+	public function getFrequencyDescription(): ?string {
+		$interval = $this->calculateNextInterval();
+		if ($interval) {
+			$now = new DateTimeImmutable();
+			$seconds = $now->add($interval)->getTimestamp() - $now->getTimestamp();
+			if ($seconds <= 0) {
+				return null;
+			}
+			if ($seconds % 86400 === 0) {
+				$d = intdiv($seconds, 86400);
+
+				return $d === 1 ? __d('queue_scheduler', 'Every day') : __d('queue_scheduler', 'Every {0} days', $d);
+			}
+			if ($seconds % 3600 === 0) {
+				$h = intdiv($seconds, 3600);
+
+				return $h === 1 ? __d('queue_scheduler', 'Every hour') : __d('queue_scheduler', 'Every {0} hours', $h);
+			}
+			if ($seconds % 60 === 0) {
+				$m = intdiv($seconds, 60);
+
+				return $m === 1 ? __d('queue_scheduler', 'Every minute') : __d('queue_scheduler', 'Every {0} minutes', $m);
+			}
+
+			return __d('queue_scheduler', 'Every {0} seconds', $seconds);
+		}
+
+		if (!class_exists(ExpressionDescriptor::class)) {
+			return null;
+		}
+
+		try {
+			$expression = (new CronExpression(static::normalizeCronExpression($this->frequency)))->getExpression();
+		} catch (InvalidArgumentException) {
+			return null;
+		}
+		if ($expression === null) {
+			return null;
+		}
+
+		$descriptor = new ExpressionDescriptor($expression, Locale::getDefault(), true);
+		$description = $descriptor->getDescription();
+
+		return $description !== '' ? $description : null;
 	}
 
 	/**

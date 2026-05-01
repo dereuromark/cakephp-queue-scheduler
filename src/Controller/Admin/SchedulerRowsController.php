@@ -155,16 +155,28 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 	/**
 	 * @param string|null $id Row id.
 	 *
-	 * @return \Cake\Http\Response|null Redirects to index.
+	 * @return \Cake\Http\Response|null Redirects to index, or JSON when the
+	 *                                  request is an XMLHttpRequest / accepts
+	 *                                  application/json.
 	 */
 	public function run(?string $id = null): ?Response {
 		$this->request->allowMethod(['post']);
 		$row = $this->SchedulerRows->get($id);
+		$ok = $this->SchedulerRows->run($row);
+		$message = $ok
+			? __('The job has been added to the queue.')
+			: __('The job could not be added to the queue.');
 
-		if ($this->SchedulerRows->run($row)) {
-			$this->Flash->success(__('The job has been added to the queue.'));
+		if ($this->request->is(['ajax', 'json'])) {
+			return $this->response
+				->withType('application/json')
+				->withStringBody((string)json_encode(['success' => $ok, 'message' => $message]));
+		}
+
+		if ($ok) {
+			$this->Flash->success($message);
 		} else {
-			$this->Flash->error(__('The job could not be added to the queue.'));
+			$this->Flash->error($message);
 		}
 
 		return $this->redirect($this->referer(['action' => 'view', $id]));
