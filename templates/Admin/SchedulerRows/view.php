@@ -5,6 +5,9 @@
  * @var array<string, mixed>|null $jobStats
  * @var array<\Queue\Model\Entity\QueuedJob> $recentJobs
  */
+
+$intervalSec = $row->calculateIntervalSeconds();
+$frequencyDescription = $row->getFrequencyDescription();
 ?>
 <div class="scheduler-rows-view">
 	<div class="d-flex justify-content-between align-items-center mb-4">
@@ -24,7 +27,7 @@
 					'class' => 'btn btn-success me-2',
 					'escapeTitle' => false,
 					'form' => [
-						'class' => 'd-inline',
+						'class' => 'd-inline js-scheduler-run-form',
 						'data-confirm-message' => __('Are you sure you want to run this now?'),
 					],
 				],
@@ -71,17 +74,9 @@
 						<tr>
 							<th><?= __('Frequency') ?></th>
 							<td>
-								<code><?= h($row->frequency) ?></code>
-								<?php if (class_exists('Cron\CronExpression') && $row->isCronExpression()) { ?>
-									<?php if (class_exists('Panlatent\CronExpressionDescriptor\ExpressionDescriptor')) { ?>
-										<div class="mt-1 text-muted">
-											<?php
-											$expression = new \Cron\CronExpression(\QueueScheduler\Model\Entity\SchedulerRow::normalizeCronExpression($row->frequency));
-											$locale = Locale::getDefault();
-											echo (new \Panlatent\CronExpressionDescriptor\ExpressionDescriptor($expression, $locale, true))->getDescription();
-											?>
-										</div>
-									<?php } ?>
+								<code<?= $frequencyDescription ? ' title="' . h($frequencyDescription) . '"' : '' ?>><?= h($row->frequency) ?></code>
+								<?php if ($frequencyDescription) { ?>
+									<div class="mt-1 text-muted"><?= h($frequencyDescription) ?></div>
 								<?php } ?>
 							</td>
 						</tr>
@@ -129,32 +124,47 @@
 						<tr>
 							<th class="scheduler-col-w-40"><?= __('Last Run') ?></th>
 							<td>
-								<?php if ($row->last_run && $row->last_queued_job_id) { ?>
-									<?= $this->Html->link(
-										$this->Time->nice($row->last_run),
-										['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $row->last_queued_job_id],
-										['escapeTitle' => false],
-									) ?>
-								<?php } elseif ($row->last_run) { ?>
-									<?= $this->Time->nice($row->last_run) ?>
-								<?php } else { ?>
+								<?php $lastJob = $row->last_queued_job; ?>
+								<?php if (!$row->last_run) { ?>
 									<span class="text-muted"><?= __('Never') ?></span>
+								<?php } else { ?>
+									<?= $this->Scheduler->runStatusIcon($lastJob) ?>
+									<?php if ($row->last_queued_job_id) { ?>
+										<?= $this->Html->link(
+											$this->Time->nice($row->last_run),
+											['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $row->last_queued_job_id],
+										) ?>
+									<?php } else { ?>
+										<?= $this->Time->nice($row->last_run) ?>
+									<?php } ?>
+									<?php if ($lastJob && $lastJob->fetched && $lastJob->completed) { ?>
+										<?php $durationSec = max(0, $lastJob->completed->getTimestamp() - $lastJob->fetched->getTimestamp()); ?>
+										<span class="<?= h($this->Scheduler->durationClass($durationSec, $intervalSec)) ?>">(<?= h($this->Scheduler->duration($durationSec)) ?>)</span>
+									<?php } ?>
+									<?php if ($lastJob && $lastJob->failure_message) { ?>
+										<div class="small text-danger mt-1">
+											<?= h(mb_strimwidth((string)$lastJob->failure_message, 0, 200, '…')) ?>
+										</div>
+									<?php } ?>
 								<?php } ?>
 							</td>
 						</tr>
 						<?php
 						$nextRun = $row->next_run ?: $row->calculateNextRun();
+						$nextRunOverdue = $nextRun && $row->enabled && $nextRun->getTimestamp() < time();
 						?>
 						<?php if ($nextRun) { ?>
 							<tr>
 								<th><?= __('Next Run') ?></th>
 								<td>
+									<?= $this->Time->nice($nextRun) ?>
 									<?php if (!$row->enabled) { ?>
-										<del class="text-muted"><?= $this->Time->nice($nextRun) ?></del>
+										<span class="badge bg-secondary ms-1"><?= __('Disabled — won\'t run') ?></span>
 									<?php } else { ?>
-										<?= $this->Time->nice($nextRun) ?>
+										<div class="small <?= $nextRunOverdue ? 'text-danger fw-semibold' : 'text-muted' ?>">
+											<?= h($this->Time->timeAgoInWords($nextRun)) ?>
+										</div>
 									<?php } ?>
-									<div class="small text-muted"><?= $this->Time->timeAgoInWords($nextRun) ?></div>
 								</td>
 							</tr>
 						<?php } ?>
@@ -220,16 +230,22 @@
 		</div>
 	<?php } ?>
 
-	<?php if ($recentJobs) { ?>
-		<div class="card mb-4">
-			<div class="card-header d-flex justify-content-between align-items-center">
-				<span><i class="fas fa-history me-2"></i><?= __('Recent Executions') ?></span>
+	<div class="card mb-4">
+		<div class="card-header d-flex justify-content-between align-items-center">
+			<span><i class="fas fa-history me-2"></i><?= __('Recent Executions') ?></span>
+			<?php if ($recentJobs) { ?>
 				<?= $this->Html->link(
 					__('View All in Queue'),
 					['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'index', '?' => ['search' => $row->job_reference]],
 					['class' => 'btn btn-sm btn-outline-secondary'],
 				) ?>
+			<?php } ?>
+		</div>
+		<?php if (!$recentJobs) { ?>
+			<div class="card-body text-center text-muted py-4">
+				<?= __('No runs recorded yet.') ?>
 			</div>
+		<?php } else { ?>
 			<div class="card-body p-0">
 				<div class="table-responsive">
 					<table class="table table-hover mb-0">
@@ -239,7 +255,6 @@
 								<th><?= __('Status') ?></th>
 								<th><?= __('Duration') ?></th>
 								<th><?= __('Output') ?></th>
-								<th class="text-end"><?= __('Actions') ?></th>
 							</tr>
 						</thead>
 						<tbody>
@@ -267,7 +282,8 @@
 									</td>
 									<td>
 										<?php if ($job->fetched && $job->completed) { ?>
-											<?= $job->fetched->diffInSeconds($job->completed) ?>s
+											<?php $jobDurationSec = (int)$job->fetched->diffInSeconds($job->completed); ?>
+											<span class="<?= h($this->Scheduler->durationClass($jobDurationSec, $intervalSec)) ?>"><?= h($this->Scheduler->duration($jobDurationSec)) ?></span>
 										<?php } elseif ($job->fetched) { ?>
 											<span class="text-muted"><?= __('In progress...') ?></span>
 										<?php } else { ?>
@@ -293,21 +309,14 @@
 											-
 										<?php } ?>
 									</td>
-									<td class="text-end">
-										<?= $this->Html->link(
-											'<i class="fas fa-eye"></i>',
-											['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $job->id],
-											['escapeTitle' => false, 'class' => 'btn btn-sm btn-outline-secondary', 'title' => __('View Job')],
-										) ?>
-									</td>
 								</tr>
 							<?php } ?>
 						</tbody>
 					</table>
 				</div>
 			</div>
-		</div>
-	<?php } ?>
+		<?php } ?>
+	</div>
 
 	<?php if (class_exists('Cron\CronExpression') && $row->isCronExpression()) { ?>
 		<div class="card">

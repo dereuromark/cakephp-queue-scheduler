@@ -31,7 +31,9 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 	 * @return void Renders view
 	 */
 	public function view(?string $id = null): void {
-		$row = $this->SchedulerRows->get($id);
+		$row = $this->SchedulerRows->get($id, contain: [
+			'LastQueuedJob' => ['fields' => ['id', 'fetched', 'completed', 'failure_message']],
+		]);
 
 		/** @var \Queue\Model\Table\QueuedJobsTable $queuedJobsTable */
 		$queuedJobsTable = $this->fetchTable('Queue.QueuedJobs');

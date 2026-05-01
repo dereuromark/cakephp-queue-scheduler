@@ -15,23 +15,6 @@ if ($schedulerStatus['lastTick'] !== null) {
 	$lastTickDt = null;
 	$relTime = null;
 }
-
-$formatDuration = static function (int $seconds): string {
-	if ($seconds < 1) {
-		return '<1s';
-	}
-	if ($seconds < 60) {
-		return $seconds . 's';
-	}
-	if ($seconds < 3600) {
-		$m = intdiv($seconds, 60);
-		$s = $seconds % 60;
-		return $s ? "{$m}m {$s}s" : "{$m}m";
-	}
-	$h = intdiv($seconds, 3600);
-	$m = intdiv($seconds % 3600, 60);
-	return $m ? "{$h}h {$m}m" : "{$h}h";
-};
 ?>
 <div class="scheduler-dashboard">
 	<div class="d-flex justify-content-between align-items-center mb-4">
@@ -68,7 +51,7 @@ $formatDuration = static function (int $seconds): string {
 		<?php } else { ?>
 			<span
 				class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle"
-				title="<?= h(__('Last tick was {0} ago; threshold is {1}. Check that cron is invoking `bin/cake scheduler run`.', $formatDuration((int)$schedulerStatus['ageSeconds']), $formatDuration($schedulerStatus['thresholdSeconds']))) ?>"
+				title="<?= h(__('Last tick was {0} ago; threshold is {1}. Check that cron is invoking `bin/cake scheduler run`.', $this->Scheduler->duration((int)$schedulerStatus['ageSeconds']), $this->Scheduler->duration($schedulerStatus['thresholdSeconds']))) ?>"
 			>
 				<i class="fas fa-exclamation-triangle me-1"></i><?= __('Scheduler stale') ?>
 				<span class="text-muted ms-1">&middot; <?= h($relTime) ?></span>
@@ -144,32 +127,9 @@ $formatDuration = static function (int $seconds): string {
 										</div>
 									<?php } ?>
 									<?php if ($schedulerRow->last_run) { ?>
-										<?php
-										$lastJob = $schedulerRow->last_queued_job;
-										$durationLabel = null;
-										$durationClass = 'text-muted';
-										$lastRunFailed = $lastJob && $lastJob->failure_message;
-										$lastRunSucceeded = $lastJob && $lastJob->completed && !$lastJob->failure_message;
-										if ($lastJob && $lastJob->fetched && $lastJob->completed) {
-											$durationSec = max(0, $lastJob->completed->getTimestamp() - $lastJob->fetched->getTimestamp());
-											$durationLabel = $formatDuration($durationSec);
-											$intervalSec = $schedulerRow->calculateIntervalSeconds();
-											if ($intervalSec !== null && $intervalSec > 0) {
-												$ratio = $durationSec / $intervalSec;
-												if ($ratio >= 1.0) {
-													$durationClass = 'text-danger fw-semibold';
-												} elseif ($ratio >= 0.8) {
-													$durationClass = 'text-warning fw-semibold';
-												}
-											}
-										}
-										?>
+										<?php $lastJob = $schedulerRow->last_queued_job; ?>
 										<div class="small">
-											<?php if ($lastRunFailed) { ?>
-												<i class="fas fa-times-circle text-danger me-1" title="<?= h(__('Last run failed')) ?>" aria-label="<?= h(__('Last run failed')) ?>"></i>
-											<?php } elseif ($lastRunSucceeded) { ?>
-												<i class="fas fa-check-circle text-success me-1" title="<?= h(__('Last run succeeded')) ?>" aria-label="<?= h(__('Last run succeeded')) ?>"></i>
-											<?php } ?>
+											<?= $this->Scheduler->runStatusIcon($lastJob) ?>
 											<span class="text-muted"><?= __('Last Run') ?>:</span>
 											<?php if ($schedulerRow->last_queued_job_id) { ?>
 												<?= $this->Html->link(
@@ -179,8 +139,9 @@ $formatDuration = static function (int $seconds): string {
 											<?php } else { ?>
 												<?= $this->Time->nice($schedulerRow->last_run) ?>
 											<?php } ?>
-											<?php if ($durationLabel !== null) { ?>
-												<span class="<?= h($durationClass) ?>">(<?= h($durationLabel) ?>)</span>
+											<?php if ($lastJob && $lastJob->fetched && $lastJob->completed) { ?>
+												<?php $durationSec = max(0, $lastJob->completed->getTimestamp() - $lastJob->fetched->getTimestamp()); ?>
+												<span class="<?= h($this->Scheduler->durationClass($durationSec, $schedulerRow->calculateIntervalSeconds())) ?>">(<?= h($this->Scheduler->duration($durationSec)) ?>)</span>
 											<?php } ?>
 										</div>
 									<?php } ?>
