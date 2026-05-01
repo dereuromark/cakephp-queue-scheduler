@@ -209,12 +209,35 @@ if ($schedulerStatus['lastTick'] !== null) {
 		</div>
 	</div>
 
+	<?php
+	$newCount = 0;
+	foreach ($schedulerRows as $row) {
+		if ($row->last_run === null) {
+			$newCount++;
+		}
+	}
+	?>
 	<div class="mt-3">
 		<?= $this->Html->link(
 			'<i class="fas fa-list me-1"></i>' . __('All Schedules'),
 			['controller' => 'SchedulerRows', 'action' => 'index'],
 			['class' => 'btn btn-secondary me-2', 'escapeTitle' => false],
 		) ?>
+		<?php if ($newCount >= 2) { ?>
+			<?= $this->Form->postButton(
+				'<i class="fas fa-play-circle me-1"></i>' . __('Run New ({0})', $newCount),
+				['controller' => 'SchedulerRows', 'action' => 'runAllNew'],
+				[
+					'escapeTitle' => false,
+					'class' => 'btn btn-success me-2',
+					'title' => __('Queue all enabled schedules that have never run yet'),
+					'form' => [
+						'class' => 'd-inline',
+						'data-confirm-message' => __('Queue {0} new schedule(s) now?', $newCount),
+					],
+				],
+			) ?>
+		<?php } ?>
 		<?= $this->Form->postButton(
 			'<i class="fas fa-pause-circle me-1"></i>' . __('Disable All'),
 			['controller' => 'SchedulerRows', 'action' => 'disableAll'],

@@ -244,4 +244,96 @@ class SchedulerRowsControllerTest extends TestCase {
 		$this->assertSame(0, $result);
 	}
 
+	/**
+	 * @return void
+	 */
+	public function testRunAllNew(): void {
+		$this->disableErrorHandlerMiddleware();
+
+		$rowsTable = $this->fetchTable('QueueScheduler.SchedulerRows');
+		$pendingA = $rowsTable->newEntity([
+			'name' => 'Pending A',
+			'type' => 0,
+			'content' => 'Queue\\Queue\\Task\\ExampleTask',
+			'frequency' => '+ 30 seconds',
+			'enabled' => 1,
+			'last_run' => null,
+		]);
+		$rowsTable->saveOrFail($pendingA);
+		$pendingB = $rowsTable->newEntity([
+			'name' => 'Pending B',
+			'type' => 0,
+			'content' => 'Queue\\Queue\\Task\\ExampleTask',
+			'frequency' => '+ 30 seconds',
+			'enabled' => 1,
+			'last_run' => null,
+		]);
+		$rowsTable->saveOrFail($pendingB);
+		$disabled = $rowsTable->newEntity([
+			'name' => 'Disabled C',
+			'type' => 0,
+			'content' => 'Queue\\Queue\\Task\\ExampleTask',
+			'frequency' => '+ 30 seconds',
+			'enabled' => 0,
+			'last_run' => null,
+		]);
+		$rowsTable->saveOrFail($disabled);
+
+		$queuedJobsTable = $this->fetchTable('Queue.QueuedJobs');
+		$before = $queuedJobsTable->find()->count();
+
+		$this->post(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'runAllNew']);
+
+		$this->assertResponseCode(302);
+
+		$after = $queuedJobsTable->find()->count();
+		$this->assertSame(2, $after - $before, 'Both enabled pending rows should be queued; the disabled one and the already-run fixture row are skipped.');
+
+		$this->assertNotNull($rowsTable->get($pendingA->id)->last_run);
+		$this->assertNotNull($rowsTable->get($pendingB->id)->last_run);
+		$this->assertNull($rowsTable->get($disabled->id)->last_run);
+	}
+
+	/**
+	 * Renders the "Run New" button only when 2+ enabled rows have never run.
+	 *
+	 * @return void
+	 */
+	public function testIndexShowsRunNewButtonWhenMultipleNew(): void {
+		$this->disableErrorHandlerMiddleware();
+
+		$rowsTable = $this->fetchTable('QueueScheduler.SchedulerRows');
+		foreach (['New One', 'New Two'] as $name) {
+			$row = $rowsTable->newEntity([
+				'name' => $name,
+				'type' => 0,
+				'content' => 'Queue\\Queue\\Task\\ExampleTask',
+				'frequency' => '+ 30 seconds',
+				'enabled' => 1,
+				'last_run' => null,
+			]);
+			$rowsTable->saveOrFail($row);
+		}
+
+		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'QueueScheduler', 'action' => 'index']);
+
+		$this->assertResponseCode(200);
+		$this->assertResponseContains('runAllNew');
+		$this->assertResponseContains('Run New');
+	}
+
+	/**
+	 * Hides the "Run New" button when fewer than 2 rows have never run.
+	 *
+	 * @return void
+	 */
+	public function testIndexHidesRunNewButtonWhenNoneOrOneNew(): void {
+		$this->disableErrorHandlerMiddleware();
+
+		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'QueueScheduler', 'action' => 'index']);
+
+		$this->assertResponseCode(200);
+		$this->assertResponseNotContains('runAllNew');
+	}
+
 }

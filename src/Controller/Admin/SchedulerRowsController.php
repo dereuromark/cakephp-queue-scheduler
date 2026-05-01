@@ -197,6 +197,43 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 	}
 
 	/**
+	 * Queue all enabled schedules that have never run yet (last_run IS NULL).
+	 * Useful after bulk-adding long-interval schedules (weekly/monthly) where
+	 * waiting for the first cron tick is impractical.
+	 *
+	 * @return \Cake\Http\Response|null Redirects to index.
+	 */
+	public function runAllNew(): ?Response {
+		$this->request->allowMethod(['post']);
+
+		/** @var array<\QueueScheduler\Model\Entity\SchedulerRow> $rows */
+		$rows = $this->SchedulerRows->find('active')
+			->where(['last_run IS' => null])
+			->all()
+			->toArray();
+
+		$queued = 0;
+		$skipped = 0;
+		foreach ($rows as $row) {
+			if ($this->SchedulerRows->run($row)) {
+				$queued++;
+			} else {
+				$skipped++;
+			}
+		}
+
+		if ($queued === 0 && $skipped === 0) {
+			$this->Flash->success(__('No new schedules to run.'));
+		} elseif ($skipped === 0) {
+			$this->Flash->success(__('Queued {0} new schedule(s).', $queued));
+		} else {
+			$this->Flash->success(__('Queued {0} new schedule(s); {1} skipped.', $queued, $skipped));
+		}
+
+		return $this->redirect($this->referer(['action' => 'index']));
+	}
+
+	/**
 	 * Delete method
 	 *
 	 * @param string|null $id Row id.
