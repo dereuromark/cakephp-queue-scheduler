@@ -148,11 +148,17 @@ if ($schedulerStatus['lastTick'] !== null) {
 									<?php
 									$nextRun = $schedulerRow->next_run ?: $schedulerRow->calculateNextRun();
 									$nextRunOverdue = $nextRun && $nextRun->getTimestamp() < time();
+									$intervalSec = $schedulerRow->calculateIntervalSeconds();
+									$grosslyOverdue = $nextRunOverdue
+										&& $intervalSec !== null && $intervalSec > 0
+										&& (time() - $nextRun->getTimestamp()) > 5 * $intervalSec;
 									?>
 									<?php if ($nextRun) { ?>
 										<div class="small">
 											<span class="text-muted"><?= __('Next Run') ?>: <?= $this->Time->nice($nextRun) ?></span>
-											<span class="<?= $nextRunOverdue ? 'text-danger fw-semibold' : 'text-muted' ?>">(<?= h($this->Time->timeAgoInWords($nextRun)) ?>)</span>
+											<span class="<?= $nextRunOverdue ? 'text-danger fw-semibold' : 'text-muted' ?>">
+												<?= $grosslyOverdue ? '(' . __('overdue') . ')' : '(' . h($this->Time->timeAgoInWords($nextRun)) . ')' ?>
+											</span>
 										</div>
 									<?php } ?>
 								</td>

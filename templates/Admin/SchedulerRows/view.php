@@ -152,6 +152,10 @@ $frequencyDescription = $row->getFrequencyDescription();
 						<?php
 						$nextRun = $row->next_run ?: $row->calculateNextRun();
 						$nextRunOverdue = $nextRun && $row->enabled && $nextRun->getTimestamp() < time();
+						$intervalSec = $row->calculateIntervalSeconds();
+						$grosslyOverdue = $nextRunOverdue
+							&& $intervalSec !== null && $intervalSec > 0
+							&& (time() - $nextRun->getTimestamp()) > 5 * $intervalSec;
 						?>
 						<?php if ($nextRun) { ?>
 							<tr>
@@ -162,7 +166,7 @@ $frequencyDescription = $row->getFrequencyDescription();
 										<span class="badge bg-secondary ms-1"><?= __('Disabled — won\'t run') ?></span>
 									<?php } else { ?>
 										<div class="small <?= $nextRunOverdue ? 'text-danger fw-semibold' : 'text-muted' ?>">
-											<?= h($this->Time->timeAgoInWords($nextRun)) ?>
+											<?= $grosslyOverdue ? __('overdue') : h($this->Time->timeAgoInWords($nextRun)) ?>
 										</div>
 									<?php } ?>
 								</td>
