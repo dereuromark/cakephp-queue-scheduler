@@ -23,6 +23,7 @@ class QueueSchedulerController extends QueueSchedulerAppController {
 	public function index(): void {
 		$schedulerRows = $this->fetchTable('QueueScheduler.SchedulerRows')
 			->find('active')
+			->contain(['LastQueuedJob' => ['fields' => ['id', 'fetched', 'completed']]])
 			->all()
 			->toArray();
 

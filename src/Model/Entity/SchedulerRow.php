@@ -5,6 +5,7 @@ namespace QueueScheduler\Model\Entity;
 use Cake\I18n\DateTime;
 use Cron\CronExpression;
 use DateInterval;
+use DateTimeImmutable;
 use InvalidArgumentException;
 use Queue\Queue\Config;
 use RuntimeException;
@@ -26,6 +27,7 @@ use Tools\Model\Entity\Entity;
  * @property \Cake\I18n\DateTime|null $modified
  * @property bool $enabled
  * @property int|null $last_queued_job_id
+ * @property \Queue\Model\Entity\QueuedJob|null $last_queued_job
  * @property-read string|null $job_task
  * @property-read array $job_data
  * @property-read array<string, mixed> $job_config
@@ -157,6 +159,35 @@ class SchedulerRow extends Entity {
 		}
 
 		return new DateTime($dateTime);
+	}
+
+	/**
+	 * Typical seconds between scheduled runs, for comparing against the
+	 * actual run duration. For irregular schedules (e.g. "0 9,17 * * *"
+	 * fires at 09:00 then 17:00) this returns the gap to the FOLLOWING run
+	 * after the next one — good enough as a yardstick for "is this job
+	 * overrunning its window".
+	 *
+	 * @return int|null Interval in seconds, or null if the frequency cannot
+	 *                  be parsed.
+	 */
+	public function calculateIntervalSeconds(): ?int {
+		$interval = $this->calculateNextInterval();
+		if ($interval) {
+			$now = new DateTimeImmutable();
+
+			return $now->add($interval)->getTimestamp() - $now->getTimestamp();
+		}
+
+		try {
+			$cron = new CronExpression(static::normalizeCronExpression($this->frequency));
+			$next1 = $cron->getNextRunDate('now', 0);
+			$next2 = $cron->getNextRunDate('now', 1);
+		} catch (InvalidArgumentException | RuntimeException) {
+			return null;
+		}
+
+		return max(0, $next2->getTimestamp() - $next1->getTimestamp());
 	}
 
 	/**

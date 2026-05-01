@@ -61,6 +61,12 @@ class SchedulerRowsTable extends Table {
 
 		$this->addBehavior('Timestamp');
 
+		$this->belongsTo('LastQueuedJob', [
+			'className' => 'Queue.QueuedJobs',
+			'foreignKey' => 'last_queued_job_id',
+			'joinType' => 'LEFT',
+		]);
+
 		// Stored as JSON text but exposed as array in PHP — Cake handles the
 		// encode/decode round-trip transparently.
 		$this->getSchema()->setColumnType('job_config', 'json');

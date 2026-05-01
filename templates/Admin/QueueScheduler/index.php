@@ -15,6 +15,23 @@ if ($schedulerStatus['lastTick'] !== null) {
 	$lastTickDt = null;
 	$relTime = null;
 }
+
+$formatDuration = static function (int $seconds): string {
+	if ($seconds < 1) {
+		return '<1s';
+	}
+	if ($seconds < 60) {
+		return $seconds . 's';
+	}
+	if ($seconds < 3600) {
+		$m = intdiv($seconds, 60);
+		$s = $seconds % 60;
+		return $s ? "{$m}m {$s}s" : "{$m}m";
+	}
+	$h = intdiv($seconds, 3600);
+	$m = intdiv($seconds % 3600, 60);
+	return $m ? "{$h}h {$m}m" : "{$h}h";
+};
 ?>
 <div class="scheduler-dashboard">
 	<div class="d-flex justify-content-between align-items-center mb-4">
@@ -61,7 +78,7 @@ if ($schedulerStatus['lastTick'] !== null) {
 
 	<div class="card">
 		<div class="card-header">
-			<i class="fas fa-clock me-2"></i><?= __('Current Schedule') ?>
+			<i class="fas fa-clock me-2"></i><?= __('Currently Scheduled') ?>
 		</div>
 		<div class="card-body p-0">
 			<div class="table-responsive">
@@ -123,6 +140,24 @@ if ($schedulerStatus['lastTick'] !== null) {
 								</td>
 								<td>
 									<?php if ($schedulerRow->last_run) { ?>
+										<?php
+										$lastJob = $schedulerRow->last_queued_job;
+										$durationLabel = null;
+										$durationClass = '';
+										if ($lastJob && $lastJob->fetched && $lastJob->completed) {
+											$durationSec = max(0, $lastJob->completed->getTimestamp() - $lastJob->fetched->getTimestamp());
+											$durationLabel = $formatDuration($durationSec);
+											$intervalSec = $schedulerRow->calculateIntervalSeconds();
+											if ($intervalSec !== null && $intervalSec > 0) {
+												$ratio = $durationSec / $intervalSec;
+												if ($ratio >= 1.0) {
+													$durationClass = ' class="text-danger"';
+												} elseif ($ratio >= 0.8) {
+													$durationClass = ' class="text-warning"';
+												}
+											}
+										}
+										?>
 										<div>
 											<small class="text-muted"><?= __('Last Run') ?>:
 												<?php if ($schedulerRow->last_queued_job_id) { ?>
@@ -134,15 +169,21 @@ if ($schedulerStatus['lastTick'] !== null) {
 												<?php } else { ?>
 													<?= $this->Time->nice($schedulerRow->last_run) ?>
 												<?php } ?>
+												<?php if ($durationLabel !== null) { ?>
+													<span<?= $durationClass ?>>(<?= h($durationLabel) ?>)</span>
+												<?php } ?>
 											</small>
 										</div>
 									<?php } ?>
 									<?php
 									$nextRun = $schedulerRow->next_run ?: $schedulerRow->calculateNextRun();
+									$nextRunOverdue = $nextRun && $nextRun->getTimestamp() < time();
 									?>
 									<?php if ($nextRun) { ?>
 										<div>
-											<small class="text-muted"><?= __('Next Run') ?>: <?= $this->Time->nice($nextRun) ?></small>
+											<small class="text-muted"><?= __('Next Run') ?>: <?= $this->Time->nice($nextRun) ?>
+												<span<?= $nextRunOverdue ? ' class="text-danger"' : '' ?>>(<?= h($this->Time->timeAgoInWords($nextRun)) ?>)</span>
+											</small>
 										</div>
 									<?php } ?>
 								</td>
