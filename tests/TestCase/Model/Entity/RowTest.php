@@ -101,6 +101,37 @@ class RowTest extends TestCase {
 	}
 
 	/**
+	 * `_getJobData()` must defensively reduce a non-array `json_decode` result
+	 * (scalar/null) to an empty array — `QueuedJobsTable::createJob()` is typed
+	 * `array` and would otherwise throw TypeError if a row bypasses validation.
+	 *
+	 * @return void
+	 */
+	public function testJobDataDefendsAgainstNonArrayParam(): void {
+		$row = new SchedulerRow();
+		$row->content = ExampleTask::class;
+		$row->type = $row::TYPE_QUEUE_TASK;
+		$row->param = '5'; // valid JSON, but not an array
+
+		$this->assertSame([], $row->job_data);
+
+		$row->param = 'true';
+		$this->assertSame([], $row->job_data);
+
+		$row->param = 'null';
+		$this->assertSame([], $row->job_data);
+
+		$row->param = '"foo"';
+		$this->assertSame([], $row->job_data);
+
+		// Cake command path: param falls back to [] inside the args wrapper.
+		$row->type = $row::TYPE_CAKE_COMMAND;
+		$row->content = 'Acme\\Command\\TestCommand';
+		$row->param = '5';
+		$this->assertSame(['class' => 'Acme\\Command\\TestCommand', 'args' => []], $row->job_data);
+	}
+
+	/**
 	 * @return void
 	 */
 	public function testIsDueAtBoundary(): void {

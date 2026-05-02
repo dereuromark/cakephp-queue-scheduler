@@ -3,6 +3,7 @@
 namespace QueueScheduler\Model\Table;
 
 use ArrayObject;
+use Cake\Console\CommandInterface;
 use Cake\Core\App;
 use Cake\Core\Configure;
 use Cake\Datasource\EntityInterface;
@@ -16,6 +17,7 @@ use Cron\CronExpression;
 use DateInterval;
 use Exception;
 use InvalidArgumentException;
+use Queue\Queue\Task;
 use QueueScheduler\Model\Entity\SchedulerRow;
 use RuntimeException;
 
@@ -144,9 +146,9 @@ class SchedulerRowsTable extends Table {
 	 * @param mixed $value
 	 * @param array $context
 	 *
-	 * @return bool
+	 * @return string|bool
 	 */
-	public function validateContent(mixed $value, array $context): bool {
+	public function validateContent(mixed $value, array $context): string|bool {
 		if (!is_string($value) || !$value) {
 			return false;
 		}
@@ -482,7 +484,15 @@ class SchedulerRowsTable extends Table {
 			return false;
 		}
 
-		return class_exists($value);
+		if (!class_exists($value)) {
+			return false;
+		}
+
+		// Defense-in-depth: refuse to persist a class that the runtime
+		// `CommandExecuteTask::run()` would later reject. Catches typos and
+		// shrinks the post-class-loading attack surface (constructor side
+		// effects on `new $class()`).
+		return is_a($value, CommandInterface::class, true);
 	}
 
 	/**
@@ -497,16 +507,32 @@ class SchedulerRowsTable extends Table {
 			return false;
 		}
 
-		return class_exists($value);
+		if (!class_exists($value)) {
+			return false;
+		}
+
+		// Defense-in-depth: a `*Task` class that does not extend the queue
+		// plugin's base Task is not a valid dispatch target — refuse to save.
+		return is_a($value, Task::class, true);
 	}
 
 	/**
+	 * Shell-command authoring is double-gated to match the dispatch-side gate in
+	 * `findActive()`: rows of this type can only be persisted when raw execution
+	 * is explicitly enabled. Without this, an admin could write a row that the
+	 * runner would silently skip, or — if `allowRaw` is later flipped on — a
+	 * pre-staged shell row would suddenly become live without a fresh review.
+	 *
 	 * @param string $value
 	 * @param array $data
 	 *
-	 * @return bool
+	 * @return string|bool
 	 */
-	protected function validateShellCommand(string $value, array $data): bool {
+	protected function validateShellCommand(string $value, array $data): string|bool {
+		if (!Configure::read('debug') && !Configure::read('QueueScheduler.allowRaw')) {
+			return __('Shell Command rows require QueueScheduler.allowRaw=true (or debug mode).');
+		}
+
 		return true;
 	}
 

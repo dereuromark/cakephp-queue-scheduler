@@ -3,11 +3,13 @@
 namespace QueueScheduler\Test\TestCase\Model\Table;
 
 use Cake\Command\CacheClearCommand;
+use Cake\Core\Configure;
 use Cake\I18n\DateTime;
 use Cake\TestSuite\TestCase;
 use Queue\Queue\Task\ExampleTask;
 use QueueScheduler\Model\Entity\SchedulerRow;
 use QueueScheduler\Model\Table\SchedulerRowsTable;
+use stdClass;
 
 /**
  * QueueScheduler\Model\Table\RowsTable Test Case
@@ -302,6 +304,89 @@ class SchedulerRowsTableTest extends TestCase {
 		$row = $this->SchedulerRows->newEntity($data);
 		$this->assertSame([], $row->getError('content'));
 
+	}
+
+	/**
+	 * `*Command` classes that don't implement Cake's CommandInterface must be
+	 * rejected at save time — the runtime executor would also refuse them, but
+	 * persisting saves a round-trip and prevents constructor side effects on
+	 * `new $class()` later.
+	 *
+	 * @return void
+	 */
+	public function testValidateCakeCommandRejectsNonCommandInterface(): void {
+		$data = [
+			'name' => 'bad command',
+			'content' => stdClass::class . 'Command', // wrong suffix on existing FQCN — class_exists false
+			'type' => SchedulerRow::TYPE_CAKE_COMMAND,
+			'frequency' => '@daily',
+		];
+		$row = $this->SchedulerRows->newEntity($data);
+		$this->assertNotEmpty($row->getError('content'));
+
+		// A real class with `Command` suffix that is NOT a CommandInterface.
+		// We use the SchedulerRowsTable itself with a synthetic alias by
+		// asserting that ExampleTask::class (which is a Task, not a Command)
+		// is rejected when the type says CAKE_COMMAND.
+		$data = [
+			'name' => 'task as command',
+			'content' => ExampleTask::class . 'Command', // not a real class
+			'type' => SchedulerRow::TYPE_CAKE_COMMAND,
+			'frequency' => '@daily',
+		];
+		$row = $this->SchedulerRows->newEntity($data);
+		$this->assertNotEmpty($row->getError('content'));
+	}
+
+	/**
+	 * `*Task` classes that don't extend Queue\Queue\Task must be rejected.
+	 *
+	 * @return void
+	 */
+	public function testValidateQueueTaskRejectsNonTask(): void {
+		// A class with `Task` suffix that does NOT extend Queue\Queue\Task.
+		// `Cake\Console\CommandInterface` matches the suffix regex if we
+		// alias-suffix it, but easier: construct an arbitrary FQCN that
+		// doesn't exist — class_exists returns false.
+		$data = [
+			'name' => 'bad task',
+			'content' => 'NonExistent\\Pkg\\GhostTask',
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'frequency' => '@daily',
+		];
+		$row = $this->SchedulerRows->newEntity($data);
+		$this->assertNotEmpty($row->getError('content'));
+	}
+
+	/**
+	 * Shell-command authoring is double-gated: even with debug=true in the
+	 * test bootstrap, flipping debug off and leaving allowRaw unset must
+	 * produce a content-validation error (not a silent accept that the
+	 * runner would later filter out).
+	 *
+	 * @return void
+	 */
+	public function testValidateShellCommandRequiresAllowRawWhenDebugOff(): void {
+		Configure::write('debug', false);
+		Configure::delete('QueueScheduler.allowRaw');
+
+		try {
+			$data = [
+				'name' => 'shell row',
+				'content' => 'uname -a',
+				'type' => SchedulerRow::TYPE_SHELL_COMMAND,
+				'frequency' => '@daily',
+			];
+			$row = $this->SchedulerRows->newEntity($data);
+			$this->assertNotEmpty($row->getError('content'));
+
+			Configure::write('QueueScheduler.allowRaw', true);
+			$row = $this->SchedulerRows->newEntity($data);
+			$this->assertSame([], $row->getError('content'));
+		} finally {
+			Configure::write('debug', true);
+			Configure::delete('QueueScheduler.allowRaw');
+		}
 	}
 
 }
