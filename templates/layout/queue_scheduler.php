@@ -353,6 +353,18 @@ $nonceAttr = $cspNonce !== '' ? ' nonce="' . h($cspNonce) . '"' : '';
 			</button>
 			<div class="collapse navbar-collapse" id="navbarNav">
 				<ul class="navbar-nav ms-auto">
+					<?php
+					$adminBackUrl = \Cake\Core\Configure::read('QueueScheduler.adminBackUrl');
+					$hasAdminBack = $adminBackUrl !== null && $adminBackUrl !== '';
+					$adminBackLabel = (string)\Cake\Core\Configure::read('QueueScheduler.adminBackLabel', __d('queue_scheduler', 'Back to App'));
+					?>
+					<?php if ($hasAdminBack): ?>
+					<li class="nav-item">
+						<a class="nav-link" href="<?= $this->Url->build($adminBackUrl) ?>">
+							<i class="fas fa-arrow-left me-1"></i><?= h($adminBackLabel) ?>
+						</a>
+					</li>
+					<?php endif; ?>
 					<?php if (\Cake\Core\Plugin::isLoaded('Queue')): ?>
 					<li class="nav-item">
 						<a class="nav-link" href="<?= $this->Url->build(['plugin' => 'Queue', 'prefix' => 'Admin', 'controller' => 'Queue', 'action' => 'index']) ?>">
