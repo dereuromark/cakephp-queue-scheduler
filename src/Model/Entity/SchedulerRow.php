@@ -70,9 +70,9 @@ class SchedulerRow extends Entity {
 	 */
 	public static function types(array|int|null $value = null): array|string {
 		$options = [
-			static::TYPE_QUEUE_TASK => __('Queue Task'),
-			static::TYPE_CAKE_COMMAND => __('Cake Command'),
-			static::TYPE_SHELL_COMMAND => __('Shell Command (raw command execution)'),
+			static::TYPE_QUEUE_TASK => __d('queue_scheduler', 'Queue Task'),
+			static::TYPE_CAKE_COMMAND => __d('queue_scheduler', 'Cake Command'),
+			static::TYPE_SHELL_COMMAND => __d('queue_scheduler', 'Shell Command (raw command execution)'),
 		];
 
 		/** @var array<string, string>|string */

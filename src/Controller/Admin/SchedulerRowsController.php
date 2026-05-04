@@ -115,11 +115,11 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 		if ($this->request->is('post')) {
 			$row = $this->SchedulerRows->patchEntity($row, $this->request->getData());
 			if ($this->SchedulerRows->save($row)) {
-				$this->Flash->success(__('The row has been saved.'));
+				$this->Flash->success(__d('queue_scheduler', 'The row has been saved.'));
 
 				return $this->redirect(['action' => 'view', $row->id]);
 			}
-			$this->Flash->error(__('The row could not be saved. Please, try again.'));
+			$this->Flash->error(__d('queue_scheduler', 'The row could not be saved. Please, try again.'));
 		} else {
 			foreach ($this->request->getQueryParams() as $key => $value) {
 				$row->set($key, $value);
@@ -143,11 +143,11 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 		if ($this->request->is(['patch', 'post', 'put'])) {
 			$row = $this->SchedulerRows->patchEntity($row, $this->request->getData());
 			if ($this->SchedulerRows->save($row)) {
-				$this->Flash->success(__('The row has been saved.'));
+				$this->Flash->success(__d('queue_scheduler', 'The row has been saved.'));
 
 				return $this->redirect(['action' => 'view', $id]);
 			}
-			$this->Flash->error(__('The row could not be saved. Please, try again.'));
+			$this->Flash->error(__d('queue_scheduler', 'The row could not be saved. Please, try again.'));
 		}
 		$this->set(compact('row'));
 
@@ -166,8 +166,8 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 		$row = $this->SchedulerRows->get($id);
 		$ok = $this->SchedulerRows->run($row);
 		$message = $ok
-			? __('The job has been added to the queue.')
-			: __('The job could not be added to the queue.');
+			? __d('queue_scheduler', 'The job has been added to the queue.')
+			: __d('queue_scheduler', 'The job could not be added to the queue.');
 
 		if ($this->request->is(['ajax', 'json'])) {
 			return $this->response
@@ -191,7 +191,7 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 		$this->request->allowMethod(['post']);
 		$this->SchedulerRows->updateAll(['enabled' => false], ['enabled' => true]);
 
-		$this->Flash->success(__('All jobs have been disabled'));
+		$this->Flash->success(__d('queue_scheduler', 'All jobs have been disabled'));
 
 		return $this->redirect($this->referer(['action' => 'index']));
 	}
@@ -223,11 +223,11 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 		}
 
 		if ($queued === 0 && $skipped === 0) {
-			$this->Flash->success(__('No new schedules to run.'));
+			$this->Flash->success(__d('queue_scheduler', 'No new schedules to run.'));
 		} elseif ($skipped === 0) {
-			$this->Flash->success(__('Queued {0} new schedule(s).', $queued));
+			$this->Flash->success(__d('queue_scheduler', 'Queued {0} new schedule(s).', $queued));
 		} else {
-			$this->Flash->success(__('Queued {0} new schedule(s); {1} skipped.', $queued, $skipped));
+			$this->Flash->success(__d('queue_scheduler', 'Queued {0} new schedule(s); {1} skipped.', $queued, $skipped));
 		}
 
 		return $this->redirect($this->referer(['action' => 'index']));
@@ -244,9 +244,9 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 		$this->request->allowMethod(['post', 'delete']);
 		$row = $this->SchedulerRows->get($id);
 		if ($this->SchedulerRows->delete($row)) {
-			$this->Flash->success(__('The row has been deleted.'));
+			$this->Flash->success(__d('queue_scheduler', 'The row has been deleted.'));
 		} else {
-			$this->Flash->error(__('The row could not be deleted. Please, try again.'));
+			$this->Flash->error(__d('queue_scheduler', 'The row could not be deleted. Please, try again.'));
 		}
 
 		return $this->redirect(['action' => 'index']);

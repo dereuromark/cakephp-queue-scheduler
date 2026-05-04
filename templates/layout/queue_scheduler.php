@@ -361,7 +361,7 @@ $nonceAttr = $cspNonce !== '' ? ' nonce="' . h($cspNonce) . '"' : '';
 					</li>
 					<?php endif; ?>
 					<li class="nav-item">
-						<span class="nav-link text-light" title="<?= __('Server Time') ?>">
+						<span class="nav-link text-light" title="<?= __d('queue_scheduler', 'Server Time') ?>">
 							<i class="far fa-clock me-1"></i>
 							<?= date('Y-m-d H:i:s') ?>
 						</span>

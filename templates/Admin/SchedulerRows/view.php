@@ -16,31 +16,31 @@ $frequencyDescription = $row->getFrequencyDescription();
 		</h2>
 		<div>
 			<?= $this->Html->link(
-				'<i class="fas fa-edit me-1"></i>' . __('Edit'),
+				'<i class="fas fa-edit me-1"></i>' . __d('queue_scheduler', 'Edit'),
 				['action' => 'edit', $row->id],
 				['class' => 'btn btn-primary me-2', 'escapeTitle' => false],
 			) ?>
 			<?= $this->Form->postButton(
-				'<i class="fas fa-play-circle me-1"></i>' . __('Run Now'),
+				'<i class="fas fa-play-circle me-1"></i>' . __d('queue_scheduler', 'Run Now'),
 				['action' => 'run', $row->id],
 				[
 					'class' => 'btn btn-success me-2',
 					'escapeTitle' => false,
 					'form' => [
 						'class' => 'd-inline js-scheduler-run-form',
-						'data-confirm-message' => __('Are you sure you want to run this now?'),
+						'data-confirm-message' => __d('queue_scheduler', 'Are you sure you want to run this now?'),
 					],
 				],
 			) ?>
 			<?= $this->Form->postButton(
-				'<i class="fas fa-trash me-1"></i>' . __('Delete'),
+				'<i class="fas fa-trash me-1"></i>' . __d('queue_scheduler', 'Delete'),
 				['action' => 'delete', $row->id],
 				[
 					'class' => 'btn btn-danger',
 					'escapeTitle' => false,
 					'form' => [
 						'class' => 'd-inline',
-						'data-confirm-message' => __('Are you sure you want to delete # {0}?', $row->id),
+						'data-confirm-message' => __d('queue_scheduler', 'Are you sure you want to delete # {0}?', $row->id),
 					],
 				],
 			) ?>
@@ -51,28 +51,28 @@ $frequencyDescription = $row->getFrequencyDescription();
 		<div class="col-lg-6 mb-4">
 			<div class="card h-100">
 				<div class="card-header">
-					<i class="fas fa-info-circle me-2"></i><?= __('Schedule Details') ?>
+					<i class="fas fa-info-circle me-2"></i><?= __d('queue_scheduler', 'Schedule Details') ?>
 				</div>
 				<div class="card-body">
 					<table class="table table-striped mb-0">
 						<tr>
-							<th class="scheduler-col-w-40"><?= __('Type') ?></th>
+							<th class="scheduler-col-w-40"><?= __d('queue_scheduler', 'Type') ?></th>
 							<td><?= $row::types($row->type) ?></td>
 						</tr>
 						<?php if ($row->param) { ?>
 							<tr>
-								<th><?= __('Config') ?></th>
+								<th><?= __d('queue_scheduler', 'Config') ?></th>
 								<td><pre class="mb-0"><?= h(json_encode(json_decode($row->param, true), JSON_PRETTY_PRINT)) ?></pre></td>
 							</tr>
 						<?php } ?>
 						<?php if ($row->job_config) { ?>
 							<tr>
-								<th><?= __('Job Config') ?></th>
+								<th><?= __d('queue_scheduler', 'Job Config') ?></th>
 								<td><pre class="mb-0"><?= h(json_encode($row->job_config, JSON_PRETTY_PRINT)) ?></pre></td>
 							</tr>
 						<?php } ?>
 						<tr>
-							<th><?= __('Frequency') ?></th>
+							<th><?= __d('queue_scheduler', 'Frequency') ?></th>
 							<td>
 								<code<?= $frequencyDescription ? ' title="' . h($frequencyDescription) . '"' : '' ?>><?= h($row->frequency) ?></code>
 								<?php if ($frequencyDescription) { ?>
@@ -81,13 +81,13 @@ $frequencyDescription = $row->getFrequencyDescription();
 							</td>
 						</tr>
 						<tr>
-							<th><?= __('Enabled') ?></th>
+							<th><?= __d('queue_scheduler', 'Enabled') ?></th>
 							<td>
 								<?= $this->element('QueueScheduler.yes_no', ['value' => $row->enabled]) ?>
-								<?= $row->enabled ? __('Yes') : __('No') ?>
+								<?= $row->enabled ? __d('queue_scheduler', 'Yes') : __d('queue_scheduler', 'No') ?>
 								<?php if (!$row->enabled) { ?>
 									<?= $this->Form->postButton(
-										'<i class="fas fa-check me-1"></i>' . __('Enable'),
+										'<i class="fas fa-check me-1"></i>' . __d('queue_scheduler', 'Enable'),
 										['action' => 'edit', $row->id],
 										[
 											'data' => ['enabled' => 1],
@@ -95,7 +95,7 @@ $frequencyDescription = $row->getFrequencyDescription();
 											'class' => 'btn btn-sm btn-success ms-2',
 											'form' => [
 												'class' => 'd-inline',
-												'data-confirm-message' => __('Sure to enable?'),
+												'data-confirm-message' => __d('queue_scheduler', 'Sure to enable?'),
 											],
 										],
 									) ?>
@@ -103,10 +103,10 @@ $frequencyDescription = $row->getFrequencyDescription();
 							</td>
 						</tr>
 						<tr>
-							<th><?= __('Allow Concurrent') ?></th>
+							<th><?= __d('queue_scheduler', 'Allow Concurrent') ?></th>
 							<td>
 								<?= $this->element('QueueScheduler.yes_no', ['value' => $row->allow_concurrent]) ?>
-								<?= $row->allow_concurrent ? __('Yes') : __('No') ?>
+								<?= $row->allow_concurrent ? __d('queue_scheduler', 'Yes') : __d('queue_scheduler', 'No') ?>
 							</td>
 						</tr>
 					</table>
@@ -117,16 +117,16 @@ $frequencyDescription = $row->getFrequencyDescription();
 		<div class="col-lg-6 mb-4">
 			<div class="card h-100">
 				<div class="card-header">
-					<i class="fas fa-clock me-2"></i><?= __('Timing Information') ?>
+					<i class="fas fa-clock me-2"></i><?= __d('queue_scheduler', 'Timing Information') ?>
 				</div>
 				<div class="card-body">
 					<table class="table table-striped mb-0">
 						<tr>
-							<th class="scheduler-col-w-40"><?= __('Last Run') ?></th>
+							<th class="scheduler-col-w-40"><?= __d('queue_scheduler', 'Last Run') ?></th>
 							<td>
 								<?php $lastJob = $row->last_queued_job; ?>
 								<?php if (!$row->last_run) { ?>
-									<span class="text-muted"><?= __('Never') ?></span>
+									<span class="text-muted"><?= __d('queue_scheduler', 'Never') ?></span>
 								<?php } else { ?>
 									<?= $this->Scheduler->runStatusIcon($lastJob) ?>
 									<?php if ($row->last_queued_job_id) { ?>
@@ -159,25 +159,25 @@ $frequencyDescription = $row->getFrequencyDescription();
 						?>
 						<?php if ($nextRun) { ?>
 							<tr>
-								<th><?= __('Next Run') ?></th>
+								<th><?= __d('queue_scheduler', 'Next Run') ?></th>
 								<td>
 									<?= $this->Time->nice($nextRun) ?>
 									<?php if (!$row->enabled) { ?>
-										<span class="badge bg-secondary ms-1"><?= __('Disabled — won\'t run') ?></span>
+										<span class="badge bg-secondary ms-1"><?= __d('queue_scheduler', 'Disabled — won\'t run') ?></span>
 									<?php } else { ?>
 										<div class="small <?= $nextRunOverdue ? 'text-danger fw-semibold' : 'text-muted' ?>">
-											<?= $grosslyOverdue ? __('overdue') : h($this->Time->timeAgoInWords($nextRun)) ?>
+											<?= $grosslyOverdue ? __d('queue_scheduler', 'overdue') : h($this->Time->timeAgoInWords($nextRun)) ?>
 										</div>
 									<?php } ?>
 								</td>
 							</tr>
 						<?php } ?>
 						<tr>
-							<th><?= __('Created') ?></th>
+							<th><?= __d('queue_scheduler', 'Created') ?></th>
 							<td><?= $this->Time->nice($row->created) ?></td>
 						</tr>
 						<tr>
-							<th><?= __('Modified') ?></th>
+							<th><?= __d('queue_scheduler', 'Modified') ?></th>
 							<td><?= $this->Time->nice($row->modified) ?></td>
 						</tr>
 					</table>
@@ -188,7 +188,7 @@ $frequencyDescription = $row->getFrequencyDescription();
 
 	<div class="card mb-4">
 		<div class="card-header">
-			<i class="fas fa-code me-2"></i><?= __('Content') ?>
+			<i class="fas fa-code me-2"></i><?= __d('queue_scheduler', 'Content') ?>
 		</div>
 		<div class="card-body">
 			<pre class="mb-0"><?= h($row->content) ?></pre>
@@ -198,33 +198,33 @@ $frequencyDescription = $row->getFrequencyDescription();
 	<?php if ($jobStats && $jobStats['total_runs']) { ?>
 		<div class="card mb-4">
 			<div class="card-header">
-				<i class="fas fa-chart-bar me-2"></i><?= __('Job Statistics') ?>
+				<i class="fas fa-chart-bar me-2"></i><?= __d('queue_scheduler', 'Job Statistics') ?>
 			</div>
 			<div class="card-body">
 				<div class="row">
 					<div class="col-md-3 mb-3 mb-md-0">
 						<div class="text-center">
 							<div class="h3 mb-0"><?= $jobStats['total_runs'] ?></div>
-							<small class="text-muted"><?= __('Total Runs') ?></small>
+							<small class="text-muted"><?= __d('queue_scheduler', 'Total Runs') ?></small>
 						</div>
 					</div>
 					<div class="col-md-3 mb-3 mb-md-0">
 						<div class="text-center">
 							<div class="h3 mb-0 text-success"><?= $jobStats['completed_runs'] ?: 0 ?></div>
-							<small class="text-muted"><?= __('Completed') ?></small>
+							<small class="text-muted"><?= __d('queue_scheduler', 'Completed') ?></small>
 						</div>
 					</div>
 					<div class="col-md-3 mb-3 mb-md-0">
 						<div class="text-center">
 							<div class="h3 mb-0 text-danger"><?= $jobStats['failed_runs'] ?: 0 ?></div>
-							<small class="text-muted"><?= __('Failed') ?></small>
+							<small class="text-muted"><?= __d('queue_scheduler', 'Failed') ?></small>
 						</div>
 					</div>
 					<?php if ($jobStats['avg_duration'] !== null) { ?>
 						<div class="col-md-3">
 							<div class="text-center">
 								<div class="h3 mb-0"><?= $this->Number->precision($jobStats['avg_duration'], 1) ?>s</div>
-								<small class="text-muted"><?= __('Avg Duration') ?></small>
+								<small class="text-muted"><?= __d('queue_scheduler', 'Avg Duration') ?></small>
 								<div class="small text-muted"><?= $jobStats['min_duration'] ?>s - <?= $jobStats['max_duration'] ?>s</div>
 							</div>
 						</div>
@@ -236,10 +236,10 @@ $frequencyDescription = $row->getFrequencyDescription();
 
 	<div class="card mb-4">
 		<div class="card-header d-flex justify-content-between align-items-center">
-			<span><i class="fas fa-history me-2"></i><?= __('Recent Executions') ?></span>
+			<span><i class="fas fa-history me-2"></i><?= __d('queue_scheduler', 'Recent Executions') ?></span>
 			<?php if ($recentJobs) { ?>
 				<?= $this->Html->link(
-					__('View All in Queue'),
+					__d('queue_scheduler', 'View All in Queue'),
 					['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'index', '?' => ['search' => $row->job_reference]],
 					['class' => 'btn btn-sm btn-outline-secondary'],
 				) ?>
@@ -247,7 +247,7 @@ $frequencyDescription = $row->getFrequencyDescription();
 		</div>
 		<?php if (!$recentJobs) { ?>
 			<div class="card-body text-center text-muted py-4">
-				<?= __('No runs recorded yet.') ?>
+				<?= __d('queue_scheduler', 'No runs recorded yet.') ?>
 			</div>
 		<?php } else { ?>
 			<div class="card-body p-0">
@@ -255,10 +255,10 @@ $frequencyDescription = $row->getFrequencyDescription();
 					<table class="table table-hover mb-0">
 						<thead>
 							<tr>
-								<th><?= __('Created') ?></th>
-								<th><?= __('Status') ?></th>
-								<th><?= __('Duration') ?></th>
-								<th><?= __('Output') ?></th>
+								<th><?= __d('queue_scheduler', 'Created') ?></th>
+								<th><?= __d('queue_scheduler', 'Status') ?></th>
+								<th><?= __d('queue_scheduler', 'Duration') ?></th>
+								<th><?= __d('queue_scheduler', 'Output') ?></th>
 							</tr>
 						</thead>
 						<tbody>
@@ -274,14 +274,14 @@ $frequencyDescription = $row->getFrequencyDescription();
 									<td>
 										<?php if ($job->completed) { ?>
 											<?php if ($job->failure_message) { ?>
-												<span class="badge bg-danger"><?= __('Failed') ?></span>
+												<span class="badge bg-danger"><?= __d('queue_scheduler', 'Failed') ?></span>
 											<?php } else { ?>
-												<span class="badge bg-success"><?= __('Completed') ?></span>
+												<span class="badge bg-success"><?= __d('queue_scheduler', 'Completed') ?></span>
 											<?php } ?>
 										<?php } elseif ($job->fetched) { ?>
-											<span class="badge bg-info"><?= __('Running') ?></span>
+											<span class="badge bg-info"><?= __d('queue_scheduler', 'Running') ?></span>
 										<?php } else { ?>
-											<span class="badge bg-secondary"><?= __('Queued') ?></span>
+											<span class="badge bg-secondary"><?= __d('queue_scheduler', 'Queued') ?></span>
 										<?php } ?>
 									</td>
 									<td>
@@ -289,7 +289,7 @@ $frequencyDescription = $row->getFrequencyDescription();
 											<?php $jobDurationSec = (int)$job->fetched->diffInSeconds($job->completed); ?>
 											<span class="<?= h($this->Scheduler->durationClass($jobDurationSec, $intervalSec)) ?>"><?= h($this->Scheduler->duration($jobDurationSec)) ?></span>
 										<?php } elseif ($job->fetched) { ?>
-											<span class="text-muted"><?= __('In progress...') ?></span>
+											<span class="text-muted"><?= __d('queue_scheduler', 'In progress...') ?></span>
 										<?php } else { ?>
 											-
 										<?php } ?>
@@ -298,14 +298,14 @@ $frequencyDescription = $row->getFrequencyDescription();
 										<?php if ($job->output) { ?>
 											<details>
 												<summary class="btn btn-sm btn-outline-secondary">
-													<?= __('Show output') ?> (<?= $this->Number->toReadableSize(strlen($job->output)) ?>)
+													<?= __d('queue_scheduler', 'Show output') ?> (<?= $this->Number->toReadableSize(strlen($job->output)) ?>)
 												</summary>
 												<pre class="mt-2 p-2 bg-light small"><?= h($job->output) ?></pre>
 											</details>
 										<?php } elseif ($job->failure_message) { ?>
 											<details>
 												<summary class="btn btn-sm btn-outline-danger">
-													<?= __('Show error') ?>
+													<?= __d('queue_scheduler', 'Show error') ?>
 												</summary>
 												<pre class="mt-2 p-2 bg-light small text-danger"><?= h($job->failure_message) ?></pre>
 											</details>
@@ -325,10 +325,10 @@ $frequencyDescription = $row->getFrequencyDescription();
 	<?php if (class_exists('Cron\CronExpression') && $row->isCronExpression()) { ?>
 		<div class="card">
 			<div class="card-header">
-				<i class="fas fa-terminal me-2"></i><?= __('Crontab Expression') ?>
+				<i class="fas fa-terminal me-2"></i><?= __d('queue_scheduler', 'Crontab Expression') ?>
 			</div>
 			<div class="card-body">
-				<p class="text-muted"><?= __('If you want to port this into a native crontab line, copy and paste the following:') ?></p>
+				<p class="text-muted"><?= __d('queue_scheduler', 'If you want to port this into a native crontab line, copy and paste the following:') ?></p>
 				<?php
 				$expression = new \Cron\CronExpression(\QueueScheduler\Model\Entity\SchedulerRow::normalizeCronExpression($row->frequency));
 				?>

@@ -7,28 +7,28 @@
 <div class="scheduler-rows-edit">
 	<div class="d-flex justify-content-between align-items-center mb-4">
 		<h2 class="mb-0">
-			<i class="fas fa-edit me-2"></i><?= __('Edit Schedule') ?>
+			<i class="fas fa-edit me-2"></i><?= __d('queue_scheduler', 'Edit Schedule') ?>
 		</h2>
 		<div>
 			<?= $this->Html->link(
-				'<i class="fas fa-arrow-left me-1"></i>' . __('Back'),
+				'<i class="fas fa-arrow-left me-1"></i>' . __d('queue_scheduler', 'Back'),
 				['action' => 'index'],
 				['class' => 'btn btn-secondary me-2', 'escapeTitle' => false],
 			) ?>
 			<?= $this->Form->postButton(
-				'<i class="fas fa-trash me-1"></i>' . __('Delete'),
+				'<i class="fas fa-trash me-1"></i>' . __d('queue_scheduler', 'Delete'),
 				['action' => 'delete', $row->id],
 				[
 					'class' => 'btn btn-danger me-2',
 					'escapeTitle' => false,
 					'form' => [
 						'class' => 'd-inline',
-						'data-confirm-message' => __('Are you sure you want to delete # {0}?', $row->id),
+						'data-confirm-message' => __d('queue_scheduler', 'Are you sure you want to delete # {0}?', $row->id),
 					],
 				],
 			) ?>
 			<?= $this->Html->link(
-				'<i class="fas fa-clock me-1"></i>' . __('Intervals Help'),
+				'<i class="fas fa-clock me-1"></i>' . __d('queue_scheduler', 'Intervals Help'),
 				['controller' => 'QueueScheduler', 'action' => 'intervals'],
 				['class' => 'btn btn-outline-secondary', 'escapeTitle' => false],
 			) ?>
@@ -37,7 +37,7 @@
 
 	<div class="card">
 		<div class="card-header">
-			<i class="fas fa-cog me-2"></i><?= __('Schedule Details') ?>
+			<i class="fas fa-cog me-2"></i><?= __d('queue_scheduler', 'Schedule Details') ?>
 		</div>
 		<div class="card-body">
 			<?php
@@ -66,9 +66,9 @@
 					'type' => 'textarea',
 					'rows' => 3,
 					'class' => 'form-control',
-					'label' => __('Job Config (JSON)'),
+					'label' => __d('queue_scheduler', 'Job Config (JSON)'),
 					'placeholder' => '{"priority": 5, "group": "batch"}',
-					'help' => __('Optional JSON object. Allowed keys: priority (1-10, lower runs sooner; default 5) and group (worker group, matches `cake queue worker --group=...`).'),
+					'help' => __d('queue_scheduler', 'Optional JSON object. Allowed keys: priority (1-10, lower runs sooner; default 5) and group (worker group, matches `cake queue worker --group=...`).'),
 				]) ?>
 			</div>
 			<div class="row">
@@ -83,7 +83,7 @@
 				</div>
 			</div>
 			<div class="mt-3">
-				<?= $this->Form->button('<i class="fas fa-save me-1"></i>' . __('Save'), ['class' => 'btn btn-primary', 'escapeTitle' => false]) ?>
+				<?= $this->Form->button('<i class="fas fa-save me-1"></i>' . __d('queue_scheduler', 'Save'), ['class' => 'btn btn-primary', 'escapeTitle' => false]) ?>
 			</div>
 			<?= $this->Form->end() ?>
 		</div>
