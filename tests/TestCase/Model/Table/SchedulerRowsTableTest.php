@@ -283,6 +283,40 @@ class SchedulerRowsTableTest extends TestCase {
 	}
 
 	/**
+	 * The migration must keep `job_config` shipped with the JSON column-type
+	 * cast wired up. Guards against future "remove the migration but keep the
+	 * setColumnType()" drift that would crash on fresh installs.
+	 *
+	 * @return void
+	 */
+	public function testJobConfigColumnIsCastToJson(): void {
+		$schema = $this->SchedulerRows->getSchema();
+		$this->assertTrue($schema->hasColumn('job_config'));
+		$this->assertSame('json', $schema->getColumnType('job_config'));
+	}
+
+	/**
+	 * Bootstrapping the table against a schema that doesn't yet have
+	 * `job_config` (e.g. an upgrade where `migrations migrate` hasn't run yet)
+	 * must not throw — otherwise the deploy is unrecoverable from stock state.
+	 *
+	 * @return void
+	 */
+	public function testInitializeToleratesMissingJobConfigColumn(): void {
+		$this->getTableLocator()->remove('QueueScheduler.SchedulerRowsPreMigration');
+
+		$table = $this->getTableLocator()->get('QueueScheduler.SchedulerRowsPreMigration', [
+			'className' => SchedulerRowsTable::class,
+			'schema' => [
+				'id' => ['type' => 'integer'],
+				'name' => ['type' => 'string'],
+			],
+		]);
+
+		$this->assertFalse($table->getSchema()->hasColumn('job_config'));
+	}
+
+	/**
 	 * @return void
 	 */
 	public function testValidateContent(): void {

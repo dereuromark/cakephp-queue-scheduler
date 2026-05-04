@@ -70,8 +70,14 @@ class SchedulerRowsTable extends Table {
 		]);
 
 		// Stored as JSON text but exposed as array in PHP — Cake handles the
-		// encode/decode round-trip transparently.
-		$this->getSchema()->setColumnType('job_config', 'json');
+		// encode/decode round-trip transparently. Guarded so that bootstrapping
+		// the table against a not-yet-migrated schema (e.g. mid-upgrade, before
+		// `migrations migrate` has run) doesn't crash; the cast attaches once
+		// the column lands.
+		$schema = $this->getSchema();
+		if ($schema->hasColumn('job_config')) {
+			$schema->setColumnType('job_config', 'json');
+		}
 	}
 
 	/**
