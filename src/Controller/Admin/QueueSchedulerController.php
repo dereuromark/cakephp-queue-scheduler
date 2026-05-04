@@ -99,7 +99,7 @@ class QueueSchedulerController extends QueueSchedulerAppController {
 				$expression = (new CronExpression(SchedulerRow::normalizeCronExpression((string)$interval)))->getExpression();
 			} catch (Exception $e) {
 				$expression = null;
-				$this->Flash->error(__('Invalid interval') . ': ' . $e->getMessage());
+				$this->Flash->error(__d('queue_scheduler', 'Invalid interval') . ': ' . $e->getMessage());
 			}
 			$result = null;
 			if ($expression && class_exists('Panlatent\CronExpressionDescriptor\ExpressionDescriptor')) {

@@ -7,11 +7,11 @@
 <div class="scheduler-rows-index">
 	<div class="d-flex justify-content-between align-items-center mb-4">
 		<h2 class="mb-0">
-			<i class="fas fa-list me-2"></i><?= __('All Schedules') ?>
+			<i class="fas fa-list me-2"></i><?= __d('queue_scheduler', 'All Schedules') ?>
 		</h2>
 		<div>
 			<?= $this->Html->link(
-				'<i class="fas fa-plus me-1"></i>' . __('New Schedule'),
+				'<i class="fas fa-plus me-1"></i>' . __d('queue_scheduler', 'New Schedule'),
 				['action' => 'add'],
 				['class' => 'btn btn-primary', 'escapeTitle' => false],
 			) ?>
@@ -31,7 +31,7 @@
 							<th><?= $this->Paginator->sort('enabled') ?></th>
 							<th><?= $this->Paginator->sort('created', null, ['direction' => 'desc']) ?></th>
 							<th><?= $this->Paginator->sort('modified', null, ['direction' => 'desc']) ?></th>
-							<th class="actions text-end"><?= __('Actions') ?></th>
+							<th class="actions text-end"><?= __d('queue_scheduler', 'Actions') ?></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -69,12 +69,12 @@
 								<td>
 									<?= $this->element('QueueScheduler.yes_no', ['value' => $row->enabled]) ?>
 									<?php if ($row->enabled && $row->type === $row::TYPE_SHELL_COMMAND && !\Cake\Core\Configure::read('QueueScheduler.allowRaw')) { ?>
-										<span class="text-warning" title="<?= __('Raw commands are currently configured to be not runnable on non-debug system for security reasons.') ?>">
+										<span class="text-warning" title="<?= __d('queue_scheduler', 'Raw commands are currently configured to be not runnable on non-debug system for security reasons.') ?>">
 											<i class="fas fa-exclamation-triangle"></i>
 										</span>
 									<?php } elseif (!$row->enabled && !($row->type === $row::TYPE_SHELL_COMMAND && !\Cake\Core\Configure::read('QueueScheduler.allowRaw'))) { ?>
 										<?= $this->Form->postButton(
-											'<i class="fas fa-check me-1"></i>' . __('Enable'),
+											'<i class="fas fa-check me-1"></i>' . __d('queue_scheduler', 'Enable'),
 											['action' => 'edit', $row->id],
 											[
 												'data' => ['enabled' => 1],
@@ -82,7 +82,7 @@
 												'class' => 'btn btn-sm btn-success',
 												'form' => [
 													'class' => 'd-inline',
-													'data-confirm-message' => __('Sure to enable?'),
+													'data-confirm-message' => __d('queue_scheduler', 'Sure to enable?'),
 												],
 											],
 										) ?>
@@ -90,7 +90,7 @@
 
 									<?php if ($row->last_run) { ?>
 										<div>
-											<small class="text-muted"><?= __('Last Run') ?>:
+											<small class="text-muted"><?= __d('queue_scheduler', 'Last Run') ?>:
 												<?php if ($row->last_queued_job_id) { ?>
 													<?= $this->Html->link(
 														$this->Time->nice($row->last_run),
@@ -108,9 +108,9 @@
 									?>
 									<?php if ($nextRun) { ?>
 										<?php if (!$row->enabled) { ?>
-											<div><small class="next-run-canceled"><?= __('Next Run') ?>: <?= $this->Time->nice($nextRun) ?></small></div>
+											<div><small class="next-run-canceled"><?= __d('queue_scheduler', 'Next Run') ?>: <?= $this->Time->nice($nextRun) ?></small></div>
 										<?php } else { ?>
-											<div><small class="text-muted"><?= __('Next Run') ?>: <?= $this->Time->nice($nextRun) ?></small></div>
+											<div><small class="text-muted"><?= __d('queue_scheduler', 'Next Run') ?>: <?= $this->Time->nice($nextRun) ?></small></div>
 										<?php } ?>
 									<?php } ?>
 								</td>
@@ -120,12 +120,12 @@
 									<?= $this->Html->link(
 										'<i class="fas fa-eye"></i>',
 										['action' => 'view', $row->id],
-										['escapeTitle' => false, 'class' => 'btn btn-sm btn-outline-secondary me-1', 'title' => __('View')],
+										['escapeTitle' => false, 'class' => 'btn btn-sm btn-outline-secondary me-1', 'title' => __d('queue_scheduler', 'View')],
 									) ?>
 									<?= $this->Html->link(
 										'<i class="fas fa-edit"></i>',
 										['action' => 'edit', $row->id],
-										['escapeTitle' => false, 'class' => 'btn btn-sm btn-outline-secondary me-1', 'title' => __('Edit')],
+										['escapeTitle' => false, 'class' => 'btn btn-sm btn-outline-secondary me-1', 'title' => __d('queue_scheduler', 'Edit')],
 									) ?>
 									<?= $this->Form->postButton(
 										'<i class="fas fa-play-circle"></i>',
@@ -133,10 +133,10 @@
 										[
 											'escapeTitle' => false,
 											'class' => 'btn btn-sm btn-outline-success me-1',
-											'title' => __('Run manually now'),
+											'title' => __d('queue_scheduler', 'Run manually now'),
 											'form' => [
 												'class' => 'd-inline',
-												'data-confirm-message' => __('Sure to run it now?'),
+												'data-confirm-message' => __d('queue_scheduler', 'Sure to run it now?'),
 											],
 										],
 									) ?>
@@ -146,10 +146,10 @@
 										[
 											'escapeTitle' => false,
 											'class' => 'btn btn-sm btn-outline-danger',
-											'title' => __('Delete'),
+											'title' => __d('queue_scheduler', 'Delete'),
 											'form' => [
 												'class' => 'd-inline',
-												'data-confirm-message' => __('Are you sure you want to delete # {0}?', $row->id),
+												'data-confirm-message' => __d('queue_scheduler', 'Are you sure you want to delete # {0}?', $row->id),
 											],
 										],
 									) ?>

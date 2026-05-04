@@ -143,13 +143,13 @@ class SchedulerHelper extends Helper {
 			return '';
 		}
 		if ($job->failure_message) {
-			$title = (string)__('Last run failed');
+			$title = (string)__d('queue_scheduler', 'Last run failed');
 
 			return '<i class="fas fa-times-circle text-danger me-1" title="' . h($title)
 				. '" aria-label="' . h($title) . '"></i>';
 		}
 		if ($job->completed) {
-			$title = (string)__('Last run succeeded');
+			$title = (string)__d('queue_scheduler', 'Last run succeeded');
 
 			return '<i class="fas fa-check-circle text-success me-1" title="' . h($title)
 				. '" aria-label="' . h($title) . '"></i>';

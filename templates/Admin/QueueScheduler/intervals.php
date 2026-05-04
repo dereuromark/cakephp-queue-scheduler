@@ -8,11 +8,11 @@
 <div class="scheduler-intervals">
 	<div class="d-flex justify-content-between align-items-center mb-4">
 		<h2 class="mb-0">
-			<i class="fas fa-clock me-2"></i><?= __('Intervals Reference') ?>
+			<i class="fas fa-clock me-2"></i><?= __d('queue_scheduler', 'Intervals Reference') ?>
 		</h2>
 		<div>
 			<?= $this->Html->link(
-				'<i class="fas fa-arrow-left me-1"></i>' . __('Back'),
+				'<i class="fas fa-arrow-left me-1"></i>' . __d('queue_scheduler', 'Back'),
 				['controller' => 'SchedulerRows', 'action' => 'index'],
 				['class' => 'btn btn-secondary', 'escapeTitle' => false],
 			) ?>
@@ -23,7 +23,7 @@
 		<div class="col-lg-6 mb-4">
 			<div class="card h-100">
 				<div class="card-header">
-					<i class="fas fa-hashtag me-2"></i><?= __('Cron Shortcuts') ?>
+					<i class="fas fa-hashtag me-2"></i><?= __d('queue_scheduler', 'Cron Shortcuts') ?>
 				</div>
 				<div class="card-body">
 					<ul class="list-unstyled mb-0">
@@ -43,30 +43,30 @@
 		<div class="col-lg-6 mb-4">
 			<div class="card h-100">
 				<div class="card-header">
-					<i class="fas fa-language me-2"></i><?= __('Translate Expression') ?>
+					<i class="fas fa-language me-2"></i><?= __d('queue_scheduler', 'Translate Expression') ?>
 				</div>
 				<div class="card-body">
 					<?php if (class_exists('Panlatent\CronExpressionDescriptor\ExpressionDescriptor')) { ?>
 						<?= $this->Form->create() ?>
 						<div class="mb-3">
 							<?= $this->Form->control('interval', [
-								'label' => __('Cron Expression'),
+								'label' => __d('queue_scheduler', 'Cron Expression'),
 								'placeholder' => '* * * * *',
 								'class' => 'form-control',
 							]) ?>
 						</div>
-						<?= $this->Form->button(__('Translate'), ['class' => 'btn btn-primary']) ?>
+						<?= $this->Form->button(__d('queue_scheduler', 'Translate'), ['class' => 'btn btn-primary']) ?>
 						<?= $this->Form->end() ?>
 
 						<?php if (!empty($result)) { ?>
 							<div class="alert alert-success mt-3 mb-0">
-								<strong><?= __('Result') ?>:</strong> <?= h($result) ?>
+								<strong><?= __d('queue_scheduler', 'Result') ?>:</strong> <?= h($result) ?>
 							</div>
 						<?php } ?>
 					<?php } else { ?>
 						<div class="alert alert-info mb-0">
 							<i class="fas fa-info-circle me-1"></i>
-							<?= __('Requires {0} to be installed.', '<code>panlatent/cron-expression-descriptor</code>') ?>
+							<?= __d('queue_scheduler', 'Requires {0} to be installed.', '<code>panlatent/cron-expression-descriptor</code>') ?>
 						</div>
 					<?php } ?>
 				</div>
@@ -78,19 +78,19 @@
 		<div class="col-lg-6 mb-4">
 			<div class="card h-100">
 				<div class="card-header">
-					<i class="fas fa-calendar-day me-2"></i><?= __('DateInterval Style') ?>
+					<i class="fas fa-calendar-day me-2"></i><?= __d('queue_scheduler', 'DateInterval Style') ?>
 				</div>
 				<div class="card-body">
-					<p><?= __('They either start with a {0} or a {1}. Other values are invalid.', '<code>P</code>', '<code>+</code>') ?></p>
+					<p><?= __d('queue_scheduler', 'They either start with a {0} or a {1}. Other values are invalid.', '<code>P</code>', '<code>+</code>') ?></p>
 					<ul class="mb-3">
 						<li><code>P1D</code> or <code>+ 1 day</code></li>
 						<li><code>P2W</code> or <code>+ 2 weeks</code></li>
 					</ul>
-					<p class="mb-2"><?= __('You can also define more complex intervals by chaining:') ?></p>
+					<p class="mb-2"><?= __d('queue_scheduler', 'You can also define more complex intervals by chaining:') ?></p>
 					<code>+ 1 hour + 5 minutes</code>
 					<p class="mt-3 mb-0">
 						<a href="https://www.php.net/manual/en/dateinterval.createfromdatestring.php" target="_blank" class="btn btn-sm btn-outline-secondary">
-							<i class="fas fa-external-link-alt me-1"></i><?= __('PHP Documentation') ?>
+							<i class="fas fa-external-link-alt me-1"></i><?= __d('queue_scheduler', 'PHP Documentation') ?>
 						</a>
 					</p>
 				</div>
@@ -100,7 +100,7 @@
 		<div class="col-lg-6 mb-4">
 			<div class="card h-100">
 				<div class="card-header">
-					<i class="fas fa-terminal me-2"></i><?= __('Crontab Style') ?>
+					<i class="fas fa-terminal me-2"></i><?= __d('queue_scheduler', 'Crontab Style') ?>
 				</div>
 				<div class="card-body">
 					<pre class="mb-3">*    *    *    *    *   /path/to/command

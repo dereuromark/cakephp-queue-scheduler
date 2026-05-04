@@ -81,10 +81,10 @@ class QueueSchedulerAppController extends AppController {
 
 		$gate = Configure::read('QueueScheduler.adminAccess');
 		if (!($gate instanceof Closure)) {
-			throw new ForbiddenException(__('QueueScheduler admin backend is not configured. Set QueueScheduler.adminAccess to a Closure that returns true for permitted callers.'));
+			throw new ForbiddenException(__d('queue_scheduler', 'QueueScheduler admin backend is not configured. Set QueueScheduler.adminAccess to a Closure that returns true for permitted callers.'));
 		}
 		if ($gate($this->request) !== true) {
-			throw new ForbiddenException(__('QueueScheduler admin access denied.'));
+			throw new ForbiddenException(__d('queue_scheduler', 'QueueScheduler admin access denied.'));
 		}
 	}
 

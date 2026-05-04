@@ -90,7 +90,7 @@ class SchedulerRowsTable extends Table {
 			->add('name', 'unique', [
 				'rule' => 'validateUniqueName',
 				'provider' => 'table',
-				'message' => __('This name is already in use.'),
+				'message' => __d('queue_scheduler', 'This name is already in use.'),
 			]);
 
 		$validator
@@ -102,7 +102,7 @@ class SchedulerRowsTable extends Table {
 			->notEmptyString('content')
 			->add('content', 'validateContent', [
 				'provider' => 'table',
-				'message' => __('Content does not match the chosen type. Use a Task class (or "Plugin.Task" alias) for Queue tasks, a Command class (or "Plugin.Command" alias) for Cake commands, or a shell command string.'),
+				'message' => __d('queue_scheduler', 'Content does not match the chosen type. Use a Task class (or "Plugin.Task" alias) for Queue tasks, a Command class (or "Plugin.Command" alias) for Cake commands, or a shell command string.'),
 			]);
 
 		$validator
@@ -110,7 +110,7 @@ class SchedulerRowsTable extends Table {
 			->allowEmptyString('param')
 			->add('param', 'validateParam', [
 				'provider' => 'table',
-				'message' => __('Param must be a JSON object {…} for Queue tasks or a JSON array […] for Cake commands. Shell commands cannot have a param.'),
+				'message' => __d('queue_scheduler', 'Param must be a JSON object {…} for Queue tasks or a JSON array […] for Cake commands. Shell commands cannot have a param.'),
 			]);
 
 		$validator
@@ -118,7 +118,7 @@ class SchedulerRowsTable extends Table {
 			->allowEmptyString('job_config')
 			->add('job_config', 'validateJobConfig', [
 				'provider' => 'table',
-				'message' => __('Job Config must be a JSON object with allowed keys only: priority (int 1-10) and group (string).'),
+				'message' => __d('queue_scheduler', 'Job Config must be a JSON object with allowed keys only: priority (int 1-10) and group (string).'),
 			]);
 
 		$validator
@@ -128,7 +128,7 @@ class SchedulerRowsTable extends Table {
 			->notEmptyString('frequency')
 			->add('frequency', 'validateFrequency', [
 				'provider' => 'table',
-				'message' => __('Must be a cron expression ("0 11 * * *"), an @-shortcut ("@daily", "@minutely"), a relative interval ("+30 seconds"), or an ISO 8601 duration ("P2D").'),
+				'message' => __d('queue_scheduler', 'Must be a cron expression ("0 11 * * *"), an @-shortcut ("@daily", "@minutely"), a relative interval ("+30 seconds"), or an ISO 8601 duration ("P2D").'),
 			]);
 
 		$validator
@@ -192,7 +192,7 @@ class SchedulerRowsTable extends Table {
 			case SchedulerRow::TYPE_CAKE_COMMAND:
 				return $this->validateCakeCommandParam($value, $data);
 			case SchedulerRow::TYPE_SHELL_COMMAND:
-				return $value === '' ? true : __('Cannot have separate param data for shell command.');
+				return $value === '' ? true : __d('queue_scheduler', 'Cannot have separate param data for shell command.');
 		}
 
 		return false;
@@ -530,7 +530,7 @@ class SchedulerRowsTable extends Table {
 	 */
 	protected function validateShellCommand(string $value, array $data): string|bool {
 		if (!Configure::read('debug') && !Configure::read('QueueScheduler.allowRaw')) {
-			return __('Shell Command rows require QueueScheduler.allowRaw=true (or debug mode).');
+			return __d('queue_scheduler', 'Shell Command rows require QueueScheduler.allowRaw=true (or debug mode).');
 		}
 
 		return true;

@@ -18,10 +18,10 @@ $tasks = $scheduler->availableQueueTasks();
 <div class="card mb-4">
 	<div class="card-body">
 		<label class="form-label" for="quick-add-search">
-			<i class="fas fa-bolt me-2"></i><?= __('Quick Add') ?>
+			<i class="fas fa-bolt me-2"></i><?= __d('queue_scheduler', 'Quick Add') ?>
 		</label>
 		<input type="text" id="quick-add-search" class="form-control form-control-lg"
-			   list="quick-add-options" placeholder="<?= __('Search commands or tasks...') ?>"
+			   list="quick-add-options" placeholder="<?= __d('queue_scheduler', 'Search commands or tasks...') ?>"
 			   autocomplete="off">
 		<datalist id="quick-add-options">
 			<?php foreach ($commands as $name => $command) { ?>
@@ -31,7 +31,7 @@ $tasks = $scheduler->availableQueueTasks();
 				<option value="<?= h($name) ?> (Task)" data-name="<?= h($name) ?>" data-type="<?= SchedulerRow::TYPE_QUEUE_TASK ?>" data-content="<?= h($task) ?>">
 			<?php } ?>
 		</datalist>
-		<div class="form-text"><?= __('Select a command or task to pre-fill the form') ?></div>
+		<div class="form-text"><?= __d('queue_scheduler', 'Select a command or task to pre-fill the form') ?></div>
 	</div>
 </div>
 <?php $cspNonce = (string)$this->getRequest()->getAttribute('cspNonce', ''); ?>

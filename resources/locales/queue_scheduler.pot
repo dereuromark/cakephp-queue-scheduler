@@ -1,0 +1,427 @@
+# LANGUAGE translation of CakePHP Application
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2026-05-04 02:23+0200\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+msgid "QueueScheduler admin backend is not configured. Set QueueScheduler.adminAccess to a Closure that returns true for permitted callers."
+msgstr ""
+
+msgid "QueueScheduler admin access denied."
+msgstr ""
+
+msgid "Invalid interval"
+msgstr ""
+
+msgid "The row has been saved."
+msgstr ""
+
+msgid "The row could not be saved. Please, try again."
+msgstr ""
+
+msgid "The job has been added to the queue."
+msgstr ""
+
+msgid "The job could not be added to the queue."
+msgstr ""
+
+msgid "All jobs have been disabled"
+msgstr ""
+
+msgid "No new schedules to run."
+msgstr ""
+
+msgid "Queued {0} new schedule(s)."
+msgstr ""
+
+msgid "Queued {0} new schedule(s); {1} skipped."
+msgstr ""
+
+msgid "The row has been deleted."
+msgstr ""
+
+msgid "The row could not be deleted. Please, try again."
+msgstr ""
+
+msgid "Queue Task"
+msgstr ""
+
+msgid "Cake Command"
+msgstr ""
+
+msgid "Shell Command (raw command execution)"
+msgstr ""
+
+msgid "Every day"
+msgstr ""
+
+msgid "Every {0} days"
+msgstr ""
+
+msgid "Every hour"
+msgstr ""
+
+msgid "Every {0} hours"
+msgstr ""
+
+msgid "Every minute"
+msgstr ""
+
+msgid "Every {0} minutes"
+msgstr ""
+
+msgid "Every {0} seconds"
+msgstr ""
+
+msgid "This name is already in use."
+msgstr ""
+
+msgid "Content does not match the chosen type. Use a Task class (or \"Plugin.Task\" alias) for Queue tasks, a Command class (or \"Plugin.Command\" alias) for Cake commands, or a shell command string."
+msgstr ""
+
+msgid "Param must be a JSON object {…} for Queue tasks or a JSON array […] for Cake commands. Shell commands cannot have a param."
+msgstr ""
+
+msgid "Job Config must be a JSON object with allowed keys only: priority (int 1-10) and group (string)."
+msgstr ""
+
+msgid "Must be a cron expression (\"0 11 * * *\"), an @-shortcut (\"@daily\", \"@minutely\"), a relative interval (\"+30 seconds\"), or an ISO 8601 duration (\"P2D\")."
+msgstr ""
+
+msgid "Cannot have separate param data for shell command."
+msgstr ""
+
+msgid "Shell Command rows require QueueScheduler.allowRaw=true (or debug mode)."
+msgstr ""
+
+msgid "Last run failed"
+msgstr ""
+
+msgid "Last run succeeded"
+msgstr ""
+
+msgid "Available Commands & Tasks"
+msgstr ""
+
+msgid "Queue Scheduler"
+msgstr ""
+
+msgid "New Schedule"
+msgstr ""
+
+msgid "Addon to run commands and queue tasks as crontab like database driven schedule."
+msgstr ""
+
+msgid "Cron has not invoked the scheduler yet, or the cache config is not shared between web and CLI."
+msgstr ""
+
+msgid "Scheduler: never run"
+msgstr ""
+
+msgid "Last tick {0}"
+msgstr ""
+
+msgid "Scheduler healthy"
+msgstr ""
+
+msgid "Last tick was {0} ago; threshold is {1}. Check that cron is invoking `bin/cake scheduler run`."
+msgstr ""
+
+msgid "Scheduler stale"
+msgstr ""
+
+msgid "Currently Scheduled"
+msgstr ""
+
+msgid "Name"
+msgstr ""
+
+msgid "Frequency"
+msgstr ""
+
+msgid "Status"
+msgstr ""
+
+msgid "Actions"
+msgstr ""
+
+msgid "Queued"
+msgstr ""
+
+msgid "Last Run"
+msgstr ""
+
+msgid "Next Run"
+msgstr ""
+
+msgid "overdue"
+msgstr ""
+
+msgid "Run manually now"
+msgstr ""
+
+msgid "Sure to run it now?"
+msgstr ""
+
+msgid "Disable"
+msgstr ""
+
+msgid "Sure to disable?"
+msgstr ""
+
+msgid "No schedules yet."
+msgstr ""
+
+msgid "Create your first schedule"
+msgstr ""
+
+msgid "All Schedules"
+msgstr ""
+
+msgid "Run New ({0})"
+msgstr ""
+
+msgid "Queue all enabled schedules that have never run yet"
+msgstr ""
+
+msgid "Queue {0} new schedule(s) now?"
+msgstr ""
+
+msgid "Disable All"
+msgstr ""
+
+msgid "Sure to disable all?"
+msgstr ""
+
+msgid "Intervals Reference"
+msgstr ""
+
+msgid "Back"
+msgstr ""
+
+msgid "Cron Shortcuts"
+msgstr ""
+
+msgid "Translate Expression"
+msgstr ""
+
+msgid "Cron Expression"
+msgstr ""
+
+msgid "Translate"
+msgstr ""
+
+msgid "Result"
+msgstr ""
+
+msgid "Requires {0} to be installed."
+msgstr ""
+
+msgid "DateInterval Style"
+msgstr ""
+
+msgid "They either start with a {0} or a {1}. Other values are invalid."
+msgstr ""
+
+msgid "You can also define more complex intervals by chaining:"
+msgstr ""
+
+msgid "PHP Documentation"
+msgstr ""
+
+msgid "Crontab Style"
+msgstr ""
+
+msgid "Add Schedule"
+msgstr ""
+
+msgid "Intervals Help"
+msgstr ""
+
+msgid "Schedule Details"
+msgstr ""
+
+msgid "Job Config (JSON)"
+msgstr ""
+
+msgid "Optional JSON object. Allowed keys: priority (1-10, lower runs sooner; default 5) and group (worker group, matches `cake queue worker --group=...`)."
+msgstr ""
+
+msgid "Save"
+msgstr ""
+
+msgid "Edit Schedule"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Are you sure you want to delete # {0}?"
+msgstr ""
+
+msgid "Raw commands are currently configured to be not runnable on non-debug system for security reasons."
+msgstr ""
+
+msgid "Enable"
+msgstr ""
+
+msgid "Sure to enable?"
+msgstr ""
+
+msgid "View"
+msgstr ""
+
+msgid "Edit"
+msgstr ""
+
+msgid "Run Now"
+msgstr ""
+
+msgid "Are you sure you want to run this now?"
+msgstr ""
+
+msgid "Type"
+msgstr ""
+
+msgid "Config"
+msgstr ""
+
+msgid "Job Config"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
+msgid "Yes"
+msgstr ""
+
+msgid "No"
+msgstr ""
+
+msgid "Allow Concurrent"
+msgstr ""
+
+msgid "Timing Information"
+msgstr ""
+
+msgid "Never"
+msgstr ""
+
+msgid "Disabled — won't run"
+msgstr ""
+
+msgid "Created"
+msgstr ""
+
+msgid "Modified"
+msgstr ""
+
+msgid "Content"
+msgstr ""
+
+msgid "Job Statistics"
+msgstr ""
+
+msgid "Total Runs"
+msgstr ""
+
+msgid "Completed"
+msgstr ""
+
+msgid "Failed"
+msgstr ""
+
+msgid "Avg Duration"
+msgstr ""
+
+msgid "Recent Executions"
+msgstr ""
+
+msgid "View All in Queue"
+msgstr ""
+
+msgid "No runs recorded yet."
+msgstr ""
+
+msgid "Duration"
+msgstr ""
+
+msgid "Output"
+msgstr ""
+
+msgid "Running"
+msgstr ""
+
+msgid "In progress..."
+msgstr ""
+
+msgid "Show output"
+msgstr ""
+
+msgid "Show error"
+msgstr ""
+
+msgid "Crontab Expression"
+msgstr ""
+
+msgid "If you want to port this into a native crontab line, copy and paste the following:"
+msgstr ""
+
+msgid "Dashboard"
+msgstr ""
+
+msgid "Overview"
+msgstr ""
+
+msgid "Scheduled Jobs"
+msgstr ""
+
+msgid "Reference"
+msgstr ""
+
+msgid "Queue Plugin"
+msgstr ""
+
+msgid "Queue Dashboard"
+msgstr ""
+
+msgid "Queued Jobs"
+msgstr ""
+
+msgid "Commands & Tasks"
+msgstr ""
+
+msgid "Available Commands"
+msgstr ""
+
+msgid "Available Queue Tasks"
+msgstr ""
+
+msgid "Page navigation"
+msgstr ""
+
+msgid "Page {{page}} of {{pages}}, showing {{current}} record(s) out of {{count}} total"
+msgstr ""
+
+msgid "Quick Add"
+msgstr ""
+
+msgid "Search commands or tasks..."
+msgstr ""
+
+msgid "Select a command or task to pre-fill the form"
+msgstr ""
+
+msgid "Server Time"
+msgstr ""
+
