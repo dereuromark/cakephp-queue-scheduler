@@ -423,4 +423,85 @@ class SchedulerRowsTableTest extends TestCase {
 		}
 	}
 
+	/**
+	 * `[]` typed for a Cake Command param means "no args" — the field already
+	 * accepts an empty string for that intent, so normalize the literal at
+	 * marshal time instead of bouncing the user with a validation error.
+	 *
+	 * @return void
+	 */
+	public function testEmptyJsonArrayParamIsNormalizedToEmptyStringForCakeCommand(): void {
+		$data = [
+			'name' => 'cake cmd',
+			'content' => CacheClearCommand::class,
+			'type' => SchedulerRow::TYPE_CAKE_COMMAND,
+			'frequency' => '@daily',
+			'param' => '[]',
+		];
+		$row = $this->SchedulerRows->newEntity($data);
+
+		$this->assertSame('', $row->param);
+		$this->assertSame([], $row->getError('param'));
+	}
+
+	/**
+	 * Same normalization for Queue Task: `{}` collapses to empty string so the
+	 * row saves with "no payload" rather than failing on the empty-object
+	 * literal.
+	 *
+	 * @return void
+	 */
+	public function testEmptyJsonObjectParamIsNormalizedToEmptyStringForQueueTask(): void {
+		$data = [
+			'name' => 'queue task',
+			'content' => ExampleTask::class,
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'frequency' => '@daily',
+			'param' => '{}',
+		];
+		$row = $this->SchedulerRows->newEntity($data);
+
+		$this->assertSame('', $row->param);
+		$this->assertSame([], $row->getError('param'));
+	}
+
+	/**
+	 * Whitespace-padded variants (`[ ]`, `{\n}`) decode to empty arrays too —
+	 * a string compare against the literal would miss these, but the
+	 * `json_decode`-based check catches them.
+	 *
+	 * @return void
+	 */
+	public function testWhitespacePaddedEmptyJsonParamIsNormalized(): void {
+		$data = [
+			'name' => 'cake cmd',
+			'content' => CacheClearCommand::class,
+			'type' => SchedulerRow::TYPE_CAKE_COMMAND,
+			'frequency' => '@daily',
+			'param' => "[\n  \n]",
+		];
+		$row = $this->SchedulerRows->newEntity($data);
+
+		$this->assertSame('', $row->param);
+	}
+
+	/**
+	 * Real values pass through unchanged — the normalizer only fires on
+	 * decoded-empty arrays.
+	 *
+	 * @return void
+	 */
+	public function testNonEmptyParamIsLeftAlone(): void {
+		$data = [
+			'name' => 'cake cmd',
+			'content' => CacheClearCommand::class,
+			'type' => SchedulerRow::TYPE_CAKE_COMMAND,
+			'frequency' => '@daily',
+			'param' => '["-q"]',
+		];
+		$row = $this->SchedulerRows->newEntity($data);
+
+		$this->assertSame('["-q"]', $row->param);
+	}
+
 }

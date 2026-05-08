@@ -292,6 +292,35 @@ class SchedulerRowsTable extends Table {
 	public function beforeMarshal(EventInterface $event, ArrayObject $data, ArrayObject $options): void {
 		$this->adjustQueueTask($data);
 		$this->adjustCakeCommand($data);
+		$this->adjustParam($data);
+	}
+
+	/**
+	 * Collapse "no payload" JSON literals to an empty string before validation.
+	 *
+	 * Both `validateQueueTaskParam` and `validateCakeCommandParam` reject `{}`
+	 * and `[]` via `!empty($decoded)`, so a user who explicitly types the empty
+	 * literal — meaning "no args / no payload" — would otherwise hit a
+	 * confusing validation error. The field already accepts an empty string
+	 * for that intent (see `allowEmptyString('param')`), so normalize the
+	 * literal to the same shape. Whitespace-only variants like `[ ]`, `{\n}`
+	 * are caught via `json_decode` rather than a string compare.
+	 *
+	 * @param \ArrayObject $data
+	 * @return void
+	 */
+	protected function adjustParam(ArrayObject $data): void {
+		if (!isset($data['param']) || !is_string($data['param'])) {
+			return;
+		}
+		if (trim($data['param']) === '') {
+			return;
+		}
+
+		$decoded = json_decode($data['param'], true);
+		if (is_array($decoded) && !$decoded) {
+			$data['param'] = '';
+		}
 	}
 
 	/**
