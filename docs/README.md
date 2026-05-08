@@ -104,6 +104,18 @@ The command exits with a non-zero status if any row threw while being
 scheduled (a row being held back because a previous run is still queued
 is **not** counted as a failure).
 
+### Row types at a glance
+
+The three row types differ in what goes in **Content** and **Param**:
+
+| Type | Content | Param | Param shape |
+|---|---|---|---|
+| Queue Task | `Plugin.Name` or FQCN ending in `Task` | optional payload | JSON object `{...}` |
+| Cake Command | `Plugin.Name` or FQCN ending in `Command` | optional argv | JSON array `[...]` |
+| Shell Command | full command line (e.g. `bin/cake foo --bar`) | **must be empty** | — |
+
+**Empty param means "no payload / no args"** for Queue Task and Cake Command — leave the field blank. The literals `[]` and `{}` (and whitespace variants like `[ ]` / `{\n}`) are accepted as a typo-friendly synonym for "blank" and normalized to an empty string at save time, so they do not trip the validators that otherwise reject empty collections.
+
 ### Scheduling Queue Tasks
 
 You can directly add Queue Tasks using `Plugin.Name` syntax or FQCN.
@@ -114,7 +126,7 @@ Queue\Queue\Task\ExampleTask
 ```
 
 If you need to pass some payload data, you can use the param textarea for this using JSON:
-```
+```json
 {
     "dryRun": true,
     "id": 123,
@@ -131,14 +143,16 @@ MyPlugin.MyName
 Cake\Command\SchemacacheBuildCommand
 ```
 
-If you need to pass additional args, you can use the param textarea for this using JSON:
-```
+If you need to pass additional args, you can use the param textarea for this using JSON. Each entry is one argv token — the array is forwarded straight to `$command->run($args, $io)`, so use one entry per token rather than embedding shell-style quoting inside a single string:
+```json
 [
     "-v",
     "--dry-run",
-    "--some-option \"Some value\"",
+    "--some-option=Some value"
 ]
 ```
+
+If the command takes no arguments, leave the field blank rather than typing `[]`.
 
 ### Scheduling Shell Commands
 For security reasons executing raw shell commands is only enabled by default for debug mode.
