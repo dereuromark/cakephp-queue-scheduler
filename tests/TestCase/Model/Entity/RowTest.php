@@ -30,7 +30,7 @@ class RowTest extends TestCase {
 		$row->type = $row::TYPE_SHELL_COMMAND;
 
 		$this->assertSame('Queue.Execute', $row->job_task);
-		$this->assertEquals(['command' => 'uname'], $row->job_data);
+		$this->assertSame(['command' => 'uname', 'params' => []], $row->job_data);
 	}
 
 	/**
