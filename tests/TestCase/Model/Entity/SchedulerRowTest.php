@@ -497,4 +497,23 @@ class SchedulerRowTest extends TestCase {
 		);
 	}
 
+	/**
+	 * Defense-in-depth: empty/whitespace-only content (which `validateContent`
+	 * already rejects at save time but could still arrive via direct SQL or a
+	 * marshalling path that bypasses validation) must not produce phantom
+	 * empty-string entries in `params`. The dispatch will fail downstream on
+	 * an empty `command`, but at least the shape is well-formed and the
+	 * failure surface stays narrow.
+	 *
+	 * @return void
+	 */
+	public function testJobDataRejectsPhantomEmptyTokensForEmptyShellContent(): void {
+		$row = new SchedulerRow([
+			'type' => SchedulerRow::TYPE_SHELL_COMMAND,
+			'content' => '   ',
+		]);
+
+		$this->assertSame(['command' => '', 'params' => []], $row->job_data);
+	}
+
 }

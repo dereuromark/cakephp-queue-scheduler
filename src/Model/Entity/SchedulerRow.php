@@ -326,7 +326,7 @@ class SchedulerRow extends Entity {
 			// requiring an entry per argument permutation. Quote-aware
 			// tokenization is intentionally not done — admins who need a
 			// composite shell line should call a wrapper script.
-			$tokens = preg_split('/\s+/', trim($this->content)) ?: [];
+			$tokens = preg_split('/\s+/', trim($this->content), -1, PREG_SPLIT_NO_EMPTY) ?: [];
 			$command = (string)array_shift($tokens);
 
 			return ['command' => $command, 'params' => $tokens];
