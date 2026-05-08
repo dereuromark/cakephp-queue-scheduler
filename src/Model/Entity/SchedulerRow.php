@@ -318,7 +318,18 @@ class SchedulerRow extends Entity {
 			return $param;
 		}
 		if ($this->type === static::TYPE_SHELL_COMMAND) {
-			return ['command' => $this->content];
+			// Split on whitespace so the executable lands in `command` and each
+			// argument lands as its own entry in `params`. ExecuteTask matches
+			// `command` against `Queue.executeAllowedCommands` verbatim and
+			// `escapeshellarg()`s each `params` entry individually, so the
+			// allow-list can gate by executable (e.g. `bin/cake`) instead of
+			// requiring an entry per argument permutation. Quote-aware
+			// tokenization is intentionally not done — admins who need a
+			// composite shell line should call a wrapper script.
+			$tokens = preg_split('/\s+/', trim($this->content)) ?: [];
+			$command = (string)array_shift($tokens);
+
+			return ['command' => $command, 'params' => $tokens];
 		}
 		if ($this->type === static::TYPE_CAKE_COMMAND) {
 			return ['class' => $this->content, 'args' => $param];

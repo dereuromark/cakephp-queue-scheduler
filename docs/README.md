@@ -149,6 +149,26 @@ sh /some/shell.sh
 
 This type does not need the param textarea as all args are directly passed along the command here.
 
+The content is split on whitespace before dispatch: the first token becomes the
+executable (matched against `Queue.executeAllowedCommands` verbatim) and each
+remaining token is forwarded as its own argument (each `escapeshellarg`'d
+individually by `Queue.Execute`). With debug off, the production allow-list
+therefore lists executables — e.g. `bin/cake`, `/usr/bin/php`, `sh` — not full
+command lines:
+
+```php
+'Queue' => [
+    'executeAllowedCommands' => [
+        'bin/cake',
+        'sh',
+    ],
+],
+```
+
+Quote-aware tokenization is intentionally not performed; if you need a
+composite shell line (pipes, redirection, embedded quoting) put it in a
+wrapper script and schedule the script path instead.
+
 ### Job Config (queue routing & priority)
 
 The optional **Job Config** field accepts a JSON object that is merged into

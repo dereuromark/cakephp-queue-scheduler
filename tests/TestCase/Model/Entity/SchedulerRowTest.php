@@ -435,4 +435,66 @@ class SchedulerRowTest extends TestCase {
 		$this->assertNull($row->calculateNextRun());
 	}
 
+	// -----------------------------------------------------------------------
+	// _getJobData() — shell command tokenization
+	// -----------------------------------------------------------------------
+
+	/**
+	 * A shell command with arguments splits on whitespace so the executable
+	 * is the `command` field and each arg is its own `params` entry. This
+	 * lets `Queue.executeAllowedCommands` gate by executable instead of
+	 * requiring a literal full-string match per argument permutation.
+	 *
+	 * @return void
+	 */
+	public function testJobDataSplitsShellCommandIntoExecutableAndArgs(): void {
+		$row = new SchedulerRow([
+			'type' => SchedulerRow::TYPE_SHELL_COMMAND,
+			'content' => 'bin/cake user_notification -q -m 4 -l 100',
+		]);
+
+		$this->assertSame(
+			['command' => 'bin/cake', 'params' => ['user_notification', '-q', '-m', '4', '-l', '100']],
+			$row->job_data,
+		);
+	}
+
+	/**
+	 * A bare executable (no arguments) yields an empty `params` array, not
+	 * a missing key — `ExecuteTask::run()` already tolerates an empty list,
+	 * but a consistent shape is easier to reason about.
+	 *
+	 * @return void
+	 */
+	public function testJobDataForBareShellCommandHasEmptyParams(): void {
+		$row = new SchedulerRow([
+			'type' => SchedulerRow::TYPE_SHELL_COMMAND,
+			'content' => '/usr/local/bin/run-something',
+		]);
+
+		$this->assertSame(
+			['command' => '/usr/local/bin/run-something', 'params' => []],
+			$row->job_data,
+		);
+	}
+
+	/**
+	 * Runs of whitespace and surrounding padding collapse — admins may paste
+	 * a command with stray indentation and the splitter must not produce
+	 * empty `params` entries that would later be `escapeshellarg`'d as `''`.
+	 *
+	 * @return void
+	 */
+	public function testJobDataCollapsesWhitespaceInShellCommand(): void {
+		$row = new SchedulerRow([
+			'type' => SchedulerRow::TYPE_SHELL_COMMAND,
+			'content' => "  bin/cake   foo\t-x  ",
+		]);
+
+		$this->assertSame(
+			['command' => 'bin/cake', 'params' => ['foo', '-x']],
+			$row->job_data,
+		);
+	}
+
 }
