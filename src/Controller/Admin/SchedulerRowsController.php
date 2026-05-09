@@ -7,8 +7,8 @@ use Cake\Http\Response;
 /**
  * Rows Controller
  *
- * @method \Cake\Datasource\ResultSetInterface<\QueueScheduler\Model\Entity\SchedulerRow> paginate(\Cake\Datasource\RepositoryInterface|\Cake\Datasource\QueryInterface|string|null $object = null, array $settings = [])
  * @property \QueueScheduler\Model\Table\SchedulerRowsTable $SchedulerRows
+ * @method \Cake\Datasource\ResultSetInterface<\QueueScheduler\Model\Entity\SchedulerRow> paginate(\Cake\Datasource\RepositoryInterface|\Cake\Datasource\QueryInterface|string|null $object = null, array $settings = [])
  */
 class SchedulerRowsController extends QueueSchedulerAppController {
 
