@@ -27,6 +27,9 @@ class SchedulerRowsFixture extends TestFixture {
 		'last_queued_job_id' => ['type' => 'integer', 'length' => null, 'unsigned' => true, 'null' => true, 'default' => null, 'comment' => '', 'precision' => null],
 		'allow_concurrent' => ['type' => 'boolean', 'length' => null, 'null' => false, 'default' => '0', 'comment' => '', 'precision' => null],
 		'enabled' => ['type' => 'boolean', 'length' => null, 'null' => false, 'default' => '0', 'comment' => '', 'precision' => null],
+		'window_start_time' => ['type' => 'time', 'length' => null, 'precision' => null, 'null' => true, 'default' => null, 'comment' => ''],
+		'window_end_time' => ['type' => 'time', 'length' => null, 'precision' => null, 'null' => true, 'default' => null, 'comment' => ''],
+		'window_days_of_week' => ['type' => 'string', 'length' => 32, 'null' => true, 'default' => null, 'comment' => '', 'precision' => null],
 		'created' => ['type' => 'datetime', 'length' => null, 'precision' => null, 'null' => true, 'default' => null, 'comment' => ''],
 		'modified' => ['type' => 'datetime', 'length' => null, 'precision' => null, 'null' => true, 'default' => null, 'comment' => ''],
 		'_constraints' => [
