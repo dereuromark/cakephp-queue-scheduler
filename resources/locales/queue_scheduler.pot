@@ -35,6 +35,9 @@ msgstr ""
 msgid "The job could not be added to the queue."
 msgstr ""
 
+msgid "The job is outside its configured dispatch window. Use \"Run with overrides\" for an ad-hoc exception."
+msgstr ""
+
 msgid "All jobs have been disabled"
 msgstr ""
 
@@ -117,6 +120,66 @@ msgid "Queue Scheduler"
 msgstr ""
 
 msgid "New Schedule"
+msgstr ""
+
+msgid "Dispatch Window (optional)"
+msgstr ""
+
+msgid "Restrictions configured"
+msgstr ""
+
+msgid "No restrictions"
+msgstr ""
+
+msgid "Hide"
+msgstr ""
+
+msgid "Configure"
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "24h format HH:MM. Leave blank for no lower bound."
+msgstr ""
+
+msgid "End"
+msgstr ""
+
+msgid "24h format HH:MM. Earlier than start means overnight."
+msgstr ""
+
+msgid "Mon"
+msgstr ""
+
+msgid "Tue"
+msgstr ""
+
+msgid "Wed"
+msgstr ""
+
+msgid "Thu"
+msgstr ""
+
+msgid "Fri"
+msgstr ""
+
+msgid "Sat"
+msgstr ""
+
+msgid "Sun"
+msgstr ""
+
+msgid "Allowed Days"
+msgstr ""
+
+msgid "Leave all unchecked for every day."
+msgstr ""
+
+msgid "Weekday-only example: Mon-Fri."
+msgstr ""
+
+msgid "Run with overrides…"
 msgstr ""
 
 msgid "Addon to run commands and queue tasks as crontab like database driven schedule."
@@ -424,4 +487,3 @@ msgstr ""
 
 msgid "Server Time"
 msgstr ""
-

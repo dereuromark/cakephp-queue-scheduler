@@ -1,4 +1,8 @@
 <?php
+
+use Cron\CronExpression;
+use QueueScheduler\Model\Entity\SchedulerRow;
+
 /**
  * @var \App\View\AppView $this
  * @var \QueueScheduler\Model\Entity\SchedulerRow $row
@@ -8,7 +12,20 @@
 
 $intervalSec = $row->calculateIntervalSeconds();
 $frequencyDescription = $row->getFrequencyDescription();
-$isQueueTask = $row->type === \QueueScheduler\Model\Entity\SchedulerRow::TYPE_QUEUE_TASK;
+$isQueueTask = $row->type === SchedulerRow::TYPE_QUEUE_TASK;
+$windowValue = static function (mixed $value): ?string {
+	if ($value === null || $value === '') {
+		return null;
+	}
+	if (is_object($value) && method_exists($value, 'format')) {
+		return $value->format('H:i');
+	}
+
+	return is_string($value) ? substr($value, 0, 5) : null;
+};
+$windowStart = $windowValue($row->get('window_start_time'));
+$windowEnd = $windowValue($row->get('window_end_time'));
+$windowDays = $row->get('window_days_of_week');
 ?>
 <div class="scheduler-rows-view">
 	<div class="d-flex justify-content-between align-items-center mb-4">
@@ -157,16 +174,33 @@ $isQueueTask = $row->type === \QueueScheduler\Model\Entity\SchedulerRow::TYPE_QU
 								<?php } ?>
 							</td>
 						</tr>
-						<tr>
-							<th><?= __d('queue_scheduler', 'Allow Concurrent') ?></th>
-							<td>
-								<?= $this->element('QueueScheduler.yes_no', ['value' => $row->allow_concurrent]) ?>
-								<?= $row->allow_concurrent ? __d('queue_scheduler', 'Yes') : __d('queue_scheduler', 'No') ?>
-							</td>
-						</tr>
-					</table>
+							<tr>
+								<th><?= __d('queue_scheduler', 'Allow Concurrent') ?></th>
+								<td>
+									<?= $this->element('QueueScheduler.yes_no', ['value' => $row->allow_concurrent]) ?>
+									<?= $row->allow_concurrent ? __d('queue_scheduler', 'Yes') : __d('queue_scheduler', 'No') ?>
+								</td>
+							</tr>
+							<tr>
+								<th><?= __d('queue_scheduler', 'Dispatch Window') ?></th>
+								<td>
+									<?php if (!$row->hasWindowRestrictions()) { ?>
+										<span class="text-muted"><?= __d('queue_scheduler', 'No extra restrictions') ?></span>
+									<?php } else { ?>
+										<div>
+											<?= $windowStart !== null ? h($windowStart) : __d('queue_scheduler', 'no start') ?>
+											-
+											<?= $windowEnd !== null ? h($windowEnd) : __d('queue_scheduler', 'no end') ?>
+										</div>
+										<div class="small text-muted">
+											<?= $windowDays ? __d('queue_scheduler', 'Days: {0}', $windowDays) : __d('queue_scheduler', 'Days: every day') ?>
+										</div>
+									<?php } ?>
+								</td>
+							</tr>
+						</table>
+					</div>
 				</div>
-			</div>
 		</div>
 
 		<div class="col-lg-6 mb-4">
@@ -377,7 +411,7 @@ $isQueueTask = $row->type === \QueueScheduler\Model\Entity\SchedulerRow::TYPE_QU
 		<?php } ?>
 	</div>
 
-	<?php if (class_exists('Cron\CronExpression') && $row->isCronExpression()) { ?>
+		<?php if (class_exists(CronExpression::class) && $row->isCronExpression()) { ?>
 		<div class="card">
 			<div class="card-header">
 				<i class="fas fa-terminal me-2"></i><?= __d('queue_scheduler', 'Crontab Expression') ?>
@@ -385,7 +419,7 @@ $isQueueTask = $row->type === \QueueScheduler\Model\Entity\SchedulerRow::TYPE_QU
 			<div class="card-body">
 				<p class="text-muted"><?= __d('queue_scheduler', 'If you want to port this into a native crontab line, copy and paste the following:') ?></p>
 				<?php
-				$expression = new \Cron\CronExpression(\QueueScheduler\Model\Entity\SchedulerRow::normalizeCronExpression($row->frequency));
+					$expression = new CronExpression(SchedulerRow::normalizeCronExpression($row->frequency));
 				?>
 				<pre class="mb-0"><?= $expression ?></pre>
 			</div>

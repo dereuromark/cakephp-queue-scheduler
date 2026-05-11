@@ -24,6 +24,9 @@ use Tools\Model\Entity\Entity;
  * @property string $frequency
  * @property \Cake\I18n\DateTime|null $last_run
  * @property \Cake\I18n\DateTime|null $next_run
+ * @property mixed $window_start_time
+ * @property mixed $window_end_time
+ * @property string|null $window_days_of_week
  * @property bool $allow_concurrent
  * @property \Cake\I18n\DateTime|null $created
  * @property \Cake\I18n\DateTime|null $modified
@@ -153,14 +156,13 @@ class SchedulerRow extends Entity {
 	 * @return bool
 	 */
 	public function isWithinWindow(DateTime $when): bool {
-		$daysCsv = $this->get('window_days_of_week');
-		if (is_string($daysCsv) && $daysCsv !== '') {
-			$allowed = array_filter(
-				array_map('trim', explode(',', $daysCsv)),
-				static fn (string $s): bool => $s !== '' && ctype_digit($s),
-			);
+		$allowed = $this->allowedWindowDays();
+		if (is_string($this->get('window_days_of_week')) && $this->get('window_days_of_week') !== '' && $allowed === null) {
+			return false;
+		}
+		if ($allowed !== null) {
 			$dow = (int)$when->format('w'); // 0 (Sun) – 6 (Sat)
-			if (!in_array((string)$dow, $allowed, true)) {
+			if (!in_array($dow, $allowed, true)) {
 				return false;
 			}
 		}
@@ -174,6 +176,9 @@ class SchedulerRow extends Entity {
 		$nowMinutes = ((int)$when->format('G')) * 60 + (int)$when->format('i');
 		$startMinutes = $start !== null ? static::timeToMinutes($start) : null;
 		$endMinutes = $end !== null ? static::timeToMinutes($end) : null;
+		if (($start !== null && $startMinutes === null) || ($end !== null && $endMinutes === null)) {
+			return false;
+		}
 
 		if ($startMinutes !== null && $endMinutes === null) {
 			return $nowMinutes >= $startMinutes;
@@ -193,21 +198,79 @@ class SchedulerRow extends Entity {
 	}
 
 	/**
+	 * Earliest instant at or after `$from` that satisfies the configured time
+	 * window. Used for interval schedules so `next_run` does not sit in the
+	 * past for hours while a row is intentionally held closed.
+	 *
+	 * @param \Cake\I18n\DateTime $from
+	 * @return \Cake\I18n\DateTime|null
+	 */
+	public function nextWindowOpenAt(DateTime $from): ?DateTime {
+		if (!$this->hasWindowRestrictions()) {
+			return $from;
+		}
+
+		$allowed = $this->allowedWindowDays();
+		if (is_string($this->get('window_days_of_week')) && $this->get('window_days_of_week') !== '' && $allowed === null) {
+			return null;
+		}
+
+		$intervals = $this->windowIntervalsByDay();
+		if ($intervals === null) {
+			return null;
+		}
+
+		for ($offsetDays = 0; $offsetDays <= 14; $offsetDays++) {
+			$day = $offsetDays === 0 ? $from : $from->addDays($offsetDays);
+			$dow = (int)$day->format('w');
+			if ($allowed !== null && !in_array($dow, $allowed, true)) {
+				continue;
+			}
+
+			$date = $day->format('Y-m-d');
+			foreach ($intervals as [$startSeconds, $endSeconds]) {
+				$candidate = new DateTime($date . ' 00:00:00');
+				$candidate = $candidate->addSeconds($startSeconds);
+				if ($candidate->getTimestamp() < $from->getTimestamp()) {
+					if ($from->format('Y-m-d') !== $date) {
+						continue;
+					}
+					if ($from->getTimestamp() > (new DateTime($date . ' 00:00:00'))->addSeconds($endSeconds)->getTimestamp()) {
+						continue;
+					}
+
+					return $from;
+				}
+
+				return $candidate;
+			}
+		}
+
+		return null;
+	}
+
+	/**
 	 * Convert a time-of-day stored value (string `HH:MM:SS` or `HH:MM`,
 	 * or a Time/DateTime instance) into minutes-from-midnight.
 	 *
 	 * @param mixed $time
-	 * @return int
+	 * @return int|null
 	 */
-	protected static function timeToMinutes(mixed $time): int {
+	protected static function timeToMinutes(mixed $time): ?int {
 		if (is_object($time) && method_exists($time, 'format')) {
 			return ((int)$time->format('G')) * 60 + (int)$time->format('i');
 		}
 		if (is_string($time) && preg_match('/^(\d{1,2}):(\d{2})/', $time, $m) === 1) {
-			return ((int)$m[1]) * 60 + (int)$m[2];
+			$hours = (int)$m[1];
+			$minutes = (int)$m[2];
+			if ($hours > 23 || $minutes > 59) {
+				return null;
+			}
+
+			return $hours * 60 + $minutes;
 		}
 
-		return 0;
+		return null;
 	}
 
 	/**
@@ -239,7 +302,9 @@ class SchedulerRow extends Entity {
 
 		if ($interval) {
 			// Interval-based: first run is "now", subsequent runs are last_run + interval.
-			return $lastRun === null ? new DateTime() : $lastRun->add($interval);
+			$nextRun = $lastRun === null ? new DateTime() : $lastRun->add($interval);
+
+			return $this->nextWindowOpenAt($nextRun);
 		}
 
 		// Cron expression: always honor the schedule, even on the first run.
@@ -253,7 +318,104 @@ class SchedulerRow extends Entity {
 			return null;
 		}
 
-		return new DateTime($dateTime);
+		$nextRun = new DateTime($dateTime);
+		if (!$this->hasWindowRestrictions()) {
+			return $nextRun;
+		}
+		if (is_string($this->get('window_days_of_week')) && $this->get('window_days_of_week') !== '' && $this->allowedWindowDays() === null) {
+			return null;
+		}
+		if ($this->windowIntervalsByDay() === null) {
+			return null;
+		}
+
+		for ($attempt = 0; $attempt < 4000; $attempt++) {
+			if ($this->isWithinWindow($nextRun)) {
+				return $nextRun;
+			}
+
+			try {
+				$nextRun = new DateTime($cron->getNextRunDate($nextRun->toDateTimeString()));
+			} catch (InvalidArgumentException | RuntimeException) {
+				return null;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function hasWindowRestrictions(): bool {
+		return $this->get('window_start_time') !== null
+			|| $this->get('window_end_time') !== null
+			|| ($this->get('window_days_of_week') !== null && $this->get('window_days_of_week') !== '');
+	}
+
+	/**
+	 * @return array<int>|null
+	 */
+	protected function allowedWindowDays(): ?array {
+		$daysCsv = $this->get('window_days_of_week');
+		if (!is_string($daysCsv) || $daysCsv === '') {
+			return null;
+		}
+
+		$parts = array_map('trim', explode(',', $daysCsv));
+		$allowed = [];
+		foreach ($parts as $part) {
+			if ($part === '' || !ctype_digit($part)) {
+				return null;
+			}
+			$day = (int)$part;
+			if ($day < 0 || $day > 6) {
+				return null;
+			}
+			$allowed[$day] = $day;
+		}
+
+		if ($allowed === []) {
+			return null;
+		}
+
+		sort($allowed);
+
+		return array_values($allowed);
+	}
+
+	/**
+	 * @return array<array{0:int, 1:int}> |null
+	 */
+	protected function windowIntervalsByDay(): ?array {
+		$start = $this->get('window_start_time');
+		$end = $this->get('window_end_time');
+		if ($start === null && $end === null) {
+			return [[0, 86399]];
+		}
+
+		$startMinutes = $start !== null ? static::timeToMinutes($start) : null;
+		$endMinutes = $end !== null ? static::timeToMinutes($end) : null;
+		if (($start !== null && $startMinutes === null) || ($end !== null && $endMinutes === null)) {
+			return null;
+		}
+
+		$startSeconds = $startMinutes !== null ? $startMinutes * 60 : null;
+		$endSeconds = $endMinutes !== null ? ($endMinutes * 60) + 59 : null;
+		if ($startSeconds !== null && $endSeconds === null) {
+			return [[$startSeconds, 86399]];
+		}
+		if ($startSeconds === null && $endSeconds !== null) {
+			return [[0, $endSeconds]];
+		}
+		if ($endSeconds < $startSeconds) {
+			return [
+				[0, $endSeconds],
+				[$startSeconds, 86399],
+			];
+		}
+
+		return [[$startSeconds, $endSeconds]];
 	}
 
 	/**
