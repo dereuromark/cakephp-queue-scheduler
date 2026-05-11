@@ -308,12 +308,15 @@ class SchedulerRow extends Entity {
 		}
 
 		// Cron expression: always honor the schedule, even on the first run.
+		// Pass Cake's test-aware "now" instead of letting CronExpression resolve
+		// "now" itself — its DateTimeImmutable('now') ignores DateTime::setTestNow,
+		// which makes window-aware tests flaky depending on wall-clock time.
 		// Catch the specific exception types declared by the cron-expression library
 		// (constructor throws InvalidArgumentException; getNextRunDate throws
 		// RuntimeException) so phpstan does not flag a broader catch as "dead".
 		try {
 			$cron = new CronExpression(static::normalizeCronExpression($this->frequency));
-			$dateTime = $cron->getNextRunDate();
+			$dateTime = $cron->getNextRunDate((new DateTime())->toDateTimeString());
 		} catch (InvalidArgumentException | RuntimeException $e) {
 			return null;
 		}
