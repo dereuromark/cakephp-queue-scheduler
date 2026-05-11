@@ -9,6 +9,7 @@ use Cake\Core\Configure;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\EventInterface;
 use Cake\I18n\DateTime;
+use Cake\Log\Log;
 use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
@@ -470,6 +471,92 @@ class SchedulerRowsTable extends Table {
 				['id' => $row->id],
 			);
 
+			return true;
+		});
+	}
+
+	/**
+	 * Ad-hoc dispatch of a row with per-call overrides for the queue payload
+	 * and/or queue config. Intended for incident-response "trigger now"
+	 * actions from the admin UI: the override fires in addition to the row's
+	 * normal schedule rather than replacing it, so `last_run` / `next_run`
+	 * are NOT advanced.
+	 *
+	 * The override map accepts:
+	 *
+	 * - `job_data` — replacement payload. Shape must match the row type
+	 *   (Queue Task → array, Cake Command → list, Shell Command → empty).
+	 *   Pass `null` here to keep the row's stored `param`.
+	 * - `job_config` — replacement config (`priority`, `group`). Merged on
+	 *   top of the row's stored `job_config` so partial overrides work
+	 *   without zeroing other keys. Pass `null` to keep stored config.
+	 *
+	 * Concurrency: respects `allow_concurrent` the same way the cron path
+	 * does. An override-dispatch against an in-flight non-concurrent row
+	 * returns `false` instead of dual-firing.
+	 *
+	 * Audit: every override is logged at `info` level with a
+	 * `[QueueScheduler.Override]` prefix capturing the row id, the override
+	 * payload, and the resulting `queued_jobs.id`. There is intentionally
+	 * no override-history table — the queue plugin's `queued_jobs` row
+	 * already retains the dispatched payload until cleanup, and the log
+	 * captures the "who triggered this" piece that doesn't fit there.
+	 *
+	 * @param \QueueScheduler\Model\Entity\SchedulerRow $row
+	 * @param array{job_data?: array<mixed>|null, job_config?: array<string, mixed>|null, triggered_by?: string|null} $overrides
+	 *
+	 * @return bool True if the job was enqueued; false if blocked by
+	 *     `allow_concurrent` against an in-flight job.
+	 */
+	public function runOnce(SchedulerRow $row, array $overrides = []): bool {
+		if ($row->job_task === null) {
+			throw new RuntimeException('Cannot add job task for ' . $row->name);
+		}
+
+		$jobData = array_key_exists('job_data', $overrides) && $overrides['job_data'] !== null
+			? $overrides['job_data']
+			: $row->job_data;
+
+		// Merge instead of replace so an override that only sets `priority`
+		// preserves the row's `group` (and vice versa). The override values
+		// win on key collision.
+		$config = $row->job_config;
+		if (isset($overrides['job_config'])) {
+			$config = array_merge($config, $overrides['job_config']);
+		}
+		$config['reference'] = $row->job_reference;
+
+		return $this->getConnection()->transactional(function () use ($row, $jobData, $config, $overrides): bool {
+			/** @var \Queue\Model\Table\QueuedJobsTable $queuedJobsTable */
+			$queuedJobsTable = TableRegistry::getTableLocator()->get('Queue.QueuedJobs');
+			if (!$row->allow_concurrent && $queuedJobsTable->isQueued($row->job_reference, $row->job_task)) {
+				return false;
+			}
+
+			$queuedJob = $queuedJobsTable->createJob($row->job_task, $jobData, $config);
+
+			// Audit trail — info-level so it lands in the host app's
+			// standard log channel. Trim the override payload to a sane
+			// length to keep log files manageable; full data lives on the
+			// queued_jobs row itself for the lifetime of the queue's
+			// cleanup window.
+			Log::write('info', sprintf(
+				'[QueueScheduler.Override] Row #%d (%s) dispatched ad-hoc as queued_jobs #%d%s. Payload: %s',
+				(int)$row->id,
+				(string)$row->name,
+				(int)$queuedJob->id,
+				isset($overrides['triggered_by']) && $overrides['triggered_by'] !== ''
+					? ' by ' . substr((string)$overrides['triggered_by'], 0, 128)
+					: '',
+				substr(json_encode([
+					'job_data' => $jobData,
+					'job_config' => $config,
+				]) ?: '[]', 0, 4096),
+			));
+
+			// Deliberately do NOT touch last_run / next_run. The override
+			// is an extra dispatch on top of the scheduled cadence; the
+			// cron-fired rail continues to tick at its normal time.
 			return true;
 		});
 	}
