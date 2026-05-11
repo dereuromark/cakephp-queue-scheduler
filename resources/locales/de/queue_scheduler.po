@@ -1,0 +1,78 @@
+# LANGUAGE translation of CakePHP Application
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2026-05-12 00:00+0000\n"
+"PO-Revision-Date: 2026-05-12 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "The job is outside its configured dispatch window. Use \"Run with overrides\" for an ad-hoc exception."
+msgstr "Der Job liegt außerhalb seines konfigurierten Ausführungsfensters. Verwende „Mit Overrides ausführen“ für eine einmalige Ausnahme."
+
+msgid "Dispatch Window (optional)"
+msgstr "Ausführungsfenster (optional)"
+
+msgid "Restrictions configured"
+msgstr "Einschränkungen gesetzt"
+
+msgid "No restrictions"
+msgstr "Keine Einschränkungen"
+
+msgid "Hide"
+msgstr "Ausblenden"
+
+msgid "Configure"
+msgstr "Konfigurieren"
+
+msgid "Start"
+msgstr "Start"
+
+msgid "24h format HH:MM. Leave blank for no lower bound."
+msgstr "24h-Format HH:MM. Leer lassen für keine Untergrenze."
+
+msgid "End"
+msgstr "Ende"
+
+msgid "24h format HH:MM. Earlier than start means overnight."
+msgstr "24h-Format HH:MM. Früher als Start bedeutet über Nacht."
+
+msgid "Mon"
+msgstr "Mo"
+
+msgid "Tue"
+msgstr "Di"
+
+msgid "Wed"
+msgstr "Mi"
+
+msgid "Thu"
+msgstr "Do"
+
+msgid "Fri"
+msgstr "Fr"
+
+msgid "Sat"
+msgstr "Sa"
+
+msgid "Sun"
+msgstr "So"
+
+msgid "Allowed Days"
+msgstr "Erlaubte Tage"
+
+msgid "Leave all unchecked for every day."
+msgstr "Alles abgewählt lassen für jeden Tag."
+
+msgid "Weekday-only example: Mon-Fri."
+msgstr "Beispiel nur werktags: Mo-Fr."
+
+msgid "Run with overrides…"
+msgstr "Mit Overrides ausführen…"

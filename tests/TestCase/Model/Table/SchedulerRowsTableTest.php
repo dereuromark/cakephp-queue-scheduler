@@ -320,6 +320,123 @@ class SchedulerRowsTableTest extends TestCase {
 	/**
 	 * @return void
 	 */
+	public function testValidateWindowFields(): void {
+		$baseData = [
+			'name' => 'Window validation',
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'content' => ExampleTask::class,
+			'frequency' => '@daily',
+		];
+
+		$valid = $this->SchedulerRows->newEntity($baseData + [
+			'window_start_time' => '09:00',
+			'window_end_time' => '18:00',
+			'window_days_of_week' => '1,2,3,4,5',
+		]);
+		$this->assertSame([], $valid->getError('window_start_time'));
+		$this->assertSame([], $valid->getError('window_end_time'));
+		$this->assertSame([], $valid->getError('window_days_of_week'));
+
+		$invalid = $this->SchedulerRows->newEntity($baseData + [
+			'name' => 'Window invalid',
+			'window_start_time' => '24:00',
+			'window_end_time' => '18:61',
+			'window_days_of_week' => '1,foo,8',
+		]);
+		$this->assertNotEmpty($invalid->getError('window_start_time'));
+		$this->assertNotEmpty($invalid->getError('window_end_time'));
+		$this->assertNotEmpty($invalid->getError('window_days_of_week'));
+	}
+
+	/**
+	 * `next_run` should move to the first cron slot inside the configured
+	 * window, not sit in a permanently overdue state until the window opens.
+	 *
+	 * @return void
+	 */
+	public function testCalculateNextRunForCronHonorsWindow(): void {
+		DateTime::setTestNow(new DateTime('2026-05-13 12:34:00'));
+		try {
+			$row = $this->SchedulerRows->newEntity([
+				'name' => 'Windowed cron',
+				'type' => SchedulerRow::TYPE_QUEUE_TASK,
+				'content' => ExampleTask::class,
+				'frequency' => '* * * * *',
+				'window_start_time' => '23:00',
+				'window_end_time' => '23:30',
+			]);
+			$this->SchedulerRows->saveOrFail($row);
+
+			$this->assertNotNull($row->next_run);
+			$this->assertSame('23:00:00', $row->next_run->format('H:i:s'));
+			$this->assertTrue($row->isWithinWindow($row->next_run));
+		} finally {
+			DateTime::setTestNow(new DateTime());
+		}
+	}
+
+	/**
+	 * Interval schedules collapse missed ticks into the first moment the window
+	 * reopens, so `next_run` should advance to that opening instant.
+	 *
+	 * @return void
+	 */
+	public function testCalculateNextRunForIntervalUsesWindowOpening(): void {
+		DateTime::setTestNow(new DateTime('2026-05-13 12:34:00'));
+		try {
+			$row = $this->SchedulerRows->newEntity([
+				'name' => 'Windowed interval',
+				'type' => SchedulerRow::TYPE_QUEUE_TASK,
+				'content' => ExampleTask::class,
+				'frequency' => '+30 seconds',
+				'window_start_time' => '23:00',
+				'window_end_time' => '23:30',
+			]);
+			$this->SchedulerRows->saveOrFail($row);
+
+			$this->assertSame('2026-05-13 23:00:00', $row->next_run?->format('Y-m-d H:i:s'));
+		} finally {
+			DateTime::setTestNow(new DateTime());
+		}
+	}
+
+	/**
+	 * Editing any of the window fields must recompute `next_run`; otherwise the
+	 * stored value drifts from the actual dispatch gate until the row fires.
+	 *
+	 * @return void
+	 */
+	public function testChangingWindowFieldsRecomputesNextRun(): void {
+		DateTime::setTestNow(new DateTime('2026-05-13 12:34:00'));
+		try {
+			$row = $this->SchedulerRows->newEntity([
+				'name' => 'Window retarget',
+				'type' => SchedulerRow::TYPE_QUEUE_TASK,
+				'content' => ExampleTask::class,
+				'frequency' => '* * * * *',
+			]);
+			$this->SchedulerRows->saveOrFail($row);
+			$originalNextRun = $row->next_run;
+			$this->assertNotNull($originalNextRun);
+
+			$row = $this->SchedulerRows->patchEntity($row, [
+				'window_start_time' => '23:00',
+				'window_end_time' => '23:30',
+			]);
+			$this->SchedulerRows->saveOrFail($row);
+
+			$this->assertNotNull($row->next_run);
+			$this->assertNotSame($originalNextRun->format('Y-m-d H:i:s'), $row->next_run->format('Y-m-d H:i:s'));
+			$this->assertSame('23:00:00', $row->next_run->format('H:i:s'));
+			$this->assertTrue($row->isWithinWindow($row->next_run));
+		} finally {
+			DateTime::setTestNow(new DateTime());
+		}
+	}
+
+	/**
+	 * @return void
+	 */
 	public function testValidateContent(): void {
 		$data = [
 			'name' => 'n',

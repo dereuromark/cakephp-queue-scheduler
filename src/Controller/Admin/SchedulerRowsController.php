@@ -3,6 +3,7 @@
 namespace QueueScheduler\Controller\Admin;
 
 use Cake\Http\Response;
+use Cake\I18n\DateTime;
 
 /**
  * Rows Controller
@@ -200,9 +201,13 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 			$ok = $this->SchedulerRows->run($row);
 		}
 
-		$message = $ok
-			? __d('queue_scheduler', 'The job has been added to the queue.')
-			: __d('queue_scheduler', 'The job could not be added to the queue.');
+		if ($ok) {
+			$message = __d('queue_scheduler', 'The job has been added to the queue.');
+		} elseif (!$hasOverride && !$row->isWithinWindow(new DateTime())) {
+			$message = __d('queue_scheduler', 'The job is outside its configured dispatch window. Use "Run with overrides" for an ad-hoc exception.');
+		} else {
+			$message = __d('queue_scheduler', 'The job could not be added to the queue.');
+		}
 
 		if ($this->request->is(['ajax', 'json'])) {
 			return $this->response

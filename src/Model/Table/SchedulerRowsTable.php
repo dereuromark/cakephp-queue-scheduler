@@ -143,6 +143,30 @@ class SchedulerRowsTable extends Table {
 			->allowEmptyDateTime('last_run');
 
 		$validator
+			->allowEmptyString('window_start_time')
+			->add('window_start_time', 'validateWindowTime', [
+				'rule' => 'validateWindowTime',
+				'provider' => 'table',
+				'message' => __d('queue_scheduler', 'Window start time must be a valid time like 09:00.'),
+			]);
+
+		$validator
+			->allowEmptyString('window_end_time')
+			->add('window_end_time', 'validateWindowTime', [
+				'rule' => 'validateWindowTime',
+				'provider' => 'table',
+				'message' => __d('queue_scheduler', 'Window end time must be a valid time like 18:00.'),
+			]);
+
+		$validator
+			->allowEmptyString('window_days_of_week')
+			->add('window_days_of_week', 'validateWindowDaysOfWeek', [
+				'rule' => 'validateWindowDaysOfWeek',
+				'provider' => 'table',
+				'message' => __d('queue_scheduler', 'Window days must be a comma-separated list of 0-6 values, e.g. "1,2,3,4,5".'),
+			]);
+
+		$validator
 			->boolean('allow_concurrent')
 			->notEmptyString('allow_concurrent');
 
@@ -294,6 +318,7 @@ class SchedulerRowsTable extends Table {
 		$this->adjustQueueTask($data);
 		$this->adjustCakeCommand($data);
 		$this->adjustParam($data);
+		$this->adjustWindowFields($data);
 	}
 
 	/**
@@ -322,6 +347,48 @@ class SchedulerRowsTable extends Table {
 		if (is_array($decoded) && !$decoded) {
 			$data['param'] = '';
 		}
+	}
+
+	/**
+	 * @param \ArrayObject $data
+	 * @return void
+	 */
+	protected function adjustWindowFields(ArrayObject $data): void {
+		foreach (['window_start_time', 'window_end_time'] as $field) {
+			if (array_key_exists($field, (array)$data) && $data[$field] === '') {
+				$data[$field] = null;
+			}
+		}
+
+		if (!array_key_exists('window_days_of_week', (array)$data)) {
+			return;
+		}
+
+		$value = $data['window_days_of_week'];
+		if (is_array($value)) {
+			$value = implode(',', $value);
+		}
+		if (!is_string($value)) {
+			return;
+		}
+
+		$rawParts = array_map('trim', explode(',', $value));
+		$parts = [];
+		foreach ($rawParts as $part) {
+			if ($part === '') {
+				continue;
+			}
+			$parts[$part] = $part;
+		}
+		$parts = array_keys($parts);
+		sort($parts);
+		if ($parts === ['0', '1', '2', '3', '4', '5', '6']) {
+			$data['window_days_of_week'] = null;
+
+			return;
+		}
+
+		$data['window_days_of_week'] = $parts ? implode(',', $parts) : null;
 	}
 
 	/**
@@ -378,7 +445,14 @@ class SchedulerRowsTable extends Table {
 	 * @return void
 	 */
 	public function beforeSave(EventInterface $event, EntityInterface $entity, ArrayObject $options): void {
-		if ($entity->next_run === null || $entity->isDirty('frequency') || $entity->isDirty('last_run')) {
+		if (
+			$entity->next_run === null
+			|| $entity->isDirty('frequency')
+			|| $entity->isDirty('last_run')
+			|| $entity->isDirty('window_start_time')
+			|| $entity->isDirty('window_end_time')
+			|| $entity->isDirty('window_days_of_week')
+		) {
 			$entity->next_run = $entity->calculateNextRun();
 		}
 	}
@@ -415,6 +489,9 @@ class SchedulerRowsTable extends Table {
 	public function run(SchedulerRow $row): bool {
 		if ($row->job_task === null) {
 			throw new RuntimeException('Cannot add job task for ' . $row->name);
+		}
+		if (!$row->isWithinWindow(new DateTime())) {
+			return false;
 		}
 
 		// Wrap the whole isQueued → createJob → save chain in a transaction
@@ -580,6 +657,52 @@ class SchedulerRowsTable extends Table {
 		}
 
 		return $query->count() === 0;
+	}
+
+	/**
+	 * @param mixed $value
+	 * @return bool
+	 */
+	public function validateWindowTime(mixed $value): bool {
+		if ($value === null || $value === '') {
+			return true;
+		}
+		if (is_object($value) && method_exists($value, 'format')) {
+			return true;
+		}
+		if (!is_string($value)) {
+			return false;
+		}
+
+		return preg_match('/^(?:[01]?\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/', $value) === 1;
+	}
+
+	/**
+	 * @param mixed $value
+	 * @return bool
+	 */
+	public function validateWindowDaysOfWeek(mixed $value): bool {
+		if ($value === null || $value === '') {
+			return true;
+		}
+		if (!is_string($value)) {
+			return false;
+		}
+
+		$parts = array_map('trim', explode(',', $value));
+		$seen = [];
+		foreach ($parts as $part) {
+			if ($part === '' || !ctype_digit($part)) {
+				return false;
+			}
+			$day = (int)$part;
+			if ($day < 0 || $day > 6) {
+				return false;
+			}
+			$seen[$day] = true;
+		}
+
+		return true;
 	}
 
 	/**

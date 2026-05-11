@@ -4,6 +4,7 @@ namespace QueueScheduler\Test\TestCase\Controller\Admin;
 
 use Cake\Core\Configure;
 use Cake\Http\Exception\ForbiddenException;
+use Cake\I18n\DateTime;
 use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 
@@ -217,6 +218,9 @@ class SchedulerRowsControllerTest extends TestCase {
 		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'add']);
 
 		$this->assertResponseCode(200);
+		$this->assertResponseContains('window-start-time');
+		$this->assertResponseContains('window-end-time');
+		$this->assertResponseContains('window-days-of-week');
 	}
 
 	/**
@@ -228,6 +232,9 @@ class SchedulerRowsControllerTest extends TestCase {
 		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'edit', 1]);
 
 		$this->assertResponseCode(200);
+		$this->assertResponseContains('window-start-time');
+		$this->assertResponseContains('window-end-time');
+		$this->assertResponseContains('window-days-of-week');
 	}
 
 	/**
@@ -242,6 +249,44 @@ class SchedulerRowsControllerTest extends TestCase {
 
 		$queuedJob = $this->fetchTable('Queue.QueuedJobs')->find()->orderByDesc('id')->firstOrFail();
 		$this->assertSame('queue-scheduler-1', $queuedJob->reference);
+	}
+
+	/**
+	 * Scheduled/manual dispatch should respect the configured window. The
+	 * queue remains untouched and the user gets a targeted flash message.
+	 *
+	 * @return void
+	 */
+	public function testRunOutsideWindowIsBlocked(): void {
+		$this->disableErrorHandlerMiddleware();
+		$this->enableRetainFlashMessages();
+
+		DateTime::setTestNow(new DateTime('2026-05-13 12:00:00'));
+		try {
+			$rowsTable = $this->fetchTable('QueueScheduler.SchedulerRows');
+			$row = $rowsTable->newEntity([
+				'name' => 'Windowed run target',
+				'type' => 0,
+				'content' => 'Queue\\Queue\\Task\\ExampleTask',
+				'frequency' => '* * * * *',
+				'window_start_time' => '23:00',
+				'window_end_time' => '23:30',
+				'enabled' => 1,
+			]);
+			$rowsTable->saveOrFail($row);
+
+			$queuedJobsTable = $this->fetchTable('Queue.QueuedJobs');
+			$before = $queuedJobsTable->find()->count();
+
+			$this->post(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'run', $row->id]);
+
+			$this->assertResponseCode(302);
+			$this->assertSame($before, $queuedJobsTable->find()->count());
+			$row = $rowsTable->get($row->id);
+			$this->assertNull($row->get('last_run'));
+		} finally {
+			DateTime::setTestNow(new DateTime());
+		}
 	}
 
 	/**
@@ -284,6 +329,45 @@ class SchedulerRowsControllerTest extends TestCase {
 			$after->last_run ? $after->last_run->format('Y-m-d H:i:s') : null,
 			'override dispatch must not advance last_run',
 		);
+	}
+
+	/**
+	 * Override dispatch is the explicit escape hatch for ad-hoc reruns, so it
+	 * stays available even when the normal dispatch window is currently closed.
+	 *
+	 * @return void
+	 */
+	public function testRunWithOverrideBypassesWindowGate(): void {
+		$this->disableErrorHandlerMiddleware();
+
+		DateTime::setTestNow(new DateTime('2026-05-13 12:00:00'));
+		try {
+			$rowsTable = $this->fetchTable('QueueScheduler.SchedulerRows');
+			$row = $rowsTable->newEntity([
+				'name' => 'Window override target',
+				'type' => 0,
+				'content' => 'Queue\\Queue\\Task\\ExampleTask',
+				'frequency' => '* * * * *',
+				'window_start_time' => '23:00',
+				'window_end_time' => '23:30',
+				'enabled' => 1,
+				'allow_concurrent' => 1,
+			]);
+			$rowsTable->saveOrFail($row);
+
+			$this->post(
+				['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'run', $row->id],
+				['override_param' => '{"tenant_id":123}'],
+			);
+
+			$this->assertResponseCode(302);
+
+			$queuedJob = $this->fetchTable('Queue.QueuedJobs')->find()->orderByDesc('id')->firstOrFail();
+			$payload = is_array($queuedJob->data) ? $queuedJob->data : json_decode((string)$queuedJob->data, true);
+			$this->assertSame(['tenant_id' => 123], $payload);
+		} finally {
+			DateTime::setTestNow(new DateTime());
+		}
 	}
 
 	/**
