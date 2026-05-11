@@ -30,6 +30,9 @@ $action = $request ? $request->getParam('action') : '';
 	<div class="px-3 mt-3 mb-2">
 		<small class="text-white-50 text-uppercase fw-semibold"><?= __d('queue_scheduler', 'Reference') ?></small>
 	</div>
+	<a class="nav-link text-white<?= $controller === 'QueueScheduler' && $action === 'available' ? ' bg-primary rounded-0' : '' ?>" href="<?= $this->Url->build(['plugin' => 'QueueScheduler', 'prefix' => 'Admin', 'controller' => 'QueueScheduler', 'action' => 'available']) ?>">
+		<i class="fas fa-list me-2"></i><?= __d('queue_scheduler', 'Commands & Tasks') ?>
+	</a>
 	<a class="nav-link text-white<?= $controller === 'QueueScheduler' && $action === 'intervals' ? ' bg-primary rounded-0' : '' ?>" href="<?= $this->Url->build(['plugin' => 'QueueScheduler', 'prefix' => 'Admin', 'controller' => 'QueueScheduler', 'action' => 'intervals']) ?>">
 		<i class="fas fa-clock me-2"></i><?= __d('queue_scheduler', 'Intervals Help') ?>
 	</a>
