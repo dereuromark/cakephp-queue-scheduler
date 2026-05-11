@@ -30,6 +30,7 @@ class SchedulerRowsTableTest extends TestCase {
 	 */
 	protected array $fixtures = [
 		'plugin.QueueScheduler.SchedulerRows',
+		'plugin.Queue.QueuedJobs',
 	];
 
 	/**
@@ -489,6 +490,61 @@ class SchedulerRowsTableTest extends TestCase {
 	 * Real values pass through unchanged — the normalizer only fires on
 	 * decoded-empty arrays.
 	 *
+	 * @return void
+	 */
+	/**
+	 * Regression: `run()` wraps the isQueued → createJob → save chain in a
+	 * transaction with a compare-and-swap on `last_run`. Two scheduler ticks
+	 * landing on the same row simultaneously must result in EXACTLY ONE
+	 * queued job, with the second `run()` call returning false.
+	 *
+	 * Simulated here by calling `run()` twice in sequence and reloading the
+	 * row in between; the second call sees a `last_run` that no longer
+	 * matches the first call's snapshot, so the compare-and-swap loses the
+	 * race and rolls back the duplicate queued job.
+	 *
+	 * @return void
+	 */
+	public function testRunIsIdempotentAcrossOverlappingTicks(): void {
+		$this->loadPlugins(['Queue']);
+		$row = $this->SchedulerRows->newEntity([
+			'name' => 'race-target',
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'content' => ExampleTask::class,
+			'job_config' => null,
+			'job_data' => '',
+			'frequency' => '+1 hour',
+			'allow_concurrent' => false,
+		]);
+		$this->SchedulerRows->saveOrFail($row);
+		$row = $this->SchedulerRows->get($row->id);
+		$originalLastRun = $row->last_run;
+
+		// First tick — should enqueue and advance last_run.
+		$this->assertTrue($this->SchedulerRows->run($row));
+		$row = $this->SchedulerRows->get($row->id);
+		$this->assertNotSame($originalLastRun, $row->last_run);
+		$firstQueuedId = $row->last_queued_job_id;
+		$this->assertNotNull($firstQueuedId);
+
+		$queuedJobsTable = $this->getTableLocator()->get('Queue.QueuedJobs');
+		$this->assertSame(1, $queuedJobsTable->find()->count());
+
+		// Simulate the racing tick: reload a *stale* copy of the row and call
+		// run() against it. The compare-and-swap on `last_run IS $oldLastRun`
+		// must reject the second write, and the queued job we just inserted
+		// in the racing call must be rolled back.
+		$staleRow = $this->SchedulerRows->get($row->id);
+		// Re-stamp the in-memory copy back to the pre-first-run snapshot so
+		// the racing call thinks it saw the original last_run.
+		$staleRow->last_run = $originalLastRun;
+		$result = $this->SchedulerRows->run($staleRow);
+
+		$this->assertFalse($result, 'losing tick must return false');
+		$this->assertSame(1, $queuedJobsTable->find()->count(), 'losing tick must not leave an orphan queued job');
+	}
+
+	/**
 	 * @return void
 	 */
 	public function testNonEmptyParamIsLeftAlone(): void {

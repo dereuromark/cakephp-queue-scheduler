@@ -99,19 +99,27 @@ class SchedulerRow extends Entity {
 	 */
 	public function isDue(): bool {
 		$nextRun = $this->next_run;
+		$lastRun = $this->last_run;
 
 		$dateTime = new DateTime();
 		if ($nextRun) {
-			return $nextRun->timestamp <= $dateTime->timestamp;
+			// Don't trust `next_run` alone — if a previous tick already executed
+			// this row but the dispatcher crashed before advancing `next_run`,
+			// the row would re-fire on every subsequent tick. Once `last_run`
+			// has caught up to (or past) the scheduled slot, ignore the stale
+			// `next_run` and fall through to recompute from the frequency.
+			if ($lastRun === null || $lastRun->timestamp < $nextRun->timestamp) {
+				return $nextRun->timestamp <= $dateTime->timestamp;
+			}
 		}
 
 		$nextInterval = $this->calculateNextInterval();
 		if ($nextInterval) {
-			if ($this->last_run === null) {
+			if ($lastRun === null) {
 				return true;
 			}
 
-			return $this->last_run->add($nextInterval)->timestamp <= $dateTime->timestamp;
+			return $lastRun->add($nextInterval)->timestamp <= $dateTime->timestamp;
 		}
 
 		return (new CronExpression(static::normalizeCronExpression($this->frequency)))->isDue($dateTime->toDateTimeString());
