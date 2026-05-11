@@ -416,21 +416,62 @@ class SchedulerRowsTable extends Table {
 			throw new RuntimeException('Cannot add job task for ' . $row->name);
 		}
 
+		// Wrap the whole isQueued → createJob → save chain in a transaction
+		// AND guard the row update with a compare-and-swap on `last_run`. Two
+		// scheduler ticks landing within the same second on different hosts
+		// (or even the same host with parallel cron) would otherwise both
+		// observe `isQueued() === false`, both `createJob()`, and both write
+		// `last_run`. The `updateAll(..., ['id' => $row->id, 'last_run IS' => $oldLastRun])`
+		// makes the second writer a no-op: if zero rows are updated we have
+		// lost the race, so we delete the queued job we just inserted and
+		// return false. The transaction ensures the createJob → updateAll
+		// pair is atomic and rolled back together on failure.
 		$config = $row->job_config;
 		$config['reference'] = $row->job_reference;
+		$oldLastRun = $row->last_run;
 
-		/** @var \Queue\Model\Table\QueuedJobsTable $queuedJobsTable */
-		$queuedJobsTable = TableRegistry::getTableLocator()->get('Queue.QueuedJobs');
-		if (!$row->allow_concurrent && $queuedJobsTable->isQueued($row->job_reference, $row->job_task)) {
-			return false;
-		}
+		return $this->getConnection()->transactional(function () use ($row, $config, $oldLastRun): bool {
+			/** @var \Queue\Model\Table\QueuedJobsTable $queuedJobsTable */
+			$queuedJobsTable = TableRegistry::getTableLocator()->get('Queue.QueuedJobs');
+			if (!$row->allow_concurrent && $queuedJobsTable->isQueued($row->job_reference, $row->job_task)) {
+				return false;
+			}
 
-		$queuedJob = $queuedJobsTable->createJob($row->job_task, $row->job_data, $config);
-		$row->last_run = new DateTime();
-		$row->last_queued_job_id = $queuedJob->id;
-		$this->saveOrFail($row);
+			$queuedJob = $queuedJobsTable->createJob($row->job_task, $row->job_data, $config);
 
-		return true;
+			$now = new DateTime();
+			$updated = $this->updateAll(
+				[
+					'last_run' => $now,
+					'last_queued_job_id' => $queuedJob->id,
+				],
+				[
+					'id' => $row->id,
+					'last_run IS' => $oldLastRun,
+				],
+			);
+			if ($updated === 0) {
+				// Lost the race: another tick advanced `last_run` between our
+				// isQueued() check and the updateAll. Discard the queued job
+				// to keep things idempotent for the caller.
+				$queuedJobsTable->deleteAll(['id' => $queuedJob->id]);
+
+				return false;
+			}
+
+			$row->last_run = $now;
+			$row->last_queued_job_id = $queuedJob->id;
+			// next_run is recomputed by beforeSave when last_run is dirty; the
+			// updateAll bypassed that, so do it explicitly to keep persistent
+			// state consistent without re-running the full save pipeline.
+			$row->next_run = $row->calculateNextRun();
+			$this->updateAll(
+				['next_run' => $row->next_run],
+				['id' => $row->id],
+			);
+
+			return true;
+		});
 	}
 
 	/**

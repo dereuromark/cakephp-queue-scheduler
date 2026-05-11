@@ -48,6 +48,45 @@ class SchedulerRowTest extends TestCase {
 	}
 
 	/**
+	 * Regression: a stale `next_run` whose timestamp lies in the past but
+	 * which has already been honoured by a previous tick (last_run >= next_run)
+	 * must NOT re-fire the row every subsequent tick. Without this guard a
+	 * dispatcher crash between createJob() and the next_run-update would
+	 * leave the row in an "always due" state forever.
+	 *
+	 * @return void
+	 */
+	public function testIsNotDueWhenLastRunAlreadyCaughtUpToNextRun(): void {
+		$row = new SchedulerRow([
+			'frequency' => '+5 minutes',
+			'next_run' => (new DateTime())->subSeconds(120),
+			'last_run' => (new DateTime())->subSeconds(60),
+		]);
+
+		// next_run is in the past, but last_run is more recent — the row
+		// already fired for that scheduled slot. Fall through to the
+		// frequency calculation: 60s ago + 5min < now, so still not due.
+		$this->assertFalse($row->isDue());
+	}
+
+	/**
+	 * Mirror of the regression above: when next_run is in the past AND
+	 * last_run is older than next_run, the row has NOT yet fired for that
+	 * slot — must still be due.
+	 *
+	 * @return void
+	 */
+	public function testIsDueWhenLastRunPredatesNextRun(): void {
+		$row = new SchedulerRow([
+			'frequency' => '+5 minutes',
+			'next_run' => (new DateTime())->subSeconds(60),
+			'last_run' => (new DateTime())->subSeconds(600),
+		]);
+
+		$this->assertTrue($row->isDue());
+	}
+
+	/**
 	 * @return void
 	 */
 	public function testIsDueWhenNextRunInFuture(): void {
