@@ -5,8 +5,11 @@ namespace QueueScheduler;
 use Cake\Console\CommandCollection;
 use Cake\Core\BasePlugin;
 use Cake\Core\ContainerInterface;
+use Cake\Core\PluginApplicationInterface;
+use Cake\Event\EventManager;
 use Cake\Routing\RouteBuilder;
 use QueueScheduler\Command\RunCommand;
+use QueueScheduler\Event\QueueJobListener;
 
 /**
  * Plugin for QueueScheduler
@@ -16,7 +19,20 @@ class QueueSchedulerPlugin extends BasePlugin {
 	/**
 	 * @var bool
 	 */
-	protected bool $bootstrapEnabled = false;
+	protected bool $bootstrapEnabled = true;
+
+	/**
+	 * Hook the Queue.Job.completed / failed / maxAttemptsExhausted events
+	 * so the run-history table follows what queue workers actually did.
+	 *
+	 * @param \Cake\Core\PluginApplicationInterface $app
+	 *
+	 * @return void
+	 */
+	public function bootstrap(PluginApplicationInterface $app): void {
+		parent::bootstrap($app);
+		EventManager::instance()->on(new QueueJobListener());
+	}
 
 	/**
 	 * @var bool

@@ -470,6 +470,18 @@ class SchedulerRowsTable extends Table {
 				['id' => $row->id],
 			);
 
+			// Append a history row. Wrapped in try/catch so a missing/migrated
+			// runs table doesn't break job dispatch — the run still happens,
+			// the history entry just doesn't. Apps that haven't run the
+			// run-history migration yet get a noop here.
+			try {
+				/** @var \QueueScheduler\Model\Table\SchedulerRunsTable $runs */
+				$runs = TableRegistry::getTableLocator()->get('QueueScheduler.SchedulerRuns');
+				$runs->recordDispatch((int)$row->id, (int)$queuedJob->id);
+			} catch (Exception $e) {
+				// Swallow — the dispatch already committed, history is best-effort.
+			}
+
 			return true;
 		});
 	}
