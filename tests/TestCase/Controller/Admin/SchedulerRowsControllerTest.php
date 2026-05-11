@@ -22,6 +22,20 @@ class SchedulerRowsControllerTest extends TestCase {
 	];
 
 	/**
+	 * The `queued_jobs` table is owned by the Queue plugin and is not
+	 * fixture-managed here, so leftover rows from one test can bleed into
+	 * the next (e.g. an allow_concurrent=false row whose reference still
+	 * has a queued job from a sibling test gets blocked from dispatching).
+	 * Truncate once per test to keep the suite order-independent.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		$this->fetchTable('Queue.QueuedJobs')->deleteAll(['1=1']);
+	}
+
+	/**
 	 * Test index method
 	 *
 	 * @return void
@@ -228,6 +242,80 @@ class SchedulerRowsControllerTest extends TestCase {
 
 		$queuedJob = $this->fetchTable('Queue.QueuedJobs')->find()->orderByDesc('id')->firstOrFail();
 		$this->assertSame('queue-scheduler-1', $queuedJob->reference);
+	}
+
+	/**
+	 * Submitting `override_param` with a valid JSON object routes through
+	 * runOnce(): the queued job's data reflects the override payload and
+	 * the row's last_run / next_run stay frozen.
+	 *
+	 * @return void
+	 */
+	public function testRunWithJobDataOverrideUsesRunOnce(): void {
+		$this->disableErrorHandlerMiddleware();
+
+		$rowsTable = $this->fetchTable('QueueScheduler.SchedulerRows');
+		$row = $rowsTable->newEntity([
+			'name' => 'Override Target',
+			'type' => 0,
+			'content' => 'Queue\\Queue\\Task\\ExampleTask',
+			'frequency' => '+ 30 seconds',
+			'enabled' => 1,
+			'last_run' => '2024-01-15 12:00:00',
+			'allow_concurrent' => 1,
+		]);
+		$rowsTable->saveOrFail($row);
+		$before = $rowsTable->get($row->id);
+
+		$this->post(
+			['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'run', $row->id],
+			['override_param' => '{"tenant_id":99}'],
+		);
+
+		$this->assertResponseCode(302);
+
+		$queuedJob = $this->fetchTable('Queue.QueuedJobs')->find()->orderByDesc('id')->firstOrFail();
+		$payload = is_array($queuedJob->data) ? $queuedJob->data : json_decode((string)$queuedJob->data, true);
+		$this->assertSame(['tenant_id' => 99], $payload);
+
+		$after = $rowsTable->get($row->id);
+		$this->assertSame(
+			$before->last_run ? $before->last_run->format('Y-m-d H:i:s') : null,
+			$after->last_run ? $after->last_run->format('Y-m-d H:i:s') : null,
+			'override dispatch must not advance last_run',
+		);
+	}
+
+	/**
+	 * Invalid override JSON must be rejected with a flash error rather than
+	 * silently swallowed or 500-ing. No job is enqueued.
+	 *
+	 * @return void
+	 */
+	public function testRunWithInvalidOverrideFlashesError(): void {
+		$this->disableErrorHandlerMiddleware();
+		$this->enableRetainFlashMessages();
+
+		$rowsTable = $this->fetchTable('QueueScheduler.SchedulerRows');
+		$row = $rowsTable->newEntity([
+			'name' => 'Override Target',
+			'type' => 0,
+			'content' => 'Queue\\Queue\\Task\\ExampleTask',
+			'frequency' => '+ 30 seconds',
+			'enabled' => 1,
+		]);
+		$rowsTable->saveOrFail($row);
+
+		$queuedJobsTable = $this->fetchTable('Queue.QueuedJobs');
+		$before = $queuedJobsTable->find()->count();
+
+		$this->post(
+			['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'run', $row->id],
+			['override_param' => '{not json}'],
+		);
+
+		$this->assertResponseCode(302);
+		$this->assertSame($before, $queuedJobsTable->find()->count(), 'No job should have been queued for a rejected override.');
 	}
 
 	/**

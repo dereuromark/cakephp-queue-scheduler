@@ -155,6 +155,20 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 	}
 
 	/**
+	 * Trigger a row manually.
+	 *
+	 * Plain POST: dispatches the row as configured, exactly like a cron
+	 * tick. Advances `last_run` / `next_run` and uses the row's stored
+	 * `param` and `job_config`.
+	 *
+	 * POST with `override_param` or `override_job_config` in the body:
+	 * dispatches once with the overridden values without touching
+	 * `last_run` / `next_run`. Useful for incident-response re-runs
+	 * (e.g. "rerun yesterday's batch with a different date range").
+	 * The override is logged at info level — see
+	 * `SchedulerRowsTable::runOnce()`. Empty strings on either override
+	 * field fall back to the row's stored value.
+	 *
 	 * @param string|null $id Row id.
 	 *
 	 * @return \Cake\Http\Response|null Redirects to index, or JSON when the
@@ -164,7 +178,28 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 	public function run(?string $id = null): ?Response {
 		$this->request->allowMethod(['post']);
 		$row = $this->SchedulerRows->get($id);
-		$ok = $this->SchedulerRows->run($row);
+
+		$overrideParam = $this->request->getData('override_param');
+		$overrideJobConfig = $this->request->getData('override_job_config');
+		$hasOverride = (is_string($overrideParam) && $overrideParam !== '')
+			|| (is_string($overrideJobConfig) && $overrideJobConfig !== '');
+
+		if ($hasOverride) {
+			$overrides = $this->parseRunOverrides($row, $overrideParam, $overrideJobConfig);
+			if (is_string($overrides)) {
+				$this->Flash->error($overrides);
+
+				return $this->redirect($this->referer(['action' => 'view', $id]));
+			}
+			$identity = $this->request->getAttribute('identity');
+			if (is_object($identity) && method_exists($identity, 'getIdentifier')) {
+				$overrides['triggered_by'] = (string)$identity->getIdentifier();
+			}
+			$ok = $this->SchedulerRows->runOnce($row, $overrides);
+		} else {
+			$ok = $this->SchedulerRows->run($row);
+		}
+
 		$message = $ok
 			? __d('queue_scheduler', 'The job has been added to the queue.')
 			: __d('queue_scheduler', 'The job could not be added to the queue.');
@@ -182,6 +217,47 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 		}
 
 		return $this->redirect($this->referer(['action' => 'view', $id]));
+	}
+
+	/**
+	 * Validate + parse the ad-hoc override fields from the run() POST body.
+	 *
+	 * Re-uses the same JSON-shape validators the save path uses
+	 * (`validateParam`, `validateJobConfig`) so an override that wouldn't be
+	 * a valid stored value also can't be dispatched ad-hoc. Returns either
+	 * the parsed overrides array (success) or an error message string
+	 * (failure) so the caller can surface it as a flash.
+	 *
+	 * @param \QueueScheduler\Model\Entity\SchedulerRow $row
+	 * @param mixed $overrideParam Raw POST value for the param override.
+	 * @param mixed $overrideJobConfig Raw POST value for the job_config override.
+	 *
+	 * @return array{job_data?: array<mixed>|null, job_config?: array<string, mixed>|null}|string
+	 */
+	protected function parseRunOverrides(mixed $row, mixed $overrideParam, mixed $overrideJobConfig): array|string {
+		$overrides = [];
+
+		if (is_string($overrideParam) && $overrideParam !== '') {
+			$context = ['data' => ['type' => $row->type]];
+			$result = $this->SchedulerRows->validateParam($overrideParam, $context);
+			if ($result !== true) {
+				return is_string($result)
+					? __d('queue_scheduler', 'Invalid param override: {0}', $result)
+					: __d('queue_scheduler', 'Invalid param override JSON.');
+			}
+			$decoded = json_decode($overrideParam, true);
+			$overrides['job_data'] = is_array($decoded) ? $decoded : null;
+		}
+
+		if (is_string($overrideJobConfig) && $overrideJobConfig !== '') {
+			if (!$this->SchedulerRows->validateJobConfig($overrideJobConfig, ['data' => []])) {
+				return __d('queue_scheduler', 'Invalid job_config override — must be a JSON object with allowed keys (priority, group).');
+			}
+			$decoded = json_decode($overrideJobConfig, true);
+			$overrides['job_config'] = is_array($decoded) ? $decoded : null;
+		}
+
+		return $overrides;
 	}
 
 	/**

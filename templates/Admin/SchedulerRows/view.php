@@ -8,6 +8,7 @@
 
 $intervalSec = $row->calculateIntervalSeconds();
 $frequencyDescription = $row->getFrequencyDescription();
+$isQueueTask = $row->type === \QueueScheduler\Model\Entity\SchedulerRow::TYPE_QUEUE_TASK;
 ?>
 <div class="scheduler-rows-view">
 	<div class="d-flex justify-content-between align-items-center mb-4">
@@ -32,6 +33,11 @@ $frequencyDescription = $row->getFrequencyDescription();
 					],
 				],
 			) ?>
+			<?php if ($isQueueTask) { ?>
+				<button type="button" class="btn btn-outline-success me-2" data-bs-toggle="collapse" data-bs-target="#scheduler-run-override" aria-expanded="false" aria-controls="scheduler-run-override">
+					<i class="fas fa-sliders-h me-1"></i><?= __d('queue_scheduler', 'Run with overrides…') ?>
+				</button>
+			<?php } ?>
 			<?= $this->Form->postButton(
 				'<i class="fas fa-trash me-1"></i>' . __d('queue_scheduler', 'Delete'),
 				['action' => 'delete', $row->id],
@@ -46,6 +52,55 @@ $frequencyDescription = $row->getFrequencyDescription();
 			) ?>
 		</div>
 	</div>
+
+	<?php if ($isQueueTask) { ?>
+		<div class="collapse mb-4" id="scheduler-run-override">
+			<div class="card border-success">
+				<div class="card-header bg-success-subtle">
+					<i class="fas fa-sliders-h me-2"></i><?= __d('queue_scheduler', 'Ad-hoc trigger with overrides') ?>
+				</div>
+				<div class="card-body">
+					<p class="text-muted small mb-3">
+						<?= __d('queue_scheduler', 'This dispatches the job once with the values below, in addition to the normal schedule. {0}last_run{1} and {0}next_run{1} are NOT advanced, so the row keeps firing on its regular cadence. Each override dispatch is logged at info level. Leave a field blank to use the row\'s stored value.', '<code>', '</code>') ?>
+					</p>
+					<?= $this->Form->create(null, [
+						'url' => ['action' => 'run', $row->id],
+						'class' => 'js-scheduler-run-form',
+						'data-confirm-message' => __d('queue_scheduler', 'Dispatch this job once with the overrides below?'),
+					]) ?>
+					<div class="row">
+						<div class="col-md-6 mb-3">
+							<?= $this->Form->control('override_param', [
+								'type' => 'textarea',
+								'label' => __d('queue_scheduler', 'Param override (JSON)'),
+								'placeholder' => '{"tenant_id": 42}',
+								'value' => $row->param,
+								'rows' => 4,
+								'class' => 'form-control font-monospace',
+								'help' => __d('queue_scheduler', 'Sent as the queue job payload. Must be a valid JSON object.'),
+							]) ?>
+						</div>
+						<div class="col-md-6 mb-3">
+							<?= $this->Form->control('override_job_config', [
+								'type' => 'textarea',
+								'label' => __d('queue_scheduler', 'Job config override (JSON)'),
+								'placeholder' => '{"priority": 1}',
+								'value' => $row->job_config ? (string)json_encode($row->job_config) : '',
+								'rows' => 4,
+								'class' => 'form-control font-monospace',
+								'help' => __d('queue_scheduler', 'Allowed keys: priority (1-10), group. Merged on top of the row\'s stored job_config.'),
+							]) ?>
+						</div>
+					</div>
+					<?= $this->Form->button(
+						'<i class="fas fa-play me-1"></i>' . __d('queue_scheduler', 'Dispatch override now'),
+						['class' => 'btn btn-success', 'escapeTitle' => false, 'type' => 'submit'],
+					) ?>
+					<?= $this->Form->end() ?>
+				</div>
+			</div>
+		</div>
+	<?php } ?>
 
 	<div class="row">
 		<div class="col-lg-6 mb-4">

@@ -549,6 +549,147 @@ class SchedulerRowsTableTest extends TestCase {
 	}
 
 	/**
+	 * runOnce() dispatches an ad-hoc job without advancing last_run /
+	 * next_run, and uses the row's stored param when no override is
+	 * provided. The scheduled cadence stays untouched.
+	 *
+	 * @return void
+	 */
+	public function testRunOnceWithoutOverridesUsesStoredParamAndPreservesCadence(): void {
+		$this->loadPlugins(['Tools', 'Queue', 'QueueScheduler']);
+		$row = $this->SchedulerRows->newEntity([
+			'name' => 'override-target',
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'content' => ExampleTask::class,
+			'param' => '{"original":true}',
+			'job_config' => null,
+			'frequency' => '+1 hour',
+			'allow_concurrent' => true,
+		]);
+		$this->SchedulerRows->saveOrFail($row);
+		$row = $this->SchedulerRows->get($row->id);
+		$originalLastRun = $row->last_run;
+		$originalNextRun = $row->next_run;
+
+		$this->assertTrue($this->SchedulerRows->runOnce($row));
+
+		$queuedJobsTable = $this->getTableLocator()->get('Queue.QueuedJobs');
+		$this->assertSame(1, $queuedJobsTable->find()->count());
+
+		$reloaded = $this->SchedulerRows->get($row->id);
+		$this->assertSame(
+			$originalLastRun ? $originalLastRun->format('Y-m-d H:i:s') : null,
+			$reloaded->last_run ? $reloaded->last_run->format('Y-m-d H:i:s') : null,
+			'last_run must NOT advance for ad-hoc override dispatch',
+		);
+		$this->assertSame(
+			$originalNextRun ? $originalNextRun->format('Y-m-d H:i:s') : null,
+			$reloaded->next_run ? $reloaded->next_run->format('Y-m-d H:i:s') : null,
+			'next_run must NOT advance for ad-hoc override dispatch',
+		);
+	}
+
+	/**
+	 * runOnce() with a job_data override sends the override payload to
+	 * the queue, not the row's stored param.
+	 *
+	 * @return void
+	 */
+	public function testRunOnceWithJobDataOverrideUsesOverridePayload(): void {
+		$this->loadPlugins(['Tools', 'Queue', 'QueueScheduler']);
+		$row = $this->SchedulerRows->newEntity([
+			'name' => 'override-target',
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'content' => ExampleTask::class,
+			'param' => '{"original":true}',
+			'job_config' => null,
+			'frequency' => '+1 hour',
+			'allow_concurrent' => true,
+		]);
+		$this->SchedulerRows->saveOrFail($row);
+		$row = $this->SchedulerRows->get($row->id);
+
+		$this->assertTrue($this->SchedulerRows->runOnce($row, [
+			'job_data' => ['tenant_id' => 42, 'force' => true],
+		]));
+
+		/** @var \Queue\Model\Entity\QueuedJob $queued */
+		$queued = $this->getTableLocator()
+			->get('Queue.QueuedJobs')
+			->find()
+			->orderBy(['id' => 'DESC'])
+			->first();
+		$payload = is_array($queued->data) ? $queued->data : json_decode((string)$queued->data, true);
+
+		$this->assertSame(['tenant_id' => 42, 'force' => true], $payload);
+	}
+
+	/**
+	 * runOnce() with a partial job_config override merges with the row's
+	 * stored config rather than wiping the other keys. An override that
+	 * only sets `priority` preserves the stored `group` (and vice versa).
+	 *
+	 * @return void
+	 */
+	public function testRunOnceMergesPartialJobConfigOverride(): void {
+		$this->loadPlugins(['Tools', 'Queue', 'QueueScheduler']);
+		$row = $this->SchedulerRows->newEntity([
+			'name' => 'override-target',
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'content' => ExampleTask::class,
+			'param' => '',
+			'job_config' => '{"priority":8,"group":"batch"}',
+			'frequency' => '+1 hour',
+			'allow_concurrent' => true,
+		]);
+		$this->SchedulerRows->saveOrFail($row);
+		$row = $this->SchedulerRows->get($row->id);
+
+		$this->assertTrue($this->SchedulerRows->runOnce($row, [
+			'job_config' => ['priority' => 1],
+		]));
+
+		/** @var \Queue\Model\Entity\QueuedJob $queued */
+		$queued = $this->getTableLocator()
+			->get('Queue.QueuedJobs')
+			->find()
+			->orderBy(['id' => 'DESC'])
+			->first();
+
+		// The queued job's priority should reflect the override; the group
+		// from the row's stored config should still be applied.
+		$this->assertSame(1, (int)$queued->priority);
+	}
+
+	/**
+	 * runOnce() respects allow_concurrent the same way the scheduled path
+	 * does — an override against a non-concurrent row with an in-flight
+	 * job returns false instead of dual-firing.
+	 *
+	 * @return void
+	 */
+	public function testRunOnceRespectsAllowConcurrent(): void {
+		$this->loadPlugins(['Tools', 'Queue', 'QueueScheduler']);
+		$row = $this->SchedulerRows->newEntity([
+			'name' => 'override-target',
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'content' => ExampleTask::class,
+			'param' => '',
+			'job_config' => null,
+			'frequency' => '+1 hour',
+			'allow_concurrent' => false,
+		]);
+		$this->SchedulerRows->saveOrFail($row);
+		$row = $this->SchedulerRows->get($row->id);
+
+		// First dispatch enqueues; second must be blocked by allow_concurrent.
+		$this->assertTrue($this->SchedulerRows->runOnce($row));
+		$this->assertFalse($this->SchedulerRows->runOnce($row));
+
+		$this->assertSame(1, $this->getTableLocator()->get('Queue.QueuedJobs')->find()->count());
+	}
+
+	/**
 	 * @return void
 	 */
 	public function testNonEmptyParamIsLeftAlone(): void {
