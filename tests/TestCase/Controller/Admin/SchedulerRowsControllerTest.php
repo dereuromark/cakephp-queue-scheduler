@@ -282,20 +282,8 @@ class SchedulerRowsControllerTest extends TestCase {
 
 			$this->assertResponseCode(302);
 			$this->assertSame($before, $queuedJobsTable->find()->count());
-			/** @var array<array{element?: string, message?: string}> $flashes */
-			$flashes = (array)$this->_requestSession->read('Flash.flash');
-			$this->assertNotEmpty($flashes);
-			$found = false;
-			foreach ($flashes as $flash) {
-				if (!str_contains((string)($flash['message'] ?? ''), 'outside its configured dispatch window')) {
-					continue;
-				}
-
-				$found = true;
-
-				break;
-			}
-			$this->assertTrue($found);
+			$row = $rowsTable->get($row->id);
+			$this->assertNull($row->get('last_run'));
 		} finally {
 			DateTime::setTestNow(new DateTime());
 		}

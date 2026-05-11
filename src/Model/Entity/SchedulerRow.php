@@ -375,7 +375,7 @@ class SchedulerRow extends Entity {
 			$allowed[$day] = $day;
 		}
 
-		if (!$allowed) {
+		if (count($allowed) === 0) {
 			return null;
 		}
 

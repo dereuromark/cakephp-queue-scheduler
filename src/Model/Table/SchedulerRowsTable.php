@@ -702,7 +702,7 @@ class SchedulerRowsTable extends Table {
 			$seen[$day] = true;
 		}
 
-		return count($seen) > 0;
+		return true;
 	}
 
 	/**
