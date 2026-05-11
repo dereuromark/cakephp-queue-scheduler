@@ -555,4 +555,121 @@ class SchedulerRowTest extends TestCase {
 		$this->assertSame(['command' => '', 'params' => []], $row->job_data);
 	}
 
+	// -----------------------------------------------------------------------
+	// Time-window restrictions
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Row with no time-window columns set behaves exactly as before — no
+	 * extra gating.
+	 *
+	 * @return void
+	 */
+	public function testIsWithinWindowWithNoRestrictionsIsAlwaysTrue(): void {
+		$row = new SchedulerRow(['frequency' => '* * * * *']);
+
+		$this->assertTrue($row->isWithinWindow(new DateTime('2026-05-13 03:00:00')));
+		$this->assertTrue($row->isWithinWindow(new DateTime('2026-05-13 14:00:00')));
+	}
+
+	/**
+	 * `window_days_of_week` restricts dispatch to specific weekdays.
+	 * 2026-05-13 is a Wednesday (DoW=3). Comma-separated weekday-only
+	 * list allows it; weekend-only list rejects it.
+	 *
+	 * @return void
+	 */
+	public function testIsWithinWindowHonorsDaysOfWeek(): void {
+		$weekday = new DateTime('2026-05-13 14:00:00'); // Wednesday
+
+		$rowWeekdays = new SchedulerRow([
+			'frequency' => '* * * * *',
+			'window_days_of_week' => '1,2,3,4,5',
+		]);
+		$this->assertTrue($rowWeekdays->isWithinWindow($weekday));
+
+		$rowWeekend = new SchedulerRow([
+			'frequency' => '* * * * *',
+			'window_days_of_week' => '0,6',
+		]);
+		$this->assertFalse($rowWeekend->isWithinWindow($weekday));
+	}
+
+	/**
+	 * Same-day time window: 09:00–18:00 allows 12:00 but rejects 03:00
+	 * and 22:00.
+	 *
+	 * @return void
+	 */
+	public function testIsWithinWindowHonorsSameDayTimeBounds(): void {
+		$row = new SchedulerRow([
+			'frequency' => '* * * * *',
+			'window_start_time' => '09:00:00',
+			'window_end_time' => '18:00:00',
+		]);
+
+		$this->assertTrue($row->isWithinWindow(new DateTime('2026-05-13 12:00:00')));
+		$this->assertFalse($row->isWithinWindow(new DateTime('2026-05-13 03:00:00')));
+		$this->assertFalse($row->isWithinWindow(new DateTime('2026-05-13 22:00:00')));
+	}
+
+	/**
+	 * Overnight window (end < start) wraps midnight: 22:00–06:00 allows
+	 * 23:30 and 02:00 but rejects 12:00.
+	 *
+	 * @return void
+	 */
+	public function testIsWithinWindowHandlesOvernightRange(): void {
+		$row = new SchedulerRow([
+			'frequency' => '* * * * *',
+			'window_start_time' => '22:00:00',
+			'window_end_time' => '06:00:00',
+		]);
+
+		$this->assertTrue($row->isWithinWindow(new DateTime('2026-05-13 23:30:00')));
+		$this->assertTrue($row->isWithinWindow(new DateTime('2026-05-13 02:00:00')));
+		$this->assertFalse($row->isWithinWindow(new DateTime('2026-05-13 12:00:00')));
+	}
+
+	/**
+	 * One-sided window: only start_time set → no upper bound. Allows
+	 * anything at or after start, rejects everything before.
+	 *
+	 * @return void
+	 */
+	public function testIsWithinWindowAcceptsOneSidedStart(): void {
+		$row = new SchedulerRow([
+			'frequency' => '* * * * *',
+			'window_start_time' => '09:00:00',
+		]);
+
+		$this->assertTrue($row->isWithinWindow(new DateTime('2026-05-13 09:00:00')));
+		$this->assertTrue($row->isWithinWindow(new DateTime('2026-05-13 23:59:00')));
+		$this->assertFalse($row->isWithinWindow(new DateTime('2026-05-13 08:59:00')));
+	}
+
+	/**
+	 * isDue() returns false when the window rejects, even when the cron
+	 * expression would otherwise fire. The next tick after the window
+	 * opens re-evaluates and fires.
+	 *
+	 * @return void
+	 */
+	public function testIsDueRespectsWindowGate(): void {
+		$row = new SchedulerRow([
+			'frequency' => '* * * * *', // every minute
+			'window_start_time' => '23:00:00',
+			'window_end_time' => '23:30:00',
+			'next_run' => new DateTime('2026-05-13 12:00:00'),
+		]);
+
+		// Inside cron firing window but outside the time-of-day window.
+		DateTime::setTestNow(new DateTime('2026-05-13 12:00:00'));
+		try {
+			$this->assertFalse($row->isDue());
+		} finally {
+			DateTime::setTestNow(null);
+		}
+	}
+
 }

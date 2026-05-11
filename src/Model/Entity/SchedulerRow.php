@@ -102,6 +102,14 @@ class SchedulerRow extends Entity {
 		$lastRun = $this->last_run;
 
 		$dateTime = new DateTime();
+
+		// Time-window gate is ANDed against the cron/interval firing. A row
+		// whose schedule says "now" but whose window says "not until 09:00"
+		// must defer; the next tick after 09:00 will re-evaluate and fire.
+		if (!$this->isWithinWindow($dateTime)) {
+			return false;
+		}
+
 		if ($nextRun) {
 			// Don't trust `next_run` alone — if a previous tick already executed
 			// this row but the dispatcher crashed before advancing `next_run`,
@@ -123,6 +131,83 @@ class SchedulerRow extends Entity {
 		}
 
 		return (new CronExpression(static::normalizeCronExpression($this->frequency)))->isDue($dateTime->toDateTimeString());
+	}
+
+	/**
+	 * Check whether the row's optional time-window restrictions allow
+	 * dispatch at the given moment.
+	 *
+	 * Three independent restrictions, all optional and ANDed together:
+	 * - `window_days_of_week`: comma-separated 0–6 days (0=Sunday, 6=Saturday).
+	 *   Null → every day.
+	 * - `window_start_time` / `window_end_time`: time-of-day bounds in the
+	 *   server's timezone. Wraps midnight when end < start (so 22:00–06:00
+	 *   means "overnight" rather than "always blocked").
+	 *
+	 * Rows that pre-date the time-window migration have all three columns
+	 * null → method returns true unconditionally. The column-access via
+	 * `get()` tolerates a row whose entity class hasn't been re-fetched
+	 * after the migration.
+	 *
+	 * @param \Cake\I18n\DateTime $when
+	 * @return bool
+	 */
+	public function isWithinWindow(DateTime $when): bool {
+		$daysCsv = $this->get('window_days_of_week');
+		if (is_string($daysCsv) && $daysCsv !== '') {
+			$allowed = array_filter(
+				array_map('trim', explode(',', $daysCsv)),
+				static fn (string $s): bool => $s !== '' && ctype_digit($s),
+			);
+			$dow = (int)$when->format('w'); // 0 (Sun) – 6 (Sat)
+			if (!in_array((string)$dow, $allowed, true)) {
+				return false;
+			}
+		}
+
+		$start = $this->get('window_start_time');
+		$end = $this->get('window_end_time');
+		if ($start === null && $end === null) {
+			return true;
+		}
+
+		$nowMinutes = ((int)$when->format('G')) * 60 + (int)$when->format('i');
+		$startMinutes = $start !== null ? static::timeToMinutes($start) : null;
+		$endMinutes = $end !== null ? static::timeToMinutes($end) : null;
+
+		if ($startMinutes !== null && $endMinutes === null) {
+			return $nowMinutes >= $startMinutes;
+		}
+		if ($startMinutes === null && $endMinutes !== null) {
+			return $nowMinutes <= $endMinutes;
+		}
+
+		// Both bounds set. Overnight window (end < start) treats the
+		// interval as wrapping midnight, so 22:00–06:00 allows 23:30 and
+		// 02:00 but not 12:00.
+		if ($endMinutes < $startMinutes) {
+			return $nowMinutes >= $startMinutes || $nowMinutes <= $endMinutes;
+		}
+
+		return $nowMinutes >= $startMinutes && $nowMinutes <= $endMinutes;
+	}
+
+	/**
+	 * Convert a time-of-day stored value (string `HH:MM:SS` or `HH:MM`,
+	 * or a Time/DateTime instance) into minutes-from-midnight.
+	 *
+	 * @param mixed $time
+	 * @return int
+	 */
+	protected static function timeToMinutes(mixed $time): int {
+		if (is_object($time) && method_exists($time, 'format')) {
+			return ((int)$time->format('G')) * 60 + (int)$time->format('i');
+		}
+		if (is_string($time) && preg_match('/^(\d{1,2}):(\d{2})/', $time, $m) === 1) {
+			return ((int)$m[1]) * 60 + (int)$m[2];
+		}
+
+		return 0;
 	}
 
 	/**
