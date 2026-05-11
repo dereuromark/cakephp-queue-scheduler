@@ -506,7 +506,11 @@ class SchedulerRowsTableTest extends TestCase {
 	 * @return void
 	 */
 	public function testRunIsIdempotentAcrossOverlappingTicks(): void {
-		$this->loadPlugins(['Queue']);
+		// Load alongside Tools + QueueScheduler so the plugin registry matches
+		// what Application::bootstrap() loads in the test app. Loading only
+		// Queue would replace the registry and break later tests that rely
+		// on Tools' commands being indexed (e.g. CommandFinderTest::testAll).
+		$this->loadPlugins(['Tools', 'Queue', 'QueueScheduler']);
 		$row = $this->SchedulerRows->newEntity([
 			'name' => 'race-target',
 			'type' => SchedulerRow::TYPE_QUEUE_TASK,
