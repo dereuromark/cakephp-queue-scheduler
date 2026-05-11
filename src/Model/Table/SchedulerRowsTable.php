@@ -372,8 +372,15 @@ class SchedulerRowsTable extends Table {
 			return;
 		}
 
-		$parts = array_filter(array_map('trim', explode(',', $value)), static fn (string $part): bool => $part !== '');
-		$parts = array_values(array_unique($parts));
+		$rawParts = array_map('trim', explode(',', $value));
+		$parts = [];
+		foreach ($rawParts as $part) {
+			if ($part === '') {
+				continue;
+			}
+			$parts[$part] = $part;
+		}
+		$parts = array_keys($parts);
 		sort($parts);
 		if ($parts === ['0', '1', '2', '3', '4', '5', '6']) {
 			$data['window_days_of_week'] = null;

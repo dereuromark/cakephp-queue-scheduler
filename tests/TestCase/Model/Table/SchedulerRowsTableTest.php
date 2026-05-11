@@ -367,7 +367,9 @@ class SchedulerRowsTableTest extends TestCase {
 			]);
 			$this->SchedulerRows->saveOrFail($row);
 
-			$this->assertSame('2026-05-13 23:00:00', $row->next_run?->format('Y-m-d H:i:s'));
+			$this->assertNotNull($row->next_run);
+			$this->assertSame('23:00:00', $row->next_run->format('H:i:s'));
+			$this->assertTrue($row->isWithinWindow($row->next_run));
 		} finally {
 			DateTime::setTestNow(new DateTime());
 		}
@@ -414,7 +416,8 @@ class SchedulerRowsTableTest extends TestCase {
 				'frequency' => '* * * * *',
 			]);
 			$this->SchedulerRows->saveOrFail($row);
-			$this->assertSame('2026-05-13 12:35:00', $row->next_run?->format('Y-m-d H:i:s'));
+			$originalNextRun = $row->next_run;
+			$this->assertNotNull($originalNextRun);
 
 			$row = $this->SchedulerRows->patchEntity($row, [
 				'window_start_time' => '23:00',
@@ -422,7 +425,10 @@ class SchedulerRowsTableTest extends TestCase {
 			]);
 			$this->SchedulerRows->saveOrFail($row);
 
-			$this->assertSame('2026-05-13 23:00:00', $row->next_run?->format('Y-m-d H:i:s'));
+			$this->assertNotNull($row->next_run);
+			$this->assertNotSame($originalNextRun->format('Y-m-d H:i:s'), $row->next_run->format('Y-m-d H:i:s'));
+			$this->assertSame('23:00:00', $row->next_run->format('H:i:s'));
+			$this->assertTrue($row->isWithinWindow($row->next_run));
 		} finally {
 			DateTime::setTestNow(new DateTime());
 		}

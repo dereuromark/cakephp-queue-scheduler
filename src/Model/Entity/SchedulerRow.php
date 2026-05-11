@@ -375,13 +375,13 @@ class SchedulerRow extends Entity {
 			$allowed[$day] = $day;
 		}
 
-		if ($allowed === []) {
+		if (!$allowed) {
 			return null;
 		}
 
 		sort($allowed);
 
-		return array_values($allowed);
+		return $allowed;
 	}
 
 	/**
@@ -407,6 +407,9 @@ class SchedulerRow extends Entity {
 		}
 		if ($startSeconds === null && $endSeconds !== null) {
 			return [[0, $endSeconds]];
+		}
+		if ($startSeconds === null || $endSeconds === null) {
+			return null;
 		}
 		if ($endSeconds < $startSeconds) {
 			return [
