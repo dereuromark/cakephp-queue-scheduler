@@ -444,16 +444,14 @@ class SchedulerRowTest extends TestCase {
 		]);
 
 		$nextRun = $row->calculateNextRun();
-		// CronExpression evaluates against real wall-clock time (not setTestNow),
-		// so we compare against time() rather than `new DateTime()` which respects
-		// the bootstrap-frozen Chronos::now().
-		$now = time();
+		$now = new DateTime();
 
 		$this->assertInstanceOf(DateTime::class, $nextRun);
 		// Result is on a minute boundary.
 		$this->assertSame(0, (int)$nextRun->format('s'));
-		// And within ~2 minutes of real now (covers normal "next minute" plus clock skew).
-		$delta = $nextRun->timestamp - $now;
+		// And within ~2 minutes of test-now (next-minute boundary plus padding
+		// for clock skew if the test happens to straddle a real-time tick).
+		$delta = $nextRun->timestamp - $now->timestamp;
 		$this->assertGreaterThanOrEqual(0, $delta);
 		$this->assertLessThanOrEqual(120, $delta);
 	}
