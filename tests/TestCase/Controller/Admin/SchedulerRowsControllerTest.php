@@ -287,9 +287,6 @@ class SchedulerRowsControllerTest extends TestCase {
 			$this->assertNotEmpty($flashes);
 			$found = false;
 			foreach ($flashes as $flash) {
-				if (($flash['element'] ?? null) !== 'flash/error') {
-					continue;
-				}
 				if (!str_contains((string)($flash['message'] ?? ''), 'outside its configured dispatch window')) {
 					continue;
 				}
