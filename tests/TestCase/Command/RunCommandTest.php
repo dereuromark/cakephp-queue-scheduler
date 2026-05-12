@@ -8,6 +8,9 @@ use Cake\Core\Configure;
 use Cake\I18n\DateTime;
 use Cake\TestSuite\TestCase;
 use QueueScheduler\Command\RunCommand;
+use QueueScheduler\Scheduler\Lock\DbAdvisoryLock;
+use QueueScheduler\Scheduler\Lock\FileLock;
+use QueueScheduler\Scheduler\Lock\LockInterface;
 use ReflectionMethod;
 
 /**
@@ -232,6 +235,55 @@ class RunCommandTest extends TestCase {
 
 		$this->assertExitCode(0);
 		$this->assertNull(Cache::read(RunCommand::HEARTBEAT_KEY, 'default'));
+	}
+
+	/**
+	 * Factory-level coverage of the new `QueueScheduler.lock` shape:
+	 *  - array config with `driver=db` instantiates `DbAdvisoryLock`,
+	 *  - Closure config returning a `LockInterface` is honored verbatim,
+	 *  - missing / scalar config keeps the legacy `FileLock` default
+	 *    (already exercised by every other test in this file).
+	 *
+	 * @return void
+	 */
+	public function testCreateLockHonorsConfigShapes(): void {
+		$command = new RunCommand();
+		$reflection = new ReflectionMethod($command, 'createLock');
+
+		// 1. Driver=db wires DbAdvisoryLock against the configured connection.
+		Configure::write('QueueScheduler.lock', [
+			'driver' => 'db',
+			'connection' => 'test',
+			'name' => 'queue_scheduler:factory_test',
+		]);
+		try {
+			$lock = $reflection->invoke($command);
+			$this->assertInstanceOf(DbAdvisoryLock::class, $lock);
+		} finally {
+			Configure::delete('QueueScheduler.lock');
+		}
+
+		// 2. Closure config — caller-supplied LockInterface is used as-is.
+		$custom = new class implements LockInterface {
+			public function acquire(int $timeout): bool {
+				return true;
+			}
+
+			public function release(): void {
+			}
+		};
+		Configure::write('QueueScheduler.lock', fn () => $custom);
+		try {
+			$this->assertSame($custom, $reflection->invoke($command));
+		} finally {
+			Configure::delete('QueueScheduler.lock');
+		}
+
+		// 3. No config → FileLock default.
+		$this->assertInstanceOf(
+			FileLock::class,
+			$reflection->invoke($command),
+		);
 	}
 
 	public function testLoopExitsCleanlyWhenLockHeld(): void {

@@ -82,7 +82,25 @@ Recommended deployments:
 
 - **Single-host app:** one cron entry on that host. Done.
 - **Multi-host app:** designate one host as the "cron host" and put the cron entry only there. The scheduler dispatches into the queue; the actual jobs are then picked up by `bin/cake queue worker` running on as many hosts as you like. Dispatch is centralized; execution scales out.
-- **Multi-host with no fixed cron host** (e.g. autoscaling fleets where any node may run cron): replace `FileLock` with a cross-host lock — implement `QueueScheduler\Scheduler\Lock\LockInterface` against a DB advisory lock (`GET_LOCK` on MySQL, `pg_try_advisory_lock` on Postgres) or Redis (`SET NX EX`), then inject it via a custom subclass of `RunCommand`. Only with a real cross-host lock is it safe to have more than one cron entry firing at the scheduler.
+- **Multi-host with no fixed cron host** (e.g. autoscaling fleets where any node may run cron): switch the lock from `FileLock` to the bundled `DbAdvisoryLock`, which uses `GET_LOCK` on MySQL/MariaDB and `pg_try_advisory_lock` on PostgreSQL. Both are session-scoped advisory locks on the shared database, so any number of `bin/cake scheduler run` invocations across the fleet coordinate on a single mutex without needing an extra Redis or filesystem dependency. Enable it in your bootstrap:
+
+  ```php
+  use Cake\Core\Configure;
+
+  Configure::write('QueueScheduler.lock', [
+      'driver' => 'db',
+      'connection' => 'default',         // optional, defaults to 'default'
+      'name' => 'queue_scheduler:run',   // optional, defaults to this string
+  ]);
+  ```
+
+  SQLite has no advisory-lock primitive across processes and `DbAdvisoryLock` rejects it at acquire time — keep `FileLock` for SQLite single-host setups. For Redis, Consul, or another custom backend, pass a `Closure` returning your own `LockInterface` implementation:
+
+  ```php
+  Configure::write('QueueScheduler.lock', fn () => new MyRedisLock(/* ... */));
+  ```
+
+  With a real cross-host lock in place it is safe to have more than one cron entry firing at the scheduler.
 
 ### Command flags
 

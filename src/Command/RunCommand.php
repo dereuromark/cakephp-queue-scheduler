@@ -10,7 +10,11 @@ use Cake\Console\CommandInterface;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Core\Configure;
+use Cake\Datasource\ConnectionManager;
 use Cake\Log\LogTrait;
+use Closure;
+use InvalidArgumentException;
+use QueueScheduler\Scheduler\Lock\DbAdvisoryLock;
 use QueueScheduler\Scheduler\Lock\FileLock;
 use QueueScheduler\Scheduler\Lock\LockInterface;
 use QueueScheduler\Scheduler\Scheduler;
@@ -317,13 +321,48 @@ class RunCommand extends Command {
 	/**
 	 * Factory seam for the lock.
 	 *
+	 * Selects the implementation from the `QueueScheduler.lock` Configure
+	 * key. Accepted shapes:
+	 *
+	 *  - missing / null / scalar → legacy `FileLock` path. `QueueScheduler.lockPath`
+	 *    still honored for backwards compatibility.
+	 *  - `['driver' => 'file', 'path' => '/path/to/lockfile']` — explicit
+	 *    file lock; same as the legacy default.
+	 *  - `['driver' => 'db', 'connection' => 'default', 'name' => '…']` —
+	 *    multi-host safe; uses `GET_LOCK` on MySQL and
+	 *    `pg_try_advisory_lock` on Postgres. SQLite is rejected because
+	 *    SQLite has no cross-process advisory primitive.
+	 *  - Closure returning a `LockInterface` — full custom backend (Redis,
+	 *    Consul, etc.).
+	 *
 	 * @return \QueueScheduler\Scheduler\Lock\LockInterface
 	 */
 	protected function createLock(): LockInterface {
-		$path = Configure::read('QueueScheduler.lockPath');
-		if (!is_string($path) || $path === '') {
-			$path = TMP . 'queue_scheduler.lock';
+		$config = Configure::read('QueueScheduler.lock');
+
+		if ($config instanceof Closure) {
+			$lock = $config();
+			if (!$lock instanceof LockInterface) {
+				throw new InvalidArgumentException(
+					'QueueScheduler.lock Closure must return a LockInterface instance.',
+				);
+			}
+
+			return $lock;
 		}
+
+		if (is_array($config) && ($config['driver'] ?? 'file') === 'db') {
+			$connectionName = $config['connection'] ?? 'default';
+			$name = $config['name'] ?? 'queue_scheduler:run';
+			/** @var \Cake\Database\Connection $connection */
+			$connection = ConnectionManager::get($connectionName);
+
+			return new DbAdvisoryLock($connection, (string)$name);
+		}
+
+		$path = is_array($config) && isset($config['path'])
+			? (string)$config['path']
+			: (string)(Configure::read('QueueScheduler.lockPath') ?: TMP . 'queue_scheduler.lock');
 
 		return new FileLock($path);
 	}

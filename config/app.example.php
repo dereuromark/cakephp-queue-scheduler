@@ -58,6 +58,24 @@ return [
 		// jitter (the heartbeat is written at the *end* of a pass, not the
 		// start). Raise it if you run cron less often than every minute.
 		//'healthyWithinSeconds' => 65,
+
+		// Scheduler dispatch lock. Default omitted = `FileLock` against
+		// `tmp/queue_scheduler.lock`, which only protects against overlap on
+		// the same host. For multi-host setups where cron may fire from any
+		// node, switch to the DbAdvisoryLock (uses `GET_LOCK` on MySQL and
+		// `pg_try_advisory_lock` on Postgres; rejects SQLite). For other
+		// backends pass a Closure returning your own `LockInterface`.
+		//'lock' => [
+		//    'driver' => 'db',
+		//    'connection' => 'default',       // optional, defaults to 'default'
+		//    'name' => 'queue_scheduler:run', // optional, defaults to this string
+		//],
+		// Or, for a custom backend:
+		//'lock' => fn () => new App\Scheduler\RedisLock(...),
+
+		// File-lock path override (only consulted when `lock` is unset or
+		// uses driver=file). Defaults to TMP . 'queue_scheduler.lock'.
+		//'lockPath' => TMP . 'queue_scheduler.lock',
 	],
 	// Icon configuration for the backend UI (optional, but recommended for better UX)
 	// Without this, the UI will use Font Awesome icons from CDN when using the standalone layout.
