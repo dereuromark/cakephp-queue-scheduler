@@ -6,6 +6,7 @@ use Cake\I18n\DateTime;
 use Cake\TestSuite\TestCase;
 use DateInterval;
 use QueueScheduler\Model\Entity\SchedulerRow;
+use QueueScheduler\Test\TestCase\ResetsTestNowTrait;
 
 /**
  * Unit tests for SchedulerRow's frequency / due-time calculations.
@@ -19,15 +20,13 @@ use QueueScheduler\Model\Entity\SchedulerRow;
  */
 class SchedulerRowTest extends TestCase {
 
+	use ResetsTestNowTrait;
+
 	/**
-	 * Reset the frozen test-now to a fresh instance so other test classes that
-	 * rely on a non-null `getTestNow()` (e.g. SchedulerRowsTableTest::testInsert)
-	 * continue to find one. Clearing it to null instead would leak across files.
-	 *
 	 * @return void
 	 */
 	protected function tearDown(): void {
-		DateTime::setTestNow(new DateTime());
+		$this->resetTestNow();
 		parent::tearDown();
 	}
 
