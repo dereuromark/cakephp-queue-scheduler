@@ -7,6 +7,7 @@ use Cake\Http\Exception\ForbiddenException;
 use Cake\I18n\DateTime;
 use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
+use QueueScheduler\Test\TestCase\ResetsTestNowTrait;
 
 /**
  * @uses \QueueScheduler\Controller\Admin\SchedulerRowsController
@@ -14,6 +15,7 @@ use Cake\TestSuite\TestCase;
 class SchedulerRowsControllerTest extends TestCase {
 
 	use IntegrationTestTrait;
+	use ResetsTestNowTrait;
 
 	/**
 	 * @var array<string>
@@ -285,7 +287,7 @@ class SchedulerRowsControllerTest extends TestCase {
 			$row = $rowsTable->get($row->id);
 			$this->assertNull($row->get('last_run'));
 		} finally {
-			DateTime::setTestNow(new DateTime());
+			$this->resetTestNow();
 		}
 	}
 
@@ -366,7 +368,7 @@ class SchedulerRowsControllerTest extends TestCase {
 			$payload = is_array($queuedJob->data) ? $queuedJob->data : json_decode((string)$queuedJob->data, true);
 			$this->assertSame(['tenant_id' => 123], $payload);
 		} finally {
-			DateTime::setTestNow(new DateTime());
+			$this->resetTestNow();
 		}
 	}
 

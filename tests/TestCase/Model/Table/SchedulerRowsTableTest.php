@@ -9,12 +9,15 @@ use Cake\TestSuite\TestCase;
 use Queue\Queue\Task\ExampleTask;
 use QueueScheduler\Model\Entity\SchedulerRow;
 use QueueScheduler\Model\Table\SchedulerRowsTable;
+use QueueScheduler\Test\TestCase\ResetsTestNowTrait;
 use stdClass;
 
 /**
  * QueueScheduler\Model\Table\RowsTable Test Case
  */
 class SchedulerRowsTableTest extends TestCase {
+
+	use ResetsTestNowTrait;
 
 	/**
 	 * Test subject
@@ -371,7 +374,7 @@ class SchedulerRowsTableTest extends TestCase {
 			$this->assertSame('23:00:00', $row->next_run->format('H:i:s'));
 			$this->assertTrue($row->isWithinWindow($row->next_run));
 		} finally {
-			DateTime::setTestNow(new DateTime());
+			$this->resetTestNow();
 		}
 	}
 
@@ -396,7 +399,7 @@ class SchedulerRowsTableTest extends TestCase {
 
 			$this->assertSame('2026-05-13 23:00:00', $row->next_run?->format('Y-m-d H:i:s'));
 		} finally {
-			DateTime::setTestNow(new DateTime());
+			$this->resetTestNow();
 		}
 	}
 
@@ -430,7 +433,7 @@ class SchedulerRowsTableTest extends TestCase {
 			$this->assertSame('23:00:00', $row->next_run->format('H:i:s'));
 			$this->assertTrue($row->isWithinWindow($row->next_run));
 		} finally {
-			DateTime::setTestNow(new DateTime());
+			$this->resetTestNow();
 		}
 	}
 
