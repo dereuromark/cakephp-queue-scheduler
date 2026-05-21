@@ -14,6 +14,7 @@
 		"recurring"
 	],
 	"license": "MIT",
+	"homepage": "https://github.com/dereuromark/cakephp-queue-scheduler",
 	"require": {
 		"php": ">=8.2",
 		"cakephp/cakephp": "^5.1.1",
