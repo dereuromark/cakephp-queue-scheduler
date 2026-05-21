@@ -58,6 +58,20 @@ return [
 		// jitter (the heartbeat is written at the *end* of a pass, not the
 		// start). Raise it if you run cron less often than every minute.
 		//'healthyWithinSeconds' => 65,
+
+		// Maximum seconds the run command's loop mode (--duration/--interval)
+		// waits to acquire the scheduler file lock before giving up and
+		// exiting without scheduling. Prevents overlapping loop runs from
+		// piling up. Default 30. Has no effect on single-pass runs (no flags),
+		// which do not lock.
+		//'lockAcquireTimeout' => 30,
+
+		// Absolute path to the file lock used by loop mode to ensure a single
+		// active scheduler loop per host. Default is TMP . 'queue_scheduler.lock'
+		// (e.g. tmp/queue_scheduler.lock). Note: this is a LOCAL file lock and does
+		// NOT coordinate across hosts — running loop mode on multiple hosts can still
+		// produce overlapping schedules.
+		//'lockPath' => TMP . 'queue_scheduler.lock',
 	],
 	// Icon configuration for the backend UI (optional, but recommended for better UX)
 	// Without this, the UI will use Font Awesome icons from CDN when using the standalone layout.
