@@ -1,0 +1,37 @@
+// cakephp-queue-scheduler — database schema snapshot (DBML)
+//
+// A merged snapshot of all plugin migrations under config/Migrations/.
+// Hand-maintained: update it when you add a migration that changes these tables.
+// Paste into https://dbdiagram.io (or any DBML tool) to view/diagram.
+// DBML reference: https://dbml.dbdiagram.io/docs
+
+Project cakephp_queue_scheduler {
+  database_type: 'Generic'
+  Note: 'Queue Scheduler plugin tables only.'
+}
+
+Table queue_scheduler_rows {
+  id integer [pk, increment]
+  name varchar(140) [not null]
+  type tinyint [not null, default: 0]
+  content text [not null]
+  param text [null]
+  frequency varchar(140) [not null]
+  last_run datetime [null]
+  next_run datetime [null]
+  allow_concurrent boolean [not null, default: false]
+  enabled boolean [not null, default: false]
+  created datetime [null]
+  modified datetime [null]
+  last_queued_job_id integer [null]
+  job_config text [null, note: 'JSON-encoded queue config. Allowed keys: priority (int 1-10), group (string).']
+  window_start_time time [null, note: 'Earliest time-of-day (server timezone) at which this row may dispatch. Null = no lower bound.']
+  window_end_time time [null, note: 'Latest time-of-day (server timezone) at which this row may dispatch. Null = no upper bound. Wraps midnight when end < start.']
+  window_days_of_week varchar(32) [null, note: 'Comma-separated 0-6 days of week (0=Sunday, 6=Saturday) on which this row may dispatch. Null = every day. Example: "1,2,3,4,5" for weekdays only.']
+
+  indexes {
+    last_queued_job_id
+    (enabled, next_run) [name: 'enabled_next_run']
+    name [unique, name: 'unique_name']
+  }
+}
