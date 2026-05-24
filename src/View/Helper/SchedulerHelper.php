@@ -137,7 +137,7 @@ class SchedulerHelper extends Helper {
 	 * @return string
 	 */
 	public function runStatusIcon(?QueuedJob $job): string {
-		if (!$job instanceof \Queue\Model\Entity\QueuedJob) {
+		if (!$job instanceof QueuedJob) {
 			return '';
 		}
 		if ($job->failure_message) {

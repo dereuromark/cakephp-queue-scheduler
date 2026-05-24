@@ -114,11 +114,11 @@ class SchedulerRow extends Entity {
 		}
 
 		// Don't trust `next_run` alone — if a previous tick already executed
-        // this row but the dispatcher crashed before advancing `next_run`,
-        // the row would re-fire on every subsequent tick. Once `last_run`
-        // has caught up to (or past) the scheduled slot, ignore the stale
-        // `next_run` and fall through to recompute from the frequency.
-        if ($nextRun && ($lastRun === null || $lastRun->timestamp < $nextRun->timestamp)) {
+		// this row but the dispatcher crashed before advancing `next_run`,
+		// the row would re-fire on every subsequent tick. Once `last_run`
+		// has caught up to (or past) the scheduled slot, ignore the stale
+		// `next_run` and fall through to recompute from the frequency.
+		if ($nextRun && ($lastRun === null || $lastRun->timestamp < $nextRun->timestamp)) {
 			return $nextRun->timestamp <= $dateTime->timestamp;
 		}
 
@@ -469,7 +469,7 @@ class SchedulerRow extends Entity {
 	public function isCronExpression(): bool {
 		$i = $this->calculateNextInterval();
 
-		return !$i instanceof \DateInterval;
+		return !$i instanceof DateInterval;
 	}
 
 	/**

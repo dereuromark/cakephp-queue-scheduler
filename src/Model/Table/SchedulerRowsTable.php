@@ -189,12 +189,13 @@ class SchedulerRowsTable extends Table {
 			return false;
 		}
 		$type = (int)$data['type'];
-        return match ($type) {
-            SchedulerRow::TYPE_QUEUE_TASK => $this->validateQueueTask($value, $data),
-            SchedulerRow::TYPE_CAKE_COMMAND => $this->validateCakeCommand($value, $data),
-            SchedulerRow::TYPE_SHELL_COMMAND => $this->validateShellCommand($value, $data),
-            default => false,
-        };
+
+		return match ($type) {
+			SchedulerRow::TYPE_QUEUE_TASK => $this->validateQueueTask($value, $data),
+			SchedulerRow::TYPE_CAKE_COMMAND => $this->validateCakeCommand($value, $data),
+			SchedulerRow::TYPE_SHELL_COMMAND => $this->validateShellCommand($value, $data),
+			default => false,
+		};
 	}
 
 	/**
@@ -213,12 +214,13 @@ class SchedulerRowsTable extends Table {
 			return false;
 		}
 		$type = (int)$data['type'];
-        return match ($type) {
-            SchedulerRow::TYPE_QUEUE_TASK => $this->validateQueueTaskParam($value, $data),
-            SchedulerRow::TYPE_CAKE_COMMAND => $this->validateCakeCommandParam($value, $data),
-            SchedulerRow::TYPE_SHELL_COMMAND => $value === '' ? true : __d('queue_scheduler', 'Cannot have separate param data for shell command.'),
-            default => false,
-        };
+
+		return match ($type) {
+			SchedulerRow::TYPE_QUEUE_TASK => $this->validateQueueTaskParam($value, $data),
+			SchedulerRow::TYPE_CAKE_COMMAND => $this->validateCakeCommandParam($value, $data),
+			SchedulerRow::TYPE_SHELL_COMMAND => $value === '' ? true : __d('queue_scheduler', 'Cannot have separate param data for shell command.'),
+			default => false,
+		};
 	}
 
 	/**
@@ -396,7 +398,7 @@ class SchedulerRowsTable extends Table {
 			return;
 		}
 
-		if (str_contains((string) $data['content'], '\\')) {
+		if (str_contains((string)$data['content'], '\\')) {
 			return;
 		}
 
@@ -419,7 +421,7 @@ class SchedulerRowsTable extends Table {
 			return;
 		}
 
-		if (str_contains((string) $data['content'], '\\')) {
+		if (str_contains((string)$data['content'], '\\')) {
 			return;
 		}
 
