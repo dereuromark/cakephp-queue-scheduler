@@ -21,7 +21,7 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 	public function index(): void {
 		$rows = $this->paginate($this->SchedulerRows);
 
-		$this->set(compact('rows'));
+		$this->set(['rows' => $rows]);
 	}
 
 	/**
@@ -67,7 +67,7 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 			->all()
 			->toArray();
 
-		$this->set(compact('row', 'jobStats', 'recentJobs'));
+		$this->set(['row' => $row, 'jobStats' => $jobStats, 'recentJobs' => $recentJobs]);
 	}
 
 	/**
@@ -127,7 +127,7 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 			}
 		}
 
-		$this->set(compact('row'));
+		$this->set(['row' => $row]);
 
 		return null;
 	}
@@ -150,7 +150,7 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 			}
 			$this->Flash->error(__d('queue_scheduler', 'The row could not be saved. Please, try again.'));
 		}
-		$this->set(compact('row'));
+		$this->set(['row' => $row]);
 
 		return null;
 	}

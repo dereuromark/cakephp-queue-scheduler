@@ -43,9 +43,8 @@ class SchedulerHelper extends Helper {
 		foreach ($this->availableQueueTasks() as $name => $queueTask) {
 			$html .= '<option value="' . h($queueTask) . '" label="' . h($name) . '">';
 		}
-		$html .= '</datalist>';
 
-		return $html;
+		return $html . '</datalist>';
 	}
 
 	/**
@@ -70,9 +69,8 @@ class SchedulerHelper extends Helper {
 		foreach ($commonCron as $expression => $label) {
 			$html .= '<option value="' . h($expression) . '" label="' . h($label) . '">';
 		}
-		$html .= '</datalist>';
 
-		return $html;
+		return $html . '</datalist>';
 	}
 
 	/**
@@ -139,7 +137,7 @@ class SchedulerHelper extends Helper {
 	 * @return string
 	 */
 	public function runStatusIcon(?QueuedJob $job): string {
-		if ($job === null) {
+		if (!$job instanceof \Queue\Model\Entity\QueuedJob) {
 			return '';
 		}
 		if ($job->failure_message) {

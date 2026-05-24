@@ -35,7 +35,7 @@ class QueueSchedulerController extends QueueSchedulerAppController {
 
 		$schedulerStatus = $this->buildSchedulerStatus();
 
-		$this->set(compact('schedulerRows', 'runningJobs', 'schedulerStatus'));
+		$this->set(['schedulerRows' => $schedulerRows, 'runningJobs' => $runningJobs, 'schedulerStatus' => $schedulerStatus]);
 	}
 
 	/**
@@ -107,12 +107,12 @@ class QueueSchedulerController extends QueueSchedulerAppController {
 				$result = (new ExpressionDescriptor($expression, $locale, true))->getDescription();
 			}
 
-			$this->set(compact('result'));
+			$this->set(['result' => $result]);
 		}
 
 		$shortcuts = SchedulerRow::shortcuts();
 
-		$this->set(compact('shortcuts'));
+		$this->set(['shortcuts' => $shortcuts]);
 	}
 
 }

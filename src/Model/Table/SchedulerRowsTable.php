@@ -189,16 +189,12 @@ class SchedulerRowsTable extends Table {
 			return false;
 		}
 		$type = (int)$data['type'];
-		switch ($type) {
-			case SchedulerRow::TYPE_QUEUE_TASK:
-				return $this->validateQueueTask($value, $data);
-			case SchedulerRow::TYPE_CAKE_COMMAND:
-				return $this->validateCakeCommand($value, $data);
-			case SchedulerRow::TYPE_SHELL_COMMAND:
-				return $this->validateShellCommand($value, $data);
-		}
-
-		return false;
+        return match ($type) {
+            SchedulerRow::TYPE_QUEUE_TASK => $this->validateQueueTask($value, $data),
+            SchedulerRow::TYPE_CAKE_COMMAND => $this->validateCakeCommand($value, $data),
+            SchedulerRow::TYPE_SHELL_COMMAND => $this->validateShellCommand($value, $data),
+            default => false,
+        };
 	}
 
 	/**
@@ -217,16 +213,12 @@ class SchedulerRowsTable extends Table {
 			return false;
 		}
 		$type = (int)$data['type'];
-		switch ($type) {
-			case SchedulerRow::TYPE_QUEUE_TASK:
-				return $this->validateQueueTaskParam($value, $data);
-			case SchedulerRow::TYPE_CAKE_COMMAND:
-				return $this->validateCakeCommandParam($value, $data);
-			case SchedulerRow::TYPE_SHELL_COMMAND:
-				return $value === '' ? true : __d('queue_scheduler', 'Cannot have separate param data for shell command.');
-		}
-
-		return false;
+        return match ($type) {
+            SchedulerRow::TYPE_QUEUE_TASK => $this->validateQueueTaskParam($value, $data),
+            SchedulerRow::TYPE_CAKE_COMMAND => $this->validateCakeCommandParam($value, $data),
+            SchedulerRow::TYPE_SHELL_COMMAND => $value === '' ? true : __d('queue_scheduler', 'Cannot have separate param data for shell command.'),
+            default => false,
+        };
 	}
 
 	/**
@@ -296,11 +288,11 @@ class SchedulerRowsTable extends Table {
 			return false;
 		}
 
-		if (substr($value, 0, 1) === '+') {
+		if (str_starts_with($value, '+')) {
 			return $this->validateFrequencyAsStringInterval($value);
 		}
 
-		if (substr($value, 0, 1) === 'P') {
+		if (str_starts_with($value, 'P')) {
 			return $this->validateFrequencyAsDateInterval($value);
 		}
 
@@ -396,7 +388,7 @@ class SchedulerRowsTable extends Table {
 	 * @return void
 	 */
 	protected function adjustQueueTask(ArrayObject $data): void {
-		if (!isset($data['type']) || strlen((string)$data['type']) === 0 || (int)$data['type'] !== SchedulerRow::TYPE_QUEUE_TASK) {
+		if (!isset($data['type']) || (string)$data['type'] === '' || (int)$data['type'] !== SchedulerRow::TYPE_QUEUE_TASK) {
 			return;
 		}
 
@@ -404,7 +396,7 @@ class SchedulerRowsTable extends Table {
 			return;
 		}
 
-		if (str_contains($data['content'], '\\')) {
+		if (str_contains((string) $data['content'], '\\')) {
 			return;
 		}
 
@@ -419,7 +411,7 @@ class SchedulerRowsTable extends Table {
 	 * @return void
 	 */
 	protected function adjustCakeCommand(ArrayObject $data): void {
-		if (!isset($data['type']) || strlen((string)$data['type']) === 0 || (int)$data['type'] !== SchedulerRow::TYPE_CAKE_COMMAND) {
+		if (!isset($data['type']) || (string)$data['type'] === '' || (int)$data['type'] !== SchedulerRow::TYPE_CAKE_COMMAND) {
 			return;
 		}
 
@@ -427,7 +419,7 @@ class SchedulerRowsTable extends Table {
 			return;
 		}
 
-		if (str_contains($data['content'], '\\')) {
+		if (str_contains((string) $data['content'], '\\')) {
 			return;
 		}
 
@@ -721,7 +713,7 @@ class SchedulerRowsTable extends Table {
 			if (!$interval instanceof DateInterval) {
 				throw new InvalidArgumentException('Invalid interval string: ' . $value);
 			}
-		} catch (Exception $e) {
+		} catch (Exception) {
 			return false;
 		}
 
@@ -736,7 +728,7 @@ class SchedulerRowsTable extends Table {
 	protected function validateFrequencyAsDateInterval(string $value): bool {
 		try {
 			new DateInterval($value);
-		} catch (Exception $e) {
+		} catch (Exception) {
 			return false;
 		}
 
@@ -751,7 +743,7 @@ class SchedulerRowsTable extends Table {
 	protected function validateFrequencyAsCronExpression(string $value): bool {
 		try {
 			new CronExpression(SchedulerRow::normalizeCronExpression($value));
-		} catch (Exception $e) {
+		} catch (Exception) {
 			return false;
 		}
 
