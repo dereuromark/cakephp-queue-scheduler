@@ -469,7 +469,7 @@ class SchedulerRow extends Entity {
 	public function isCronExpression(): bool {
 		$i = $this->calculateNextInterval();
 
-		return !$i instanceof DateInterval;
+		return $i === null;
 	}
 
 	/**
