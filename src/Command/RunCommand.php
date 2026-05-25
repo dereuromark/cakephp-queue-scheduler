@@ -122,7 +122,7 @@ class RunCommand extends Command {
 			return '--interval requires --duration.';
 		}
 
-		if (!ctype_digit($interval)) {
+		if (!ctype_digit((string)$interval)) {
 			return '--interval must be a positive integer (got: ' . var_export($interval, true) . ').';
 		}
 		$intervalSec = (int)$interval;
@@ -131,7 +131,7 @@ class RunCommand extends Command {
 		}
 
 		if ($duration !== 'auto') {
-			if (!ctype_digit($duration)) {
+			if (!ctype_digit((string)$duration)) {
 				return '--duration must be a positive integer or "auto" (got: ' . var_export($duration, true) . ').';
 			}
 			$durationSec = (int)$duration;

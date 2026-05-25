@@ -113,15 +113,13 @@ class SchedulerRow extends Entity {
 			return false;
 		}
 
-		if ($nextRun) {
-			// Don't trust `next_run` alone — if a previous tick already executed
-			// this row but the dispatcher crashed before advancing `next_run`,
-			// the row would re-fire on every subsequent tick. Once `last_run`
-			// has caught up to (or past) the scheduled slot, ignore the stale
-			// `next_run` and fall through to recompute from the frequency.
-			if ($lastRun === null || $lastRun->timestamp < $nextRun->timestamp) {
-				return $nextRun->timestamp <= $dateTime->timestamp;
-			}
+		// Don't trust `next_run` alone — if a previous tick already executed
+		// this row but the dispatcher crashed before advancing `next_run`,
+		// the row would re-fire on every subsequent tick. Once `last_run`
+		// has caught up to (or past) the scheduled slot, ignore the stale
+		// `next_run` and fall through to recompute from the frequency.
+		if ($nextRun && ($lastRun === null || $lastRun->timestamp < $nextRun->timestamp)) {
+			return $nextRun->timestamp <= $dateTime->timestamp;
 		}
 
 		$nextInterval = $this->calculateNextInterval();
@@ -277,7 +275,7 @@ class SchedulerRow extends Entity {
 	 * @return \DateInterval|null
 	 */
 	public function calculateNextInterval(): ?DateInterval {
-		if (substr($this->frequency, 0, 1) === '+') {
+		if (str_starts_with($this->frequency, '+')) {
 			// PHP 8.2 returns false on parse failure, 8.3+ throws. The @var pins the
 			// union so phpstan accepts the instanceof check on both 8.2 and 8.3+ stubs.
 			/** @var \DateInterval|false $interval */
@@ -285,7 +283,7 @@ class SchedulerRow extends Entity {
 
 			return $interval instanceof DateInterval ? $interval : null;
 		}
-		if (substr($this->frequency, 0, 1) === 'P') {
+		if (str_starts_with($this->frequency, 'P')) {
 			return new DateInterval($this->frequency);
 		}
 
@@ -317,7 +315,7 @@ class SchedulerRow extends Entity {
 		try {
 			$cron = new CronExpression(static::normalizeCronExpression($this->frequency));
 			$dateTime = $cron->getNextRunDate((new DateTime())->toDateTimeString());
-		} catch (InvalidArgumentException | RuntimeException $e) {
+		} catch (InvalidArgumentException | RuntimeException) {
 			return null;
 		}
 

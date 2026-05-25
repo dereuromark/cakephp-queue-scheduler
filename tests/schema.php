@@ -33,7 +33,7 @@ function addTablesFromSchemaFile(string $file, string $pluginName, array $tables
 		$fieldsObject = (new ReflectionClass($class))->getProperty('fields');
 		$tableObject = (new ReflectionClass($class))->getProperty('table');
 		$tableName = $tableObject->getDefaultValue();
-	} catch (ReflectionException $e) {
+	} catch (ReflectionException) {
 		return $tables;
 	}
 
