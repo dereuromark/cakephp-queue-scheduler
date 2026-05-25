@@ -107,12 +107,12 @@ class QueueSchedulerController extends QueueSchedulerAppController {
 				$result = (new ExpressionDescriptor($expression, $locale, true))->getDescription();
 			}
 
-			$this->set(['result' => $result]);
+			$this->set(compact('result'));
 		}
 
 		$shortcuts = SchedulerRow::shortcuts();
 
-		$this->set(['shortcuts' => $shortcuts]);
+		$this->set(compact('shortcuts'));
 	}
 
 }
