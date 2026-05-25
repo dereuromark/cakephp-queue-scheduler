@@ -35,7 +35,7 @@ class QueueSchedulerController extends QueueSchedulerAppController {
 
 		$schedulerStatus = $this->buildSchedulerStatus();
 
-		$this->set(['schedulerRows' => $schedulerRows, 'runningJobs' => $runningJobs, 'schedulerStatus' => $schedulerStatus]);
+		$this->set(compact('schedulerRows', 'runningJobs', 'schedulerStatus'));
 	}
 
 	/**

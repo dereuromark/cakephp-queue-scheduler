@@ -67,7 +67,7 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 			->all()
 			->toArray();
 
-		$this->set(['row' => $row, 'jobStats' => $jobStats, 'recentJobs' => $recentJobs]);
+		$this->set(compact('row', 'jobStats', 'recentJobs'));
 	}
 
 	/**
