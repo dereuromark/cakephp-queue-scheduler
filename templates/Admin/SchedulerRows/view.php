@@ -203,9 +203,10 @@ $windowDays = $row->get('window_days_of_week');
 									<?php } ?>
 								</td>
 							</tr>
-						</table>
-					</div>
+					</table>
 				</div>
+			</div>
+			</div>
 		</div>
 
 		<div class="col-lg-6 mb-4">
