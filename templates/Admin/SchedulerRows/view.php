@@ -38,6 +38,11 @@ $windowDays = $row->get('window_days_of_week');
 				['action' => 'edit', $row->id],
 				['class' => 'btn btn-primary me-2', 'escapeTitle' => false],
 			) ?>
+			<?= $this->Html->link(
+				'<i class="fas fa-file-export me-1"></i>' . __d('queue_scheduler', 'Export JSON'),
+				['action' => 'export', $row->id],
+				['class' => 'btn btn-outline-primary me-2', 'escapeTitle' => false],
+			) ?>
 			<?= $this->Form->postButton(
 				'<i class="fas fa-play-circle me-1"></i>' . __d('queue_scheduler', 'Run Now'),
 				['action' => 'run', $row->id],
@@ -198,9 +203,10 @@ $windowDays = $row->get('window_days_of_week');
 									<?php } ?>
 								</td>
 							</tr>
-						</table>
-					</div>
+					</table>
 				</div>
+			</div>
+			</div>
 		</div>
 
 		<div class="col-lg-6 mb-4">

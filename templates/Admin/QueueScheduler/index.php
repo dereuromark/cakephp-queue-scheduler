@@ -23,6 +23,11 @@ if ($schedulerStatus['lastTick'] !== null) {
 		</h2>
 		<div>
 			<?= $this->Html->link(
+				'<i class="fas fa-file-import me-1"></i>' . __d('queue_scheduler', 'Import Schedule'),
+				['controller' => 'SchedulerRows', 'action' => 'import'],
+				['class' => 'btn btn-outline-secondary me-2', 'escapeTitle' => false],
+			) ?>
+			<?= $this->Html->link(
 				'<i class="fas fa-plus me-1"></i>' . __d('queue_scheduler', 'New Schedule'),
 				['controller' => 'SchedulerRows', 'action' => 'add'],
 				['class' => 'btn btn-primary', 'escapeTitle' => false],

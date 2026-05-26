@@ -30,7 +30,7 @@ $windowOpen = $hasWindowValues || $hasWindowErrors;
 			<?= $this->Html->link(
 				'<i class="fas fa-clock me-1"></i>' . __d('queue_scheduler', 'Intervals Help'),
 				['controller' => 'QueueScheduler', 'action' => 'intervals'],
-				['class' => 'btn btn-outline-secondary', 'escapeTitle' => false],
+				['class' => 'btn btn-outline-secondary', 'escapeTitle' => false, 'target' => '_blank', 'rel' => 'noopener'],
 			) ?>
 		</div>
 	</div>
@@ -65,46 +65,46 @@ $windowOpen = $hasWindowValues || $hasWindowErrors;
 			<div class="mb-3">
 				<?= $this->Form->control('param', ['class' => 'form-control']) ?>
 			</div>
-				<div class="mb-3">
-					<?= $this->Form->control('job_config', [
-						'type' => 'textarea',
-						'rows' => 3,
-						'class' => 'form-control',
+			<div class="mb-3">
+				<?= $this->Form->control('job_config', [
+					'type' => 'textarea',
+					'rows' => 3,
+					'class' => 'form-control',
 					'label' => __d('queue_scheduler', 'Job Config (JSON)'),
 					'placeholder' => '{"priority": 5, "group": "batch"}',
-						'help' => __d('queue_scheduler', 'Optional JSON object. Allowed keys: priority (1-10, lower runs sooner; default 5) and group (worker group, matches `cake queue worker --group=...`).'),
-					]) ?>
+					'help' => __d('queue_scheduler', 'Optional JSON object. Allowed keys: priority (1-10, lower runs sooner; default 5) and group (worker group, matches `cake queue worker --group=...`).'),
+				]) ?>
+			</div>
+			<div class="row">
+				<div class="col-md-6 mb-3">
+					<?= $this->Form->control('frequency', ['list' => 'frequency-suggestions', 'class' => 'form-control']) ?>
 				</div>
-				<div class="row">
-					<div class="col-md-6 mb-3">
-						<?= $this->Form->control('frequency', ['list' => 'frequency-suggestions', 'class' => 'form-control']) ?>
-					</div>
-					<div class="col-md-3 mb-3">
-						<?= $this->Form->control('allow_concurrent', ['class' => 'form-check-input']) ?>
-					</div>
-					<div class="col-md-3 mb-3">
-						<?= $this->Form->control('enabled', ['class' => 'form-check-input']) ?>
-					</div>
+				<div class="col-md-3 mb-3">
+					<?= $this->Form->control('allow_concurrent', ['class' => 'form-check-input']) ?>
 				</div>
-				<div class="card bg-light-subtle border-0 mb-3">
-					<div class="card-body">
-						<div class="d-flex justify-content-between align-items-center mb-2">
-							<div>
-								<h5 class="mb-1"><?= __d('queue_scheduler', 'Dispatch Window (optional)') ?></h5>
-								<div class="small text-muted">
-									<?= $hasWindowValues ? __d('queue_scheduler', 'Restrictions configured') : __d('queue_scheduler', 'No restrictions') ?>
-								</div>
+				<div class="col-md-3 mb-3">
+					<?= $this->Form->control('enabled', ['class' => 'form-check-input']) ?>
+				</div>
+			</div>
+			<div class="card bg-light-subtle border-0 mb-3">
+				<div class="card-body">
+					<div class="d-flex justify-content-between align-items-center mb-2">
+						<div>
+							<h5 class="mb-1"><?= __d('queue_scheduler', 'Dispatch Window (optional)') ?></h5>
+							<div class="small text-muted">
+								<?= $hasWindowValues ? __d('queue_scheduler', 'Restrictions configured') : __d('queue_scheduler', 'No restrictions') ?>
 							</div>
-							<button
-								type="button"
-								class="btn btn-sm btn-outline-secondary"
-								data-bs-toggle="collapse"
-								data-bs-target="#scheduler-window-fields"
-								aria-expanded="<?= $windowOpen ? 'true' : 'false' ?>"
-								aria-controls="scheduler-window-fields"
-							><?= $windowOpen ? __d('queue_scheduler', 'Hide') : __d('queue_scheduler', 'Configure') ?></button>
 						</div>
-						<div id="scheduler-window-fields" class="collapse<?= $windowOpen ? ' show' : '' ?>">
+						<button
+							type="button"
+							class="btn btn-sm btn-outline-secondary"
+							data-bs-toggle="collapse"
+							data-bs-target="#scheduler-window-fields"
+							aria-expanded="<?= $windowOpen ? 'true' : 'false' ?>"
+							aria-controls="scheduler-window-fields"
+						><?= $windowOpen ? __d('queue_scheduler', 'Hide') : __d('queue_scheduler', 'Configure') ?></button>
+					</div>
+					<div id="scheduler-window-fields" class="collapse<?= $windowOpen ? ' show' : '' ?>">
 						<div class="row">
 							<div class="col-md-6 mb-3">
 								<?= $this->Form->control('window_start_time', [
@@ -139,7 +139,6 @@ $windowOpen = $hasWindowValues || $hasWindowErrors;
 									'0' => __d('queue_scheduler', 'Sun'),
 								],
 								'label' => __d('queue_scheduler', 'Allowed Days'),
-								'hiddenField' => false,
 								'value' => $selectedWindowDays,
 								'help' => __d('queue_scheduler', 'Leave all unchecked for every day.'),
 							]) ?>
@@ -148,14 +147,13 @@ $windowOpen = $hasWindowValues || $hasWindowErrors;
 							<?php } ?>
 							<div class="form-text"><?= __d('queue_scheduler', 'Weekday-only example: Mon-Fri.') ?></div>
 						</div>
-						</div>
 					</div>
 				</div>
-				</div>
-				<div class="mt-3">
-					<?= $this->Form->button('<i class="fas fa-save me-1"></i>' . __d('queue_scheduler', 'Save'), ['class' => 'btn btn-primary', 'escapeTitle' => false]) ?>
-				</div>
-				<?= $this->Form->end() ?>
+			</div>
+			<div class="mt-3">
+				<?= $this->Form->button('<i class="fas fa-save me-1"></i>' . __d('queue_scheduler', 'Save'), ['class' => 'btn btn-primary', 'escapeTitle' => false]) ?>
+			</div>
+			<?= $this->Form->end() ?>
 		</div>
 	</div>
 
