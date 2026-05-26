@@ -159,7 +159,6 @@ $windowOpen = $hasWindowValues || $hasWindowErrors;
 									'0' => __d('queue_scheduler', 'Sun'),
 								],
 									'label' => __d('queue_scheduler', 'Allowed Days'),
-									'hiddenField' => false,
 									'value' => $selectedWindowDays,
 									'help' => __d('queue_scheduler', 'Leave all unchecked for every day.'),
 								]) ?>
