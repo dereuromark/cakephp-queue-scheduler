@@ -4,6 +4,7 @@ namespace QueueScheduler\Controller\Admin;
 
 use Cake\Http\Response;
 use Cake\I18n\DateTime;
+use Psr\Http\Message\UploadedFileInterface;
 
 /**
  * Rows Controller
@@ -19,7 +20,9 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 	 * @return void Renders view
 	 */
 	public function index(): void {
-		$rows = $this->paginate($this->SchedulerRows);
+		$rows = $this->paginate($this->SchedulerRows, [
+			'order' => ['SchedulerRows.name' => 'ASC'],
+		]);
 
 		$this->set(compact('rows'));
 	}
@@ -68,6 +71,26 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 			->toArray();
 
 		$this->set(compact('row', 'jobStats', 'recentJobs'));
+	}
+
+	/**
+	 * @param string|null $id Row id.
+	 *
+	 * @return \Cake\Http\Response
+	 */
+	public function export(?string $id = null): Response {
+		$row = $this->SchedulerRows->get($id);
+		$payload = [
+			'queue_scheduler_export' => 1,
+			'exported_at' => DateTime::now()->toIso8601String(),
+			'row' => $this->buildExportPayload($row),
+		];
+		$filename = 'queue-scheduler-' . preg_replace('/[^a-z0-9]+/i', '-', strtolower($row->name)) . '.json';
+
+		return $this->response
+			->withType('application/json')
+			->withDownload($filename)
+			->withStringBody((string)json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 	}
 
 	/**
@@ -153,6 +176,43 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 		$this->set(compact('row'));
 
 		return null;
+	}
+
+	/**
+	 * @return \Cake\Http\Response|null
+	 */
+	public function import(): ?Response {
+		if (!$this->request->is('post')) {
+			return null;
+		}
+
+		$json = $this->readImportJson();
+		if ($json === null) {
+			$this->Flash->error(__d('queue_scheduler', 'Provide a JSON file or paste JSON to import a schedule.'));
+
+			return $this->redirect(['action' => 'import']);
+		}
+
+		$importData = json_decode($json, true);
+		if (!is_array($importData)) {
+			$this->Flash->error(__d('queue_scheduler', 'Invalid import JSON.'));
+
+			return $this->redirect(['action' => 'import']);
+		}
+
+		$rowData = $this->extractImportRowData($importData);
+		if ($rowData === null) {
+			$this->Flash->error(__d('queue_scheduler', 'Import JSON must contain a schedule row payload.'));
+
+			return $this->redirect(['action' => 'import']);
+		}
+
+		$this->Flash->success(__d('queue_scheduler', 'Imported schedule loaded. Review and save the draft.'));
+
+		return $this->redirect([
+			'action' => 'add',
+			'?' => $rowData,
+		]);
 	}
 
 	/**
@@ -263,6 +323,99 @@ class SchedulerRowsController extends QueueSchedulerAppController {
 		}
 
 		return $overrides;
+	}
+
+	/**
+	 * @param \QueueScheduler\Model\Entity\SchedulerRow $row
+	 *
+	 * @return array<string, mixed>
+	 */
+	protected function buildExportPayload(mixed $row): array {
+		$windowStartTime = $row->get('window_start_time');
+		$windowEndTime = $row->get('window_end_time');
+
+		return [
+			'name' => $row->name,
+			'type' => $row->type,
+			'content' => $row->content,
+			'param' => $row->param,
+			'job_config' => $row->job_config ? (string)json_encode($row->job_config, JSON_UNESCAPED_SLASHES) : '',
+			'frequency' => $row->frequency,
+			'allow_concurrent' => $row->allow_concurrent ? 1 : 0,
+			'enabled' => $row->enabled ? 1 : 0,
+			'window_start_time' => is_object($windowStartTime) && method_exists($windowStartTime, 'format') ? $windowStartTime->format('H:i') : $windowStartTime,
+			'window_end_time' => is_object($windowEndTime) && method_exists($windowEndTime, 'format') ? $windowEndTime->format('H:i') : $windowEndTime,
+			'window_days_of_week' => $row->window_days_of_week,
+		];
+	}
+
+	protected function readImportJson(): ?string {
+		$upload = $this->request->getUploadedFile('import_file');
+		if ($upload instanceof UploadedFileInterface && $upload->getError() === UPLOAD_ERR_OK) {
+			$stream = $upload->getStream();
+			$stream->rewind();
+			$content = $stream->getContents();
+
+			return $content !== '' ? $content : null;
+		}
+
+		$json = $this->request->getData('import_json');
+		if (!is_string($json)) {
+			return null;
+		}
+
+		$json = trim($json);
+
+		return $json !== '' ? $json : null;
+	}
+
+	/**
+	 * @param array<string, mixed> $importData
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	protected function extractImportRowData(array $importData): ?array {
+		$rowData = $importData['row'] ?? $importData;
+		if (!is_array($rowData)) {
+			return null;
+		}
+
+		$allowedFields = [
+			'name',
+			'type',
+			'content',
+			'param',
+			'job_config',
+			'frequency',
+			'allow_concurrent',
+			'enabled',
+			'window_start_time',
+			'window_end_time',
+			'window_days_of_week',
+		];
+
+		$result = [];
+		foreach ($allowedFields as $field) {
+			if (!array_key_exists($field, $rowData)) {
+				continue;
+			}
+			$value = $rowData[$field];
+			if (is_array($value) && $field === 'job_config') {
+				$value = (string)json_encode($value, JSON_UNESCAPED_SLASHES);
+			}
+			if (($field === 'allow_concurrent' || $field === 'enabled') && $value !== null) {
+				$value = $value ? 1 : 0;
+			}
+			if ($field === 'param' && is_array($value)) {
+				$value = (string)json_encode($value, JSON_UNESCAPED_SLASHES);
+			}
+			if ($field === 'window_days_of_week' && is_array($value)) {
+				$value = implode(',', $value);
+			}
+			$result[$field] = $value;
+		}
+
+		return $result ?: null;
 	}
 
 	/**

@@ -30,7 +30,7 @@ $windowOpen = $hasWindowValues || $hasWindowErrors;
 			<?= $this->Html->link(
 				'<i class="fas fa-clock me-1"></i>' . __d('queue_scheduler', 'Intervals Help'),
 				['controller' => 'QueueScheduler', 'action' => 'intervals'],
-				['class' => 'btn btn-outline-secondary', 'escapeTitle' => false],
+				['class' => 'btn btn-outline-secondary', 'escapeTitle' => false, 'target' => '_blank', 'rel' => 'noopener'],
 			) ?>
 		</div>
 	</div>
