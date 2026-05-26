@@ -210,6 +210,29 @@ $nonceAttr = $cspNonce !== '' ? ' nonce="' . h($cspNonce) . '"' : '';
 			color: var(--scheduler-secondary);
 		}
 
+		.scheduler-table thead th a {
+			color: inherit;
+			display: inline-flex;
+			align-items: center;
+			gap: 0.35rem;
+			text-decoration: none;
+		}
+
+		.scheduler-table thead th a.asc,
+		.scheduler-table thead th a.desc {
+			color: var(--scheduler-dark);
+		}
+
+		.scheduler-table thead th a.asc::after {
+			content: "\2191";
+			font-size: 0.875em;
+		}
+
+		.scheduler-table thead th a.desc::after {
+			content: "\2193";
+			font-size: 0.875em;
+		}
+
 		.scheduler-table tbody tr:hover {
 			background-color: rgba(111, 66, 193, 0.04);
 		}
