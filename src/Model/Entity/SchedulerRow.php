@@ -31,6 +31,7 @@ use Tools\Model\Entity\Entity;
  * @property \Cake\I18n\DateTime|null $created
  * @property \Cake\I18n\DateTime|null $modified
  * @property bool $enabled
+ * @property int $consecutive_failures
  * @property int|null $last_queued_job_id
  * @property \Queue\Model\Entity\QueuedJob|null $last_queued_job
  * @property-read string|null $job_task

@@ -18,6 +18,7 @@ use Cron\CronExpression;
 use DateInterval;
 use Exception;
 use InvalidArgumentException;
+use Queue\Model\Table\QueuedJobsTable;
 use Queue\Queue\Task;
 use QueueScheduler\Model\Entity\SchedulerRow;
 use RuntimeException;
@@ -502,20 +503,109 @@ class SchedulerRowsTable extends Table {
 		$config['reference'] = $row->job_reference;
 		$oldLastRun = $row->last_run;
 
-		return $this->getConnection()->transactional(function () use ($row, $config, $oldLastRun): bool {
+		// $dispatched is what run() reports to the caller: true only when a job
+		// was actually queued or reran. The transactional closure returns true
+		// whenever its writes should COMMIT (a dispatch OR a backoff-disable) and
+		// false only to roll back (hold-back / lost compare-and-swap). The
+		// disable case therefore commits its `enabled = false` write while still
+		// reporting "nothing dispatched" to the caller — returning false from the
+		// closure would roll the disable back.
+		$dispatched = false;
+
+		$this->getConnection()->transactional(function () use ($row, $config, $oldLastRun, &$dispatched): bool {
 			/** @var \Queue\Model\Table\QueuedJobsTable $queuedJobsTable */
 			$queuedJobsTable = TableRegistry::getTableLocator()->get('Queue.QueuedJobs');
-			if (!$row->allow_concurrent && $queuedJobsTable->isQueued($row->job_reference, $row->job_task)) {
-				return false;
+
+			$abortedJobId = null;
+			if (!$row->allow_concurrent) {
+				// If the previous dispatch terminally failed (queue status =
+				// aborted), rerun that same row in place rather than piling up a
+				// fresh failed job every tick (see #1). Checked BEFORE the
+				// in-flight hold-back so this works regardless of whether the
+				// installed queue release already excludes aborted rows from
+				// isQueued() (cakephp-queue#504) — an aborted job is terminal
+				// and never blocks the next dispatch.
+				$abortedJobId = $this->abortedJobId($queuedJobsTable, $row);
+
+				// A genuinely in-flight job (pending/running/retrying) still
+				// blocks the next dispatch.
+				if ($abortedJobId === null && $queuedJobsTable->isQueued($row->job_reference, $row->job_task)) {
+					return false;
+				}
+			}
+
+			$now = new DateTime();
+
+			if ($abortedJobId !== null) {
+				$failures = $row->consecutive_failures + 1;
+				$max = (int)Configure::read('QueueScheduler.maxConsecutiveFailures', 0);
+
+				// #2 backoff: after too many consecutive aborts, disable the row
+				// (so the scheduler stops re-dispatching it) and emit an event so
+				// the host app can alert. A successful run later clears the count.
+				if ($max > 0 && $failures >= $max) {
+					$updated = $this->updateAll(
+						['enabled' => false, 'consecutive_failures' => $failures],
+						['id' => $row->id, 'last_run IS' => $oldLastRun],
+					);
+					if ($updated === 0) {
+						return false;
+					}
+
+					$row->enabled = false;
+					$row->consecutive_failures = $failures;
+					$this->dispatchEvent('QueueScheduler.Row.disabled', [
+						'row' => $row,
+						'consecutiveFailures' => $failures,
+					]);
+					Log::warning(sprintf(
+						'QueueScheduler: row #%d (%s) disabled after %d consecutive failures.',
+						(int)$row->id,
+						(string)$row->name,
+						$failures,
+					));
+
+					// Commit the disable; report "not dispatched" to the caller.
+					return true;
+				}
+
+				// Claim the tick first (compare-and-swap on last_run); only then
+				// mutate the job, so a lost race never resets a row another tick
+				// is about to reuse. last_queued_job_id already points at this job.
+				$updated = $this->updateAll(
+					['last_run' => $now, 'consecutive_failures' => $failures],
+					['id' => $row->id, 'last_run IS' => $oldLastRun],
+				);
+				if ($updated === 0) {
+					return false;
+				}
+
+				$queuedJobsTable->reset($abortedJobId);
+				// reset() does not clear the terminal `status`, so drop it here;
+				// otherwise the reran job would still read as aborted next tick.
+				$queuedJobsTable->updateAll(['status' => null], ['id' => $abortedJobId]);
+
+				$row->last_run = $now;
+				$row->consecutive_failures = $failures;
+				$row->next_run = $row->calculateNextRun();
+				$this->updateAll(
+					['next_run' => $row->next_run],
+					['id' => $row->id],
+				);
+
+				$dispatched = true;
+
+				return true;
 			}
 
 			$queuedJob = $queuedJobsTable->createJob($row->job_task, $row->job_data, $config);
 
-			$now = new DateTime();
 			$updated = $this->updateAll(
 				[
 					'last_run' => $now,
 					'last_queued_job_id' => $queuedJob->id,
+					// Fresh dispatch (prior succeeded or none): clear the streak.
+					'consecutive_failures' => 0,
 				],
 				[
 					'id' => $row->id,
@@ -533,6 +623,7 @@ class SchedulerRowsTable extends Table {
 
 			$row->last_run = $now;
 			$row->last_queued_job_id = $queuedJob->id;
+			$row->consecutive_failures = 0;
 			// next_run is recomputed by beforeSave when last_run is dirty; the
 			// updateAll bypassed that, so do it explicitly to keep persistent
 			// state consistent without re-running the full save pipeline.
@@ -542,8 +633,43 @@ class SchedulerRowsTable extends Table {
 				['id' => $row->id],
 			);
 
+			$dispatched = true;
+
 			return true;
 		});
+
+		return $dispatched;
+	}
+
+	/**
+	 * Returns the id of the row's last dispatched job if it terminally failed
+	 * (queue status = aborted, not completed), else null.
+	 *
+	 * Pairs with the terminal "aborted" state persisted by cakephp-queue#504.
+	 * The literal status string is used so this stays a no-op on a queue
+	 * release that does not yet persist it (no aborted rows ⇒ always null).
+	 *
+	 * @param \Queue\Model\Table\QueuedJobsTable $queuedJobsTable
+	 * @param \QueueScheduler\Model\Entity\SchedulerRow $row
+	 *
+	 * @return int|null
+	 */
+	protected function abortedJobId(QueuedJobsTable $queuedJobsTable, SchedulerRow $row): ?int {
+		if (!$row->last_queued_job_id) {
+			return null;
+		}
+
+		/** @var \Queue\Model\Entity\QueuedJob|null $job */
+		$job = $queuedJobsTable->find()
+			->where([
+				'id' => $row->last_queued_job_id,
+				'completed IS' => null,
+				'status' => 'aborted',
+			])
+			->select(['id'])
+			->first();
+
+		return $job?->id;
 	}
 
 	/**

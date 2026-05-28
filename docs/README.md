@@ -365,6 +365,24 @@ This is independent of `QueueScheduler.standalone` (which controls whether the a
 
 `QueueScheduler.dashboardAutoRefresh` (integer, seconds; default `0`) sets a meta-refresh interval on the admin dashboard so it polls itself for fresh state without manual reload. `0` disables auto-refresh; a typical value is `30` or `60`.
 
+### Failure backoff for non-concurrent rows
+
+When a non-concurrent row's previously dispatched job *terminally* fails — the queue marks it `aborted` after exhausting its retries — the next tick **reruns that same job in place** instead of queuing a brand-new one. Without this, a persistently-broken scheduled task would leave one failed job behind every interval (e.g. ~1440 rows/day for an every-minute task). Reusing the row keeps it to a single, recycled job.
+
+Still-retrying jobs are untouched: while the queue has retries left the job is genuinely in flight and the next tick is held back as usual, so there is no early re-dispatch.
+
+`QueueScheduler.maxConsecutiveFailures` (integer; default `0`) caps how many consecutive aborts (without an intervening success) are tolerated before the row is **disabled** and a `QueueScheduler.Row.disabled` event is dispatched so the host app can alert:
+
+```php
+$this->getEventManager()->on('QueueScheduler.Row.disabled', function ($event) {
+    $row = $event->getData('row');
+    $failures = $event->getData('consecutiveFailures');
+    // notify ops…
+});
+```
+
+`0` (default) means unlimited reruns and never auto-disable. A successful (or fresh, non-aborted) dispatch resets the counter. This relies on the queue recording terminal `aborted` state (cakephp-queue 8.15+); on older queue releases no job is ever marked aborted, so the feature is simply dormant and behaviour is unchanged.
+
 ### Scheduler health indicator
 
 The admin index page shows a small pill next to the page header indicating whether cron is actively invoking the scheduler:
