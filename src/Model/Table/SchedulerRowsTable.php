@@ -440,6 +440,14 @@ class SchedulerRowsTable extends Table {
 	 * @return void
 	 */
 	public function beforeSave(EventInterface $event, EntityInterface $entity, ArrayObject $options): void {
+		// Re-enabling a row clears any backoff streak so it gets a fresh round of
+		// reruns. Without this, a row disabled at the cap would re-disable on the
+		// very next tick (its consecutive_failures is still at the cap) without
+		// ever retrying — acute when maxConsecutiveFailures is 1.
+		if ($entity->isDirty('enabled') && $entity->enabled) {
+			$entity->consecutive_failures = 0;
+		}
+
 		if (
 			$entity->next_run === null
 			|| $entity->isDirty('frequency')
@@ -511,8 +519,13 @@ class SchedulerRowsTable extends Table {
 		// reporting "nothing dispatched" to the caller — returning false from the
 		// closure would roll the disable back.
 		$dispatched = false;
+		// Set inside the closure when the backoff cap disables the row. The
+		// disable write commits with the transaction; the alert event + log fire
+		// only AFTER commit (below) so a listener never runs mid-transaction and
+		// can rely on the disabled state being durable.
+		$disabled = false;
 
-		$this->getConnection()->transactional(function () use ($row, $config, $oldLastRun, &$dispatched): bool {
+		$this->getConnection()->transactional(function () use ($row, $config, $oldLastRun, &$dispatched, &$disabled): bool {
 			/** @var \Queue\Model\Table\QueuedJobsTable $queuedJobsTable */
 			$queuedJobsTable = TableRegistry::getTableLocator()->get('Queue.QueuedJobs');
 
@@ -537,15 +550,19 @@ class SchedulerRowsTable extends Table {
 			$now = new DateTime();
 
 			if ($abortedJobId !== null) {
-				$failures = $row->consecutive_failures + 1;
 				$max = (int)Configure::read('QueueScheduler.maxConsecutiveFailures', 0);
 
-				// #2 backoff: after too many consecutive aborts, disable the row
-				// (so the scheduler stops re-dispatching it) and emit an event so
-				// the host app can alert. A successful run later clears the count.
-				if ($max > 0 && $failures >= $max) {
+				// #2 backoff: once we have already recycled this row's job $max
+				// times in a row without an intervening success and it is STILL
+				// aborting, stop retrying — disable the row and alert. The check is
+				// on the count BEFORE this tick, so $max is the number of reruns
+				// granted before giving up. A re-enable resets the counter (see
+				// beforeSave()), granting another $max reruns; recovery therefore
+				// works on every queue version because it flows through the rerun
+				// path below rather than depending on isQueued() excluding aborted.
+				if ($max > 0 && $row->consecutive_failures >= $max) {
 					$updated = $this->updateAll(
-						['enabled' => false, 'consecutive_failures' => $failures],
+						['enabled' => false],
 						['id' => $row->id, 'last_run IS' => $oldLastRun],
 					);
 					if ($updated === 0) {
@@ -553,25 +570,19 @@ class SchedulerRowsTable extends Table {
 					}
 
 					$row->enabled = false;
-					$row->consecutive_failures = $failures;
-					$this->dispatchEvent('QueueScheduler.Row.disabled', [
-						'row' => $row,
-						'consecutiveFailures' => $failures,
-					]);
-					Log::warning(sprintf(
-						'QueueScheduler: row #%d (%s) disabled after %d consecutive failures.',
-						(int)$row->id,
-						(string)$row->name,
-						$failures,
-					));
+					$disabled = true;
 
-					// Commit the disable; report "not dispatched" to the caller.
+					// Commit the disable; the alert event + log fire after commit
+					// (below). Report "not dispatched" to the caller.
 					return true;
 				}
 
-				// Claim the tick first (compare-and-swap on last_run); only then
-				// mutate the job, so a lost race never resets a row another tick
-				// is about to reuse. last_queued_job_id already points at this job.
+				// #1 rerun in place: recycle the aborted job rather than piling up
+				// a fresh failed job every tick. Claim the tick first (compare-and-
+				// swap on last_run); only then mutate the job, so a lost race never
+				// resets a row another tick is about to reuse. last_queued_job_id
+				// already points at this job.
+				$failures = $row->consecutive_failures + 1;
 				$updated = $this->updateAll(
 					['last_run' => $now, 'consecutive_failures' => $failures],
 					['id' => $row->id, 'last_run IS' => $oldLastRun],
@@ -580,9 +591,14 @@ class SchedulerRowsTable extends Table {
 					return false;
 				}
 
+				// Recycle the aborted job in place. reset() clears attempts /
+				// fetched / etc. using the installed queue schema (so we stay
+				// compatible with older queue versions). Its guards always hold
+				// for a terminal aborted job: completed IS null, attempts > 0, and
+				// notbefore is in the past (the final failed attempt already ran).
 				$queuedJobsTable->reset($abortedJobId);
 				// reset() does not clear the terminal `status`, so drop it here;
-				// otherwise the reran job would still read as aborted next tick.
+				// otherwise abortedJobId() would still match the job next tick.
 				$queuedJobsTable->updateAll(['status' => null], ['id' => $abortedJobId]);
 
 				$row->last_run = $now;
@@ -637,6 +653,19 @@ class SchedulerRowsTable extends Table {
 
 			return true;
 		});
+
+		if ($disabled) {
+			$this->dispatchEvent('QueueScheduler.Row.disabled', [
+				'row' => $row,
+				'consecutiveFailures' => $row->consecutive_failures,
+			]);
+			Log::warning(sprintf(
+				'QueueScheduler: row #%d (%s) disabled after %d consecutive failures.',
+				(int)$row->id,
+				(string)$row->name,
+				$row->consecutive_failures,
+			));
+		}
 
 		return $dispatched;
 	}

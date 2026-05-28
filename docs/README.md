@@ -371,7 +371,7 @@ When a non-concurrent row's previously dispatched job *terminally* fails — the
 
 Still-retrying jobs are untouched: while the queue has retries left the job is genuinely in flight and the next tick is held back as usual, so there is no early re-dispatch.
 
-`QueueScheduler.maxConsecutiveFailures` (integer; default `0`) caps how many consecutive aborts (without an intervening success) are tolerated before the row is **disabled** and a `QueueScheduler.Row.disabled` event is dispatched so the host app can alert:
+`QueueScheduler.maxConsecutiveFailures` (integer; default `0`) caps how many consecutive reruns (without an intervening success) are granted before the row is **disabled** and a `QueueScheduler.Row.disabled` event is dispatched so the host app can alert:
 
 ```php
 $this->getEventManager()->on('QueueScheduler.Row.disabled', function ($event) {
@@ -381,7 +381,7 @@ $this->getEventManager()->on('QueueScheduler.Row.disabled', function ($event) {
 });
 ```
 
-`0` (default) means unlimited reruns and never auto-disable. A successful (or fresh, non-aborted) dispatch resets the counter. This relies on the queue recording terminal `aborted` state (cakephp-queue 8.15+); on older queue releases no job is ever marked aborted, so the feature is simply dormant and behaviour is unchanged.
+So `1` reruns the job once and disables on the next abort, `3` grants three reruns, and `0` (default) means unlimited reruns and never auto-disable. A successful (or fresh, non-aborted) dispatch resets the counter, and re-enabling a disabled row also resets it — so the row gets a fresh round of reruns rather than re-disabling immediately, regardless of the cap. This relies on the queue recording terminal `aborted` state (cakephp-queue 8.15+); on older queue releases no job is ever marked aborted, so the feature is simply dormant and behaviour is unchanged.
 
 ### Scheduler health indicator
 
