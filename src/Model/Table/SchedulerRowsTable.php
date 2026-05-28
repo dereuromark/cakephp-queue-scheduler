@@ -597,8 +597,11 @@ class SchedulerRowsTable extends Table {
 				// for a terminal aborted job: completed IS null, attempts > 0, and
 				// notbefore is in the past (the final failed attempt already ran).
 				$queuedJobsTable->reset($abortedJobId);
-				// reset() does not clear the terminal `status`, so drop it here;
-				// otherwise abortedJobId() would still match the job next tick.
+				// reset() in the currently-supported queue versions does not clear
+				// the terminal `status`, so drop it here; otherwise abortedJobId()
+				// would still match the job next tick and the rerun would not take.
+				// cakephp-queue#505 makes reset() clear `status` itself — once the
+				// min queue requirement includes that release, this line can go.
 				$queuedJobsTable->updateAll(['status' => null], ['id' => $abortedJobId]);
 
 				$row->last_run = $now;
