@@ -558,7 +558,7 @@ class SchedulerRow extends Entity {
 	protected function _getJobData(): array {
 		$param = [];
 		if ($this->param) {
-			$decoded = json_decode($this->param, true, JSON_THROW_ON_ERROR);
+			$decoded = json_decode($this->param, true, 512, JSON_THROW_ON_ERROR);
 			// Validation rejects scalar/null payloads at save time, but a row
 			// inserted directly via SQL or through a marshalling path that
 			// bypasses validation could still reach this method. Falling
