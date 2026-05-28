@@ -505,7 +505,7 @@ class SchedulerRowsTable extends Table {
 		return $this->getConnection()->transactional(function () use ($row, $config, $oldLastRun): bool {
 			/** @var \Queue\Model\Table\QueuedJobsTable $queuedJobsTable */
 			$queuedJobsTable = TableRegistry::getTableLocator()->get('Queue.QueuedJobs');
-			if (!$row->allow_concurrent && $queuedJobsTable->isQueued($row->job_reference, $row->job_task)) {
+			if (!$row->allow_concurrent && $this->isBlockedByActiveJob($queuedJobsTable, $row)) {
 				return false;
 			}
 
@@ -600,7 +600,7 @@ class SchedulerRowsTable extends Table {
 		return $this->getConnection()->transactional(function () use ($row, $jobData, $config, $overrides): bool {
 			/** @var \Queue\Model\Table\QueuedJobsTable $queuedJobsTable */
 			$queuedJobsTable = TableRegistry::getTableLocator()->get('Queue.QueuedJobs');
-			if (!$row->allow_concurrent && $queuedJobsTable->isQueued($row->job_reference, $row->job_task)) {
+			if (!$row->allow_concurrent && $this->isBlockedByActiveJob($queuedJobsTable, $row)) {
 				return false;
 			}
 
@@ -630,6 +630,53 @@ class SchedulerRowsTable extends Table {
 			// cron-fired rail continues to tick at its normal time.
 			return true;
 		});
+	}
+
+	/**
+	 * Whether a non-concurrent row is blocked by a genuinely in-flight job.
+	 *
+	 * Plain `QueuedJobsTable::isQueued()` treats every `completed IS NULL`
+	 * row as blocking — including a job a worker fetched and then died on
+	 * (OOM, timeout, kill) without ever completing or failing it. Such a row
+	 * stays `completed IS NULL` forever, so a non-concurrent schedule would
+	 * wedge permanently behind it: both the cron tick and the admin "Run"
+	 * action keep returning false ("could not be added to the queue").
+	 *
+	 * A job fetched longer ago than the queue's own requeue timeout is one
+	 * the queue itself would re-offer to a worker, so it is presumed dead and
+	 * no longer counts as blocking here. When `Queue.defaultRequeueTimeout`
+	 * is not configured we fall back to the original strict semantics so
+	 * behaviour is unchanged for installs that have not opted into a timeout.
+	 *
+	 * (Mirrors the `$staleTimeout` parameter added to
+	 * `QueuedJobsTable::isQueued()` in dereuromark/cakephp-queue#503; once a
+	 * release carrying that parameter is required, this can collapse to a
+	 * single `isQueued($ref, $task, $staleTimeout)` call.)
+	 *
+	 * @param \Queue\Model\Table\QueuedJobsTable $queuedJobsTable
+	 * @param \QueueScheduler\Model\Entity\SchedulerRow $row
+	 *
+	 * @return bool
+	 */
+	protected function isBlockedByActiveJob(object $queuedJobsTable, SchedulerRow $row): bool {
+		$staleTimeout = Configure::read('Queue.defaultRequeueTimeout');
+		if (!is_numeric($staleTimeout) || (int)$staleTimeout <= 0) {
+			return $queuedJobsTable->isQueued($row->job_reference, $row->job_task);
+		}
+
+		$conditions = [
+			'reference' => $row->job_reference,
+			'completed IS' => null,
+			'OR' => [
+				'fetched IS' => null,
+				'fetched >=' => (new DateTime())->subSeconds((int)$staleTimeout),
+			],
+		];
+		if ($row->job_task !== null) {
+			$conditions['job_task'] = $row->job_task;
+		}
+
+		return (bool)$queuedJobsTable->find()->where($conditions)->select(['id'])->first();
 	}
 
 	/**

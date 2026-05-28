@@ -625,6 +625,88 @@ class SchedulerRowsTableTest extends TestCase {
 	 *
 	 * @return void
 	 */
+	/**
+	 * A non-concurrent row must NOT stay wedged behind a job that a worker
+	 * fetched and then died on. Once that fetch is older than the queue's
+	 * requeue timeout the job is presumed dead, so the next tick dispatches
+	 * again instead of holding back forever.
+	 *
+	 * @return void
+	 */
+	public function testRunIgnoresStaleQueuedJob(): void {
+		$this->loadPlugins(['Tools', 'Queue', 'QueueScheduler']);
+		Configure::write('Queue.defaultRequeueTimeout', 60);
+
+		$row = $this->SchedulerRows->newEntity([
+			'name' => 'stale-target',
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'content' => ExampleTask::class,
+			'job_config' => null,
+			'job_data' => '',
+			'frequency' => '+1 hour',
+			'allow_concurrent' => false,
+		]);
+		$this->SchedulerRows->saveOrFail($row);
+		$row = $this->SchedulerRows->get($row->id);
+
+		$this->assertTrue($this->SchedulerRows->run($row));
+		$row = $this->SchedulerRows->get($row->id);
+
+		$queuedJobsTable = $this->getTableLocator()->get('Queue.QueuedJobs');
+		$this->assertSame(1, $queuedJobsTable->find()->count());
+
+		// Mark the existing job as fetched 5 minutes ago and never completed:
+		// a worker grabbed it and vanished.
+		$queuedJob = $queuedJobsTable->get($row->last_queued_job_id);
+		$queuedJob->fetched = (new DateTime())->subSeconds(300);
+		$queuedJob->completed = null;
+		$queuedJobsTable->saveOrFail($queuedJob);
+
+		// Next tick must dispatch despite the dead job (300s > 60s timeout).
+		$this->assertTrue($this->SchedulerRows->run($row));
+		$this->assertSame(2, $queuedJobsTable->find()->count());
+
+		Configure::delete('Queue.defaultRequeueTimeout');
+	}
+
+	/**
+	 * A genuinely in-flight job (fetched within the requeue window, or not
+	 * yet fetched at all) must still block a non-concurrent row.
+	 *
+	 * @return void
+	 */
+	public function testRunBlocksOnFreshQueuedJob(): void {
+		$this->loadPlugins(['Tools', 'Queue', 'QueueScheduler']);
+		Configure::write('Queue.defaultRequeueTimeout', 60);
+
+		$row = $this->SchedulerRows->newEntity([
+			'name' => 'fresh-target',
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'content' => ExampleTask::class,
+			'job_config' => null,
+			'job_data' => '',
+			'frequency' => '+1 hour',
+			'allow_concurrent' => false,
+		]);
+		$this->SchedulerRows->saveOrFail($row);
+		$row = $this->SchedulerRows->get($row->id);
+
+		$this->assertTrue($this->SchedulerRows->run($row));
+		$row = $this->SchedulerRows->get($row->id);
+
+		$queuedJobsTable = $this->getTableLocator()->get('Queue.QueuedJobs');
+		$queuedJob = $queuedJobsTable->get($row->last_queued_job_id);
+		$queuedJob->fetched = (new DateTime())->subSeconds(10);
+		$queuedJob->completed = null;
+		$queuedJobsTable->saveOrFail($queuedJob);
+
+		// Fetched 10s ago, within the 60s window => still in flight => blocked.
+		$this->assertFalse($this->SchedulerRows->run($row));
+		$this->assertSame(1, $queuedJobsTable->find()->count());
+
+		Configure::delete('Queue.defaultRequeueTimeout');
+	}
+
 	public function testRunIsIdempotentAcrossOverlappingTicks(): void {
 		// Load alongside Tools + QueueScheduler so the plugin registry matches
 		// what Application::bootstrap() loads in the test app. Loading only
