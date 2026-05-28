@@ -72,6 +72,17 @@ return [
 		// NOT coordinate across hosts — running loop mode on multiple hosts can still
 		// produce overlapping schedules.
 		//'lockPath' => TMP . 'queue_scheduler.lock',
+
+		// Backoff for repeatedly-failing non-concurrent rows. When the row's
+		// previously dispatched job terminally failed (queue status "aborted"),
+		// the next tick reruns that same job in place instead of queuing a new
+		// one — so a broken task does not pile up a failed job every interval.
+		// After this many consecutive reruns (without an intervening success)
+		// the row is disabled and a `QueueScheduler.Row.disabled` event is fired
+		// so the host app can alert. Re-enabling a disabled row resets the count.
+		// 0 (default) = unlimited reruns, never auto-disable. Requires the queue
+		// to record terminal "aborted" state.
+		//'maxConsecutiveFailures' => 0,
 	],
 	// Icon configuration for the backend UI (optional, but recommended for better UX)
 	// Without this, the UI will use Font Awesome icons from CDN when using the standalone layout.

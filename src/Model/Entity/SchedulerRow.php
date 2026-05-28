@@ -31,6 +31,7 @@ use Tools\Model\Entity\Entity;
  * @property \Cake\I18n\DateTime|null $created
  * @property \Cake\I18n\DateTime|null $modified
  * @property bool $enabled
+ * @property int $consecutive_failures
  * @property int|null $last_queued_job_id
  * @property \Queue\Model\Entity\QueuedJob|null $last_queued_job
  * @property-read string|null $job_task
@@ -557,7 +558,7 @@ class SchedulerRow extends Entity {
 	protected function _getJobData(): array {
 		$param = [];
 		if ($this->param) {
-			$decoded = json_decode($this->param, true, JSON_THROW_ON_ERROR);
+			$decoded = json_decode($this->param, true, 512, JSON_THROW_ON_ERROR);
 			// Validation rejects scalar/null payloads at save time, but a row
 			// inserted directly via SQL or through a marshalling path that
 			// bypasses validation could still reach this method. Falling

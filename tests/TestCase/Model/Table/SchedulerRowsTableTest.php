@@ -607,11 +607,213 @@ class SchedulerRowsTableTest extends TestCase {
 	}
 
 	/**
-	 * Real values pass through unchanged — the normalizer only fires on
-	 * decoded-empty arrays.
+	 * #1: when the previous dispatch terminally aborted, the next tick reruns
+	 * that same job in place instead of creating a new one — so a broken task
+	 * does not pile up a fresh failed row every interval. The failure counter
+	 * increments.
 	 *
 	 * @return void
 	 */
+	public function testRunRerunsAbortedJobInsteadOfCreatingNew(): void {
+		$this->loadPlugins(['Tools', 'Queue', 'QueueScheduler']);
+		$queuedJobsTable = $this->getTableLocator()->get('Queue.QueuedJobs');
+
+		$row = $this->SchedulerRows->newEntity([
+			'name' => 'aborted-rerun',
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'content' => ExampleTask::class,
+			'job_config' => null,
+			'job_data' => '',
+			'frequency' => '+1 hour',
+			'allow_concurrent' => false,
+		]);
+		$this->SchedulerRows->saveOrFail($row);
+		$row = $this->SchedulerRows->get($row->id);
+
+		$this->assertTrue($this->SchedulerRows->run($row));
+		$row = $this->SchedulerRows->get($row->id);
+		$this->assertSame(1, $queuedJobsTable->find()->count());
+		$jobId = $row->last_queued_job_id;
+
+		// Simulate the queue marking the dispatched job terminally failed.
+		$queuedJobsTable->updateAll(
+			['status' => 'aborted', 'attempts' => 5, 'completed' => null],
+			['id' => $jobId],
+		);
+
+		// Next tick reruns the same job: no new row, counter incremented.
+		$this->assertTrue($this->SchedulerRows->run($row));
+
+		$this->assertSame(1, $queuedJobsTable->find()->count(), 'no new job row');
+		$reloadedRow = $this->SchedulerRows->get($row->id);
+		$this->assertSame($jobId, $reloadedRow->last_queued_job_id, 'same job reused');
+		$this->assertSame(1, $reloadedRow->consecutive_failures);
+
+		$reloadedJob = $queuedJobsTable->get($jobId);
+		$this->assertSame(0, $reloadedJob->attempts, 'reset() cleared attempts');
+		$this->assertNull($reloadedJob->status, 'reset() cleared the aborted status');
+	}
+
+	/**
+	 * #2: maxConsecutiveFailures caps how many reruns are granted. With a cap of
+	 * 1 the first abort is rerun in place, and the next abort (still no success)
+	 * disables the row instead of being rerun again — and no extra job is queued.
+	 *
+	 * @return void
+	 */
+	public function testRunDisablesRowAfterMaxConsecutiveFailures(): void {
+		$this->loadPlugins(['Tools', 'Queue', 'QueueScheduler']);
+		Configure::write('QueueScheduler.maxConsecutiveFailures', 1);
+		$queuedJobsTable = $this->getTableLocator()->get('Queue.QueuedJobs');
+
+		$row = $this->SchedulerRows->newEntity([
+			'name' => 'aborted-backoff',
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'content' => ExampleTask::class,
+			'job_config' => null,
+			'job_data' => '',
+			'frequency' => '+1 hour',
+			'allow_concurrent' => false,
+		]);
+		$this->SchedulerRows->saveOrFail($row);
+		$row = $this->SchedulerRows->get($row->id);
+
+		$this->assertTrue($this->SchedulerRows->run($row));
+		$row = $this->SchedulerRows->get($row->id);
+		$jobId = $row->last_queued_job_id;
+
+		$queuedJobsTable->updateAll(
+			['status' => 'aborted', 'attempts' => 5, 'completed' => null],
+			['id' => $jobId],
+		);
+
+		// First abort: streak 0 < cap 1 => rerun in place, streak -> 1.
+		$this->assertTrue($this->SchedulerRows->run($row));
+		$row = $this->SchedulerRows->get($row->id);
+		$this->assertSame(1, $row->consecutive_failures);
+
+		// The recycled job aborts again; streak 1 >= cap 1 => disable, no rerun.
+		$queuedJobsTable->updateAll(
+			['status' => 'aborted', 'attempts' => 5, 'completed' => null],
+			['id' => $jobId],
+		);
+		$this->assertFalse($this->SchedulerRows->run($row));
+
+		$reloadedRow = $this->SchedulerRows->get($row->id);
+		$this->assertFalse($reloadedRow->enabled, 'row disabled after the rerun budget');
+		$this->assertSame(1, $reloadedRow->consecutive_failures);
+		$this->assertSame(1, $queuedJobsTable->find()->count(), 'no extra job queued');
+
+		Configure::delete('QueueScheduler.maxConsecutiveFailures');
+	}
+
+	/**
+	 * A fresh dispatch (previous job succeeded, or none) clears the
+	 * consecutive-failure streak.
+	 *
+	 * @return void
+	 */
+	public function testRunResetsFailureCounterOnFreshDispatch(): void {
+		$this->loadPlugins(['Tools', 'Queue', 'QueueScheduler']);
+		$queuedJobsTable = $this->getTableLocator()->get('Queue.QueuedJobs');
+
+		$row = $this->SchedulerRows->newEntity([
+			'name' => 'streak-reset',
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'content' => ExampleTask::class,
+			'job_config' => null,
+			'job_data' => '',
+			'frequency' => '+1 hour',
+			'allow_concurrent' => false,
+		]);
+		$this->SchedulerRows->saveOrFail($row);
+		$row = $this->SchedulerRows->get($row->id);
+
+		$this->assertTrue($this->SchedulerRows->run($row));
+		$row = $this->SchedulerRows->get($row->id);
+		$jobId = $row->last_queued_job_id;
+
+		// Previous job completed successfully; simulate a stale non-zero streak.
+		$queuedJobsTable->updateAll(['completed' => new DateTime()], ['id' => $jobId]);
+		$this->SchedulerRows->updateAll(['consecutive_failures' => 3], ['id' => $row->id]);
+		$row = $this->SchedulerRows->get($row->id);
+
+		// Fresh dispatch: new job, streak cleared.
+		$this->assertTrue($this->SchedulerRows->run($row));
+
+		$this->assertSame(2, $queuedJobsTable->find()->count(), 'a fresh job was queued');
+		$reloadedRow = $this->SchedulerRows->get($row->id);
+		$this->assertSame(0, $reloadedRow->consecutive_failures);
+	}
+
+	/**
+	 * Recovery for the acute cap: with maxConsecutiveFailures = 1 a row disables
+	 * after its one rerun keeps aborting. Re-enabling it must grant a fresh round
+	 * of reruns rather than re-disabling on the next tick: beforeSave() resets the
+	 * streak, so the next tick reruns the job in place again. This works on every
+	 * queue version because it flows through the rerun path, not a fresh dispatch
+	 * gated by isQueued().
+	 *
+	 * @return void
+	 */
+	public function testReEnablingDisabledRowGrantsFreshReruns(): void {
+		$this->loadPlugins(['Tools', 'Queue', 'QueueScheduler']);
+		Configure::write('QueueScheduler.maxConsecutiveFailures', 1);
+		$queuedJobsTable = $this->getTableLocator()->get('Queue.QueuedJobs');
+
+		$row = $this->SchedulerRows->newEntity([
+			'name' => 're-enable-reruns',
+			'type' => SchedulerRow::TYPE_QUEUE_TASK,
+			'content' => ExampleTask::class,
+			'job_config' => null,
+			'job_data' => '',
+			'frequency' => '+1 hour',
+			'allow_concurrent' => false,
+		]);
+		$this->SchedulerRows->saveOrFail($row);
+		$row = $this->SchedulerRows->get($row->id);
+
+		$this->assertTrue($this->SchedulerRows->run($row));
+		$row = $this->SchedulerRows->get($row->id);
+		$jobId = $row->last_queued_job_id;
+
+		$markAborted = function () use ($queuedJobsTable, $jobId): void {
+			$queuedJobsTable->updateAll(
+				['status' => 'aborted', 'attempts' => 5, 'completed' => null],
+				['id' => $jobId],
+			);
+		};
+
+		// First abort: rerun in place (streak -> 1).
+		$markAborted();
+		$this->assertTrue($this->SchedulerRows->run($row));
+		$row = $this->SchedulerRows->get($row->id);
+
+		// Second abort: streak 1 >= cap 1 => disable.
+		$markAborted();
+		$this->assertFalse($this->SchedulerRows->run($row));
+		$row = $this->SchedulerRows->get($row->id);
+		$this->assertFalse($row->enabled);
+		$this->assertSame($jobId, $row->last_queued_job_id, 'job stays attached for visibility');
+
+		// Re-enable through the normal save path (as the admin edit action does):
+		// the streak resets, so the next tick reruns the same job in place again
+		// instead of re-disabling immediately.
+		$row = $this->SchedulerRows->patchEntity($row, ['enabled' => true]);
+		$this->SchedulerRows->saveOrFail($row);
+		$this->assertSame(0, $row->consecutive_failures, 're-enable clears the streak');
+
+		$markAborted();
+		$this->assertTrue($this->SchedulerRows->run($row), 're-enabled row reruns again');
+		$reloaded = $this->SchedulerRows->get($row->id);
+		$this->assertTrue($reloaded->enabled);
+		$this->assertSame(1, $reloaded->consecutive_failures);
+		$this->assertSame($jobId, $reloaded->last_queued_job_id, 'same job recycled, no pile-up');
+		$this->assertSame(1, $queuedJobsTable->find()->count(), 'no extra job queued');
+
+		Configure::delete('QueueScheduler.maxConsecutiveFailures');
+	}
+
 	/**
 	 * Regression: `run()` wraps the isQueued → createJob → save chain in a
 	 * transaction with a compare-and-swap on `last_run`. Two scheduler ticks
