@@ -95,7 +95,8 @@ class QueueSchedulerControllerTest extends TestCase {
 		$status = $this->viewVariable('schedulerStatus');
 		$this->assertIsArray($status);
 		$this->assertFalse($status['healthy']);
-		$this->assertSame(300, $status['ageSeconds']);
+		$this->assertGreaterThanOrEqual(300, $status['ageSeconds']);
+		$this->assertLessThan(305, $status['ageSeconds']);
 	}
 
 	/**

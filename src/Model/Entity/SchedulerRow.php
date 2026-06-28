@@ -182,7 +182,7 @@ class SchedulerRow extends Entity {
 		if ($startMinutes !== null && $endMinutes === null) {
 			return $nowMinutes >= $startMinutes;
 		}
-		if ($startMinutes === null && $endMinutes !== null) {
+		if ($startMinutes === null) {
 			return $nowMinutes <= $endMinutes;
 		}
 
@@ -398,17 +398,15 @@ class SchedulerRow extends Entity {
 			return null;
 		}
 
-		$startSeconds = $startMinutes !== null ? $startMinutes * 60 : null;
-		$endSeconds = $endMinutes !== null ? ($endMinutes * 60) + 59 : null;
-		if ($startSeconds !== null && $endSeconds === null) {
-			return [[$startSeconds, 86399]];
+		if ($startMinutes !== null && $endMinutes === null) {
+			return [[$startMinutes * 60, 86399]];
 		}
-		if ($startSeconds === null && $endSeconds !== null) {
-			return [[0, $endSeconds]];
+		if ($startMinutes === null) {
+			return [[0, ($endMinutes * 60) + 59]];
 		}
-		if ($startSeconds === null || $endSeconds === null) {
-			return null;
-		}
+
+		$startSeconds = $startMinutes * 60;
+		$endSeconds = ($endMinutes * 60) + 59;
 		if ($endSeconds < $startSeconds) {
 			return [
 				[0, $endSeconds],
