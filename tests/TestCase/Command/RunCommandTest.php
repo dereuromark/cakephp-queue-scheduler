@@ -268,4 +268,32 @@ class RunCommandTest extends TestCase {
 		}
 	}
 
+	public function testSinglePassHonorsTheSchedulerLock(): void {
+		$lockPath = TMP . 'single-pass-' . uniqid() . '.lock';
+		Configure::write('QueueScheduler.lockPath', $lockPath);
+		Configure::write('QueueScheduler.lockAcquireTimeout', 0);
+		$holder = fopen($lockPath, 'c');
+		flock($holder, LOCK_EX);
+		$rows = $this->fetchTable('QueueScheduler.SchedulerRows');
+		$before = $rows->get(1)->last_run;
+		try {
+			$this->exec('scheduler run');
+			$this->assertExitCode(1);
+			$this->assertErrorContains('lock acquire timed out');
+			$this->assertEquals($before, $rows->get(1)->last_run);
+		} finally {
+			flock($holder, LOCK_UN);
+			fclose($holder);
+			unlink($lockPath);
+			Configure::delete('QueueScheduler.lockPath');
+			Configure::delete('QueueScheduler.lockAcquireTimeout');
+		}
+	}
+
+	public function testInvalidLimitDoesNotDispatchEverything(): void {
+		$this->exec('scheduler run --limit=invalid');
+		$this->assertExitCode(1);
+		$this->assertErrorContains('--limit must be a non-negative integer');
+	}
+
 }

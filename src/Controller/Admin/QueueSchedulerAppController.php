@@ -7,7 +7,9 @@ use Cake\Controller\Controller;
 use Cake\Core\Configure;
 use Cake\Event\EventInterface;
 use Cake\Http\Exception\ForbiddenException;
+use Cake\Http\Response;
 use Closure;
+use Throwable;
 
 /**
  * QueueSchedulerAppController
@@ -71,7 +73,17 @@ class QueueSchedulerAppController extends AppController {
 	 * @return void
 	 */
 	public function beforeFilter(EventInterface $event): void {
-		parent::beforeFilter($event);
+		if (Configure::read('QueueScheduler.standalone')) {
+			Controller::beforeFilter($event);
+		} else {
+			$result = parent::beforeFilter($event);
+			if ($result instanceof Response) {
+				$event->setResult($result);
+				$event->stopPropagation();
+
+				return;
+			}
+		}
 
 		// Coexist with cakephp/authorization: the gate IS the authorization
 		// decision for these controllers, so silence the unauthorized check.
@@ -83,7 +95,12 @@ class QueueSchedulerAppController extends AppController {
 		if (!($gate instanceof Closure)) {
 			throw new ForbiddenException(__d('queue_scheduler', 'QueueScheduler admin backend is not configured. Set QueueScheduler.adminAccess to a Closure that returns true for permitted callers.'));
 		}
-		if ($gate($this->request) !== true) {
+		try {
+			$allowed = $gate($this->request) === true;
+		} catch (Throwable $exception) {
+			throw new ForbiddenException(__d('queue_scheduler', 'QueueScheduler admin access denied.'), null, $exception);
+		}
+		if (!$allowed) {
 			throw new ForbiddenException(__d('queue_scheduler', 'QueueScheduler admin access denied.'));
 		}
 	}
