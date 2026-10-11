@@ -990,7 +990,8 @@ class SchedulerRowsTable extends Table {
 
 		$array = json_decode($value, true);
 
-		return is_array($array) && !empty($array);
+		return is_array($array) && $array !== [] && array_is_list($array)
+			&& count(array_filter($array, 'is_string')) === count($array);
 	}
 
 	/**

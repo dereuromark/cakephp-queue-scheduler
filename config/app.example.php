@@ -5,8 +5,6 @@ use Templating\View\Icon\BootstrapIcon;
 
 return [
 	'QueueScheduler' => [
-		// Additional plugins that are not loaded, but should be included, use `-` prefix to exclude
-		'plugins' => [],
 		'allowRaw' => false, // By default, this is only enabled in debug mode for security reasons.
 
 		// Admin Layout configuration:
@@ -17,7 +15,7 @@ return [
 
 		// Back-to-App link in the admin header (opt-in). When set, an outline
 		// button appears in the top navbar so admins can escape the
-		// plugin-isolated layout. Accepts anything Router::url() takes — Cake
+		// plugin-isolated layout. Accepts anything Router::url() takes: Cake
 		// URL array, path string, or full URL. Use 'plugin' => false to
 		// anchor the builder to the host app rather than the QueueScheduler plugin.
 		// 'adminBackUrl' => ['plugin' => false, 'prefix' => 'Admin', 'controller' => 'Overview', 'action' => 'index'],
@@ -25,16 +23,16 @@ return [
 
 		// Standalone mode:
 		// - false (default): Extends App\Controller\AppController (inherits app auth, components, config)
-		// - true: Isolated admin that doesn't depend on the host app
+		// - true: Skips AppController initialize() and beforeFilter(); middleware still runs
 		'standalone' => false,
 
-		// Admin access gate. REQUIRED — the host app MUST set this to a Closure
+		// Required admin access gate: set this to a Closure
 		// that returns true to grant access to /admin/queue-scheduler/...; anything
-		// else (unset, non-Closure, returns false, returns a truthy non-bool, or
-		// throws) yields a 403. The plugin can configure arbitrary scheduled
+		// else (unset, non-Closure, returns false, or returns a truthy non-bool)
+		// yields a 403. Exceptions propagate to the application. The plugin can configure arbitrary scheduled
 		// command execution; accidental exposure is harmful, so the default
-		// policy is deny. Independent of `standalone` — runs in both modes.
-		// Example — admin role check on the cakephp/authentication identity:
+		// policy is deny. This runs in both modes, independently of `standalone`.
+		// Example: admin role check on the cakephp/authentication identity:
 		'adminAccess' => function (ServerRequest $request): bool {
 			$identity = $request->getAttribute('identity');
 
@@ -59,24 +57,23 @@ return [
 		// start). Raise it if you run cron less often than every minute.
 		//'healthyWithinSeconds' => 65,
 
-		// Maximum seconds the run command's loop mode (--duration/--interval)
+		// Maximum seconds the run command (single pass or loop mode)
 		// waits to acquire the scheduler file lock before giving up and
 		// exiting without scheduling. Prevents overlapping loop runs from
-		// piling up. Default 30. Has no effect on single-pass runs (no flags),
-		// which do not lock.
+		// piling up. Default 30.
 		//'lockAcquireTimeout' => 30,
 
-		// Absolute path to the file lock used by loop mode to ensure a single
-		// active scheduler loop per host. Default is TMP . 'queue_scheduler.lock'
+		// Absolute path to the file lock used by all run modes to ensure a single
+		// active scheduler process per host. Default is TMP . 'queue_scheduler.lock'
 		// (e.g. tmp/queue_scheduler.lock). Note: this is a LOCAL file lock and does
-		// NOT coordinate across hosts — running loop mode on multiple hosts can still
+		// NOT coordinate across hosts. Running loop mode on multiple hosts can still
 		// produce overlapping schedules.
 		//'lockPath' => TMP . 'queue_scheduler.lock',
 
 		// Backoff for repeatedly-failing non-concurrent rows. When the row's
 		// previously dispatched job terminally failed (queue status "aborted"),
 		// the next tick reruns that same job in place instead of queuing a new
-		// one — so a broken task does not pile up a failed job every interval.
+		// one, so a broken task does not pile up a failed job every interval.
 		// After this many consecutive reruns (without an intervening success)
 		// the row is disabled and a `QueueScheduler.Row.disabled` event is fired
 		// so the host app can alert. Re-enabling a disabled row resets the count.

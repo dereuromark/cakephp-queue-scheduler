@@ -25,6 +25,9 @@ class CommandExecuteTask extends Task {
 
 		/** @var class-string<\Cake\Console\CommandInterface> $class */
 		$args = $data['args'] ?? [];
+		if (!is_array($args) || !array_is_list($args) || count(array_filter($args, 'is_string')) !== count($args)) {
+			throw new QueueException('Command arguments must be a list of strings.');
+		}
 
 		$stdout = tmpfile();
 		$stderr = tmpfile();
@@ -33,35 +36,37 @@ class CommandExecuteTask extends Task {
 			new ConsoleOutput($stderr),
 		);
 
-		$command = new $class();
-		// Match what `Cake\Console\CommandRunner` does before running a
-		// command: prefix `defaultName()` with the root ("cake") so the
-		// name has the space `BaseCommand::getOptionParser()` expects
-		// when it does `[$root, $name] = explode(' ', $this->name, 2)`.
-		// Without this, any command whose getOptionParser() runs throws
-		// `TypeError: ConsoleOptionParser::__construct(): Argument #1
-		// ($command) must be of type string, null given`.
-		// The str_contains guard preserves names that already include a
-		// root (default `cake unknown`, custom roots like `app foo`), so
-		// only single-token overrides like `'clear_sessions'` get fixed.
-		if ($command instanceof BaseCommand && !str_contains($command->getName(), ' ')) {
-			$command->setName('cake ' . $command::defaultName());
-		}
-		$exitCode = $command->run($args, $io);
+		try {
+			$command = new $class();
+			// Match what `Cake\Console\CommandRunner` does before running a
+			// command: prefix `defaultName()` with the root ("cake") so the
+			// name has the space `BaseCommand::getOptionParser()` expects
+			// when it does `[$root, $name] = explode(' ', $this->name, 2)`.
+			// Without this, any command whose getOptionParser() runs throws
+			// `TypeError: ConsoleOptionParser::__construct(): Argument #1
+			// ($command) must be of type string, null given`.
+			// The str_contains guard preserves names that already include a
+			// root (default `cake unknown`, custom roots like `app foo`), so
+			// only single-token overrides like `'clear_sessions'` get fixed.
+			if ($command instanceof BaseCommand && !str_contains($command->getName(), ' ')) {
+				$command->setName('cake ' . $command::defaultName());
+			}
+			$exitCode = $command->run($args, $io);
+		} finally {
+			// Forward captured output to $this->io for Processor capture
+			rewind($stdout);
+			$output = stream_get_contents($stdout);
+			fclose($stdout);
+			if ($output) {
+				$this->io->out(rtrim($output));
+			}
 
-		// Forward captured output to $this->io for Processor capture
-		rewind($stdout);
-		$output = stream_get_contents($stdout);
-		fclose($stdout);
-		if ($output) {
-			$this->io->out(rtrim($output));
-		}
-
-		rewind($stderr);
-		$errOutput = stream_get_contents($stderr);
-		fclose($stderr);
-		if ($errOutput) {
-			$this->io->error(rtrim($errOutput));
+			rewind($stderr);
+			$errOutput = stream_get_contents($stderr);
+			fclose($stderr);
+			if ($errOutput) {
+				$this->io->error(rtrim($errOutput));
+			}
 		}
 
 		if ($exitCode !== null && $exitCode !== CommandInterface::CODE_SUCCESS) {

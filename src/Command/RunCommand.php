@@ -24,7 +24,7 @@ class RunCommand extends Command {
 	use LogTrait;
 
 	/**
-	 * Cache key holding the unix timestamp of the last successful scheduling
+	 * Cache key holding the unix timestamp of the last completed scheduling
 	 * pass. Read by the admin index page to surface "scheduler is alive".
 	 *
 	 * @var string
@@ -88,11 +88,35 @@ class RunCommand extends Command {
 	 * @return int|null The exit code or null for success
 	 */
 	public function execute(Arguments $args, ConsoleIo $io): ?int {
+		$limit = $args->getOption('limit');
+		if (!is_string($limit) || !ctype_digit($limit)) {
+			$io->error('--limit must be a non-negative integer.');
+
+			return CommandInterface::CODE_ERROR;
+		}
+
 		$duration = $args->getOption('duration');
 		$interval = $args->getOption('interval');
 
 		if ($duration === null && $interval === null) {
-			return $this->runOnce($args, $io);
+			if ($args->getOption('dry-run')) {
+				return $this->runOnce($args, $io);
+			}
+
+			$lock = $this->createLock();
+			$timeout = (int)(Configure::read('QueueScheduler.lockAcquireTimeout') ?? $this->lockAcquireTimeout);
+			if (!$lock->acquire($timeout)) {
+				$message = sprintf('Scheduler: lock acquire timed out after %ds, exiting', $timeout);
+				$io->warning($message);
+				$this->log($message, 'warning');
+
+				return CommandInterface::CODE_ERROR;
+			}
+			try {
+				return $this->runOnce($args, $io);
+			} finally {
+				$lock->release();
+			}
 		}
 
 		$durationStr = is_string($duration) ? $duration : null;
@@ -154,14 +178,14 @@ class RunCommand extends Command {
 	 * @return int|null
 	 */
 	protected function runLoop(Arguments $args, ConsoleIo $io, string $duration, int $interval): ?int {
-		$lock = $this->createLock();
+		$lock = $args->getOption('dry-run') ? null : $this->createLock();
 		$timeout = (int)(Configure::read('QueueScheduler.lockAcquireTimeout') ?? $this->lockAcquireTimeout);
-		if (!$lock->acquire($timeout)) {
+		if ($lock !== null && !$lock->acquire($timeout)) {
 			$message = sprintf('Scheduler: lock acquire timed out after %ds, exiting', $timeout);
 			$io->warning($message);
 			$this->log($message, 'warning');
 
-			return null;
+			return CommandInterface::CODE_ERROR;
 		}
 
 		try {
@@ -218,7 +242,7 @@ class RunCommand extends Command {
 
 			return $totalFailed > 0 ? CommandInterface::CODE_ERROR : null;
 		} finally {
-			$lock->release();
+			$lock?->release();
 		}
 	}
 

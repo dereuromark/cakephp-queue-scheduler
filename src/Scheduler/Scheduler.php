@@ -50,8 +50,8 @@ class Scheduler {
 	 * Schedule due events by dispatching them to the queue.
 	 *
 	 * Failures on individual rows are logged and swallowed so that a single bad
-	 * row cannot block the rest of the batch; the caller should compare the
-	 * returned count against `$events->count()` to detect partial failures.
+	 * row cannot block the rest of the batch. Use lastRunFailureCount() to detect
+	 * failures; rows held back by concurrency checks are not failures.
 	 *
 	 * @param \Cake\Collection\CollectionInterface<\QueueScheduler\Model\Entity\SchedulerRow> $events Events to schedule.
 	 *
