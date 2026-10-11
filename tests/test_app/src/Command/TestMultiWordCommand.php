@@ -25,12 +25,9 @@ class TestMultiWordCommand extends Command {
 	protected string $name = 'cache clear';
 
 	/**
-	 * @param \Cake\Console\Arguments $args
-	 * @param \Cake\Console\ConsoleIoInterface $io
 	 * @return int|null
 	 */
 	public function execute(): ?int {
-		$args = $this->args;
 		$io = $this->io;
 		$io->out('name=' . $this->getName());
 

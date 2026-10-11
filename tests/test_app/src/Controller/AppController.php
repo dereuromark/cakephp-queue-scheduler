@@ -22,7 +22,6 @@ class AppController extends Controller {
 	}
 
 	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingNativeTypeHint
 	 * @return void
 	 */
 	public function beforeFilter(EventInterface $event): void {
@@ -43,7 +42,6 @@ class AppController extends Controller {
 			throw new ForbiddenException('Application denied scheduler access.');
 		}
 
-		return;
 	}
 
 }

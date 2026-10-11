@@ -27,8 +27,6 @@ class TestOutputCommand extends Command {
 	}
 
 	/**
-	 * @param \Cake\Console\Arguments $args
-	 * @param \Cake\Console\ConsoleIoInterface $io
 	 * @return int|null
 	 */
 	public function execute(): ?int {
