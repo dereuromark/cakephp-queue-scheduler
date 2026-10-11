@@ -99,10 +99,16 @@ class RunCommand extends Command {
 		$interval = $args->getOption('interval');
 
 		if ($duration === null && $interval === null) {
+			if ($args->getOption('dry-run')) {
+				return $this->runOnce($args, $io);
+			}
+
 			$lock = $this->createLock();
 			$timeout = (int)(Configure::read('QueueScheduler.lockAcquireTimeout') ?? $this->lockAcquireTimeout);
 			if (!$lock->acquire($timeout)) {
-				$io->warning(sprintf('Scheduler: lock acquire timed out after %ds, exiting', $timeout));
+				$message = sprintf('Scheduler: lock acquire timed out after %ds, exiting', $timeout);
+				$io->warning($message);
+				$this->log($message, 'warning');
 
 				return CommandInterface::CODE_ERROR;
 			}
@@ -172,14 +178,14 @@ class RunCommand extends Command {
 	 * @return int|null
 	 */
 	protected function runLoop(Arguments $args, ConsoleIo $io, string $duration, int $interval): ?int {
-		$lock = $this->createLock();
+		$lock = $args->getOption('dry-run') ? null : $this->createLock();
 		$timeout = (int)(Configure::read('QueueScheduler.lockAcquireTimeout') ?? $this->lockAcquireTimeout);
-		if (!$lock->acquire($timeout)) {
+		if ($lock !== null && !$lock->acquire($timeout)) {
 			$message = sprintf('Scheduler: lock acquire timed out after %ds, exiting', $timeout);
 			$io->warning($message);
 			$this->log($message, 'warning');
 
-			return null;
+			return CommandInterface::CODE_ERROR;
 		}
 
 		try {
@@ -236,7 +242,7 @@ class RunCommand extends Command {
 
 			return $totalFailed > 0 ? CommandInterface::CODE_ERROR : null;
 		} finally {
-			$lock->release();
+			$lock?->release();
 		}
 	}
 

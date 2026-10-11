@@ -4,7 +4,7 @@ The admin can schedule application code. Limit access to trusted administrators 
 
 ## Access gate
 
-`QueueScheduler.adminAccess` must be a `Closure` receiving the current request and returning literal `true`. An unset gate, a non-closure value, a non-boolean result, or an exception denies access with 403. The [beginner guide](./getting-started#allow-access-to-the-admin) includes an identity-based example.
+`QueueScheduler.adminAccess` must be a `Closure` receiving the current request and returning literal `true`. An unset gate, a non-closure value, or a non-boolean result denies access with 403. Exceptions from your gate propagate so the host application can handle authentication redirects and failures. The [beginner guide](./getting-started#allow-access-to-the-admin) includes an identity-based example.
 
 When an Authorization component is loaded, the plugin calls `skipAuthorization()` because this gate makes the access decision. Application authentication and HTTP middleware still apply.
 

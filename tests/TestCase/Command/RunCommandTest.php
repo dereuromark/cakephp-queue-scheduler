@@ -234,7 +234,7 @@ class RunCommandTest extends TestCase {
 		$this->assertNull(Cache::read(RunCommand::HEARTBEAT_KEY, 'default'));
 	}
 
-	public function testLoopExitsCleanlyWhenLockHeld(): void {
+	public function testLoopReportsErrorWhenLockHeld(): void {
 		// Use a custom lock path under TMP so we can pre-acquire it.
 		$lockPath = TMP . 'queue_scheduler_locked_' . uniqid() . '.lock';
 		Configure::write('QueueScheduler.lockPath', $lockPath);
@@ -253,7 +253,7 @@ class RunCommandTest extends TestCase {
 			$this->exec('scheduler run --duration=10 --interval=1');
 			$elapsed = microtime(true) - $start;
 
-			$this->assertExitCode(0);
+			$this->assertExitCode(1);
 			$this->assertErrorContains('lock acquire timed out');
 			$this->assertGreaterThanOrEqual(1.0, $elapsed);
 			$this->assertLessThan(2.5, $elapsed);
@@ -294,6 +294,36 @@ class RunCommandTest extends TestCase {
 		$this->exec('scheduler run --limit=invalid');
 		$this->assertExitCode(1);
 		$this->assertErrorContains('--limit must be a non-negative integer');
+	}
+
+	public function testSinglePassDryRunDoesNotAcquireLock(): void {
+		$this->assertDryRunSkipsLock('scheduler run --dry-run');
+	}
+
+	public function testLoopDryRunDoesNotAcquireLock(): void {
+		$this->assertDryRunSkipsLock('scheduler run --dry-run --duration=1 --interval=1');
+	}
+
+	protected function assertDryRunSkipsLock(string $command): void {
+		$lockPath = TMP . 'dry-run-' . uniqid() . '.lock';
+		Configure::write('QueueScheduler.lockPath', $lockPath);
+		Configure::write('QueueScheduler.lockAcquireTimeout', 0);
+		$holder = fopen($lockPath, 'c');
+		flock($holder, LOCK_EX);
+		$rows = $this->fetchTable('QueueScheduler.SchedulerRows');
+		$before = $rows->get(1)->last_run;
+		try {
+			$this->exec($command);
+			$this->assertExitCode(0);
+			$this->assertEquals($before, $rows->get(1)->last_run);
+			$this->assertErrorEmpty();
+		} finally {
+			flock($holder, LOCK_UN);
+			fclose($holder);
+			unlink($lockPath);
+			Configure::delete('QueueScheduler.lockPath');
+			Configure::delete('QueueScheduler.lockAcquireTimeout');
+		}
 	}
 
 }

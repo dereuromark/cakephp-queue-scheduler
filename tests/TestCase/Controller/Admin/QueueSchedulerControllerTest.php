@@ -34,6 +34,9 @@ class QueueSchedulerControllerTest extends TestCase {
 		Configure::delete('QueueScheduler.cacheConfig');
 		Configure::delete('QueueScheduler.standalone');
 		Configure::delete('Test.redirectScheduler');
+		Configure::delete('Test.eventRedirectScheduler');
+		Configure::delete('Test.loadAuthorization');
+		Configure::delete('Test.authorizationSkipped');
 		Configure::delete('Test.denyScheduler');
 		parent::tearDown();
 	}
@@ -155,14 +158,28 @@ class QueueSchedulerControllerTest extends TestCase {
 		$this->assertResponseOk();
 	}
 
-	public function testAccessGateExceptionDeniesAccess(): void {
+	public function testAccessGateExceptionPropagates(): void {
 		Configure::write('QueueScheduler.adminAccess', function (): bool {
 			throw new RuntimeException('Unavailable identity provider');
 		});
 		$this->disableErrorHandlerMiddleware();
-		$this->expectException(ForbiddenException::class);
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('Unavailable identity provider');
 		try {
 			$this->get('/admin/queue-scheduler');
+		} finally {
+			Configure::write('QueueScheduler.adminAccess', fn () => true);
+		}
+	}
+
+	public function testApplicationEventRedirectIsPreserved(): void {
+		Configure::write('Test.eventRedirectScheduler', true);
+		Configure::write('Test.loadAuthorization', true);
+		Configure::write('QueueScheduler.adminAccess', fn () => false);
+		try {
+			$this->get('/admin/queue-scheduler');
+			$this->assertRedirect('/login');
+			$this->assertTrue(Configure::read('Test.authorizationSkipped'));
 		} finally {
 			Configure::write('QueueScheduler.adminAccess', fn () => true);
 		}

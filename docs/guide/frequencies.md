@@ -51,7 +51,7 @@ See PHP's [DateInterval string parser](https://www.php.net/manual/en/dateinterva
 ## Time-window restrictions (optional)
 
 Cron expressions handle "every Monday at 9" but not "every 5 minutes, but
-only between 09:00 to 18:00 on weekdays" ; those need compound restrictions
+only between 09:00 to 18:00 on weekdays": those need compound restrictions
 ANDed against the cron/interval firing. Three optional columns on
 `queue_scheduler_rows` cover that:
 
@@ -62,18 +62,18 @@ ANDed against the cron/interval firing. Three optional columns on
 | `window_days_of_week` | string(32) | Comma-separated `0`–`6` (`0`=Sunday, `6`=Saturday). `null` = every day. |
 
 All three are nullable and ANDed together. A row that doesn't set any of
-them behaves exactly as before ; no extra gating.
+them has no extra gating.
 
 Examples:
 
 ```text
-# "Every 5 min during business hours" ; cron + window combined:
+# "Every 5 min during business hours": cron + window combined:
 frequency:            */5 * * * *
 window_start_time:    09:00
 window_end_time:      18:00
 window_days_of_week:  1,2,3,4,5
 
-# "Heavy report runs overnight only" ; end < start wraps midnight:
+# "Heavy report runs overnight only": end < start wraps midnight:
 frequency:            */15 * * * *
 window_start_time:    22:00
 window_end_time:      06:00

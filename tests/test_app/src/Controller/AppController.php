@@ -16,6 +16,9 @@ class AppController extends Controller {
 		parent::initialize();
 
 		$this->loadComponent('Flash');
+		if (Configure::read('Test.loadAuthorization')) {
+			$this->loadComponent('Authorization', ['className' => 'TestAuthorization']);
+		}
 	}
 
 	/**
@@ -24,6 +27,12 @@ class AppController extends Controller {
 	 */
 	public function beforeFilter(EventInterface $event) {
 		parent::beforeFilter($event);
+		if (Configure::read('Test.eventRedirectScheduler')) {
+			$event->setResult($this->redirect('/login'));
+			$event->stopPropagation();
+
+			return null;
+		}
 		if (Configure::read('Test.redirectScheduler')) {
 			return $this->redirect('/login');
 		}

@@ -6,9 +6,9 @@ The three row types differ in what goes in **Content** and **Param**:
 |---|---|---|---|
 | Queue Task | `Plugin.Name` or FQCN ending in `Task` | optional payload | JSON object `{...}` |
 | Cake Command | `Plugin.Name` or FQCN ending in `Command` | optional argv | JSON array `[...]` |
-| Shell Command | full command line (e.g. `bin/cake foo --bar`) | **must be empty** | ; |
+| Shell Command | full command line (e.g. `bin/cake foo --bar`) | **must be empty** | Not used |
 
-**Empty param means "no payload / no args"** for Queue Task and Cake Command ; leave the field blank. The literals `[]` and `{}` (and whitespace variants like `[ ]` / `{\n}`) are accepted as a typo-friendly synonym for "blank" and normalized to an empty string at save time, so they do not trip the validators that otherwise reject empty collections.
+**Empty param means "no payload / no args"** for Queue Task and Cake Command. Leave the field blank. The literals `[]` and `{}` (and whitespace variants like `[ ]` / `{\n}`) are accepted as a typo-friendly synonym for "blank" and normalized to an empty string at save time, so they do not trip the validators that otherwise reject empty collections.
 
 ## Scheduling Queue Tasks
 
@@ -37,7 +37,7 @@ MyPlugin.MyName
 Cake\Command\SchemacacheBuildCommand
 ```
 
-If you need to pass additional args, you can use the param textarea for this using JSON. Each entry must be a string containing one argv token ; the array is forwarded straight to `$command->run($args, $io)`, so use one entry per token rather than embedding shell-style quoting inside a single string:
+If you need to pass additional args, you can use the param textarea for this using JSON. Each entry must be a string containing one argv token: the array is forwarded straight to `$command->run($args, $io)`, so use one entry per token rather than embedding shell-style quoting inside a single string:
 ```json
 [
     "-v",
@@ -61,7 +61,7 @@ The content is split on whitespace before dispatch: the first token becomes the
 executable (matched against `Queue.executeAllowedCommands` verbatim) and each
 remaining token is forwarded as its own argument (each `escapeshellarg`'d
 individually by `Queue.Execute`). With debug off, the production allow-list
-therefore lists executables ; e.g. `bin/cake`, `/usr/bin/php`, `sh` ; not full
+therefore lists executables: e.g. `bin/cake`, `/usr/bin/php`, `sh`: not full
 command lines:
 
 ```php
@@ -92,7 +92,7 @@ Example: route a nightly cleanup to a low-priority batch worker:
 {"priority": 8, "group": "batch"}
 ```
 
-Other `Queue\Queue\JobConfig` keys (`notBefore`, `status`, `reference`) are
+Other `Queue\Config\JobConfig` keys (`notBefore`, `status`, `reference`) are
 intentionally **not** accepted; `notBefore` is meaningless for cron-driven
 dispatch (cron already controls timing), `reference` is set automatically
 to `queue-scheduler-{id}`, and `status` is a runtime field overwritten on

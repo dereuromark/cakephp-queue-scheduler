@@ -4,7 +4,9 @@
 
 Run one dispatcher against each scheduler database. Workers can run on multiple hosts. The default file lock protects overlapping single-pass and loop runs on the same host; it does not coordinate different hosts.
 
-For multiple application hosts, choose one cron host. For failover, implement `QueueScheduler\Scheduler\Lock\LockInterface` using a shared lock and override `RunCommand::createLock()` in your command subclass. Register that subclass under `scheduler run` in your application's `console()` hook after loading plugin commands. Keep a single designated dispatcher unless your shared locking strategy has been tested.
+For multiple application hosts, choose one cron host. For failover, implement `QueueScheduler\Scheduler\Lock\LockInterface` using a shared lock and override `RunCommand::createLock()` in your command subclass. Disable the plugin's console hook when loading it (`$this->addPlugin('QueueScheduler', ['console' => false])`), then register your subclass as `scheduler run` in your application's `console()` hook. Otherwise the plugin command registration overwrites yours. Keep a single designated dispatcher unless your shared locking strategy has been tested.
+
+Dry-run mode skips the lock in both run modes and makes no scheduling writes.
 
 The default lock path is `tmp/queue_scheduler.lock`, with a 30-second acquire timeout. Change it through `QueueScheduler.lockPath` and `QueueScheduler.lockAcquireTimeout`.
 
@@ -12,16 +14,16 @@ The default lock path is `tmp/queue_scheduler.lock`, with a 30-second acquire ti
 
 `bin/cake scheduler run` accepts:
 
-- `--dry-run`; list events that would be dispatched without enqueueing them or
+- `--dry-run`: list events that would be dispatched without enqueueing them or
   updating `last_run`. Useful for diagnosing "why is X not firing yet" or
   smoke-testing a freshly added row.
-- `--limit=N` (alias `-l N`); cap the number of events dispatched on this
+- `--limit=N` (alias `-l N`): cap the number of events dispatched on this
   tick. The remainder stays due for the next run. Helps drain a backlog
   gracefully after downtime instead of flooding the queue all at once.
-- `--duration=N|auto`; enable loop mode. Either an integer of seconds the
+- `--duration=N|auto`: enable loop mode. Either an integer of seconds the
   command should keep scheduling, or the literal `auto` to fill the time
   until just before the next minute boundary. Requires `--interval`.
-- `--interval=N`; in loop mode, the seconds to sleep between scheduling
+- `--interval=N`: in loop mode, the seconds to sleep between scheduling
   passes. The smallest practical row frequency. Requires `--duration`.
 
 ## Sub-minute scheduling

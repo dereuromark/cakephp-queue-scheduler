@@ -7,9 +7,8 @@ use Cake\Controller\Controller;
 use Cake\Core\Configure;
 use Cake\Event\EventInterface;
 use Cake\Http\Exception\ForbiddenException;
-use Cake\Http\Response;
 use Closure;
-use Throwable;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * QueueSchedulerAppController
@@ -24,7 +23,7 @@ use Throwable;
  * execution, so the default policy is **deny**. The host application MUST
  * configure `QueueScheduler.adminAccess` as a Closure that receives the
  * current request and returns `true` to grant access; anything else (unset,
- * non-Closure, returns false, or throws) yields a 403.
+ * non-Closure, or returns false) yields a 403. Exceptions propagate to the host application.
  *
  * ```php
  * // Allow only admins:
@@ -73,34 +72,30 @@ class QueueSchedulerAppController extends AppController {
 	 * @return void
 	 */
 	public function beforeFilter(EventInterface $event): void {
+		$result = null;
 		if (Configure::read('QueueScheduler.standalone')) {
 			Controller::beforeFilter($event);
 		} else {
 			$result = parent::beforeFilter($event);
-			if ($result instanceof Response) {
-				$event->setResult($result);
-				$event->stopPropagation();
-
-				return;
-			}
 		}
 
-		// Coexist with cakephp/authorization: the gate IS the authorization
-		// decision for these controllers, so silence the unauthorized check.
 		if ($this->components()->has('Authorization') && method_exists($this->components()->get('Authorization'), 'skipAuthorization')) {
 			$this->components()->get('Authorization')->skipAuthorization();
+		}
+
+		if ($result instanceof ResponseInterface) {
+			$event->setResult($result);
+			$event->stopPropagation();
+		}
+		if ($event->getResult() instanceof ResponseInterface || $event->isStopped()) {
+			return;
 		}
 
 		$gate = Configure::read('QueueScheduler.adminAccess');
 		if (!($gate instanceof Closure)) {
 			throw new ForbiddenException(__d('queue_scheduler', 'QueueScheduler admin backend is not configured. Set QueueScheduler.adminAccess to a Closure that returns true for permitted callers.'));
 		}
-		try {
-			$allowed = $gate($this->request) === true;
-		} catch (Throwable $exception) {
-			throw new ForbiddenException(__d('queue_scheduler', 'QueueScheduler admin access denied.'), null, $exception);
-		}
-		if (!$allowed) {
+		if ($gate($this->request) !== true) {
 			throw new ForbiddenException(__d('queue_scheduler', 'QueueScheduler admin access denied.'));
 		}
 	}

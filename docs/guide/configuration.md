@@ -70,3 +70,17 @@ Command discovery scans your application and loaded plugins. The old `QueueSched
 For non-concurrent rows, a previously aborted queue job is rerun in place. Jobs still retrying are held back. `maxConsecutiveFailures = 1` permits one rerun and disables the schedule after the next abort; zero permits unlimited reruns. A fresh dispatch or re-enabling a row resets the counter.
 
 This requires a Queue release that records terminal `aborted` status; older supported releases leave the feature dormant. Register a `QueueScheduler.Row.disabled` listener on the scheduler table's event manager or CakePHP's global event manager. The event data contains `row` and `consecutiveFailures`.
+
+For example, register this listener in `config/bootstrap.php`:
+
+```php
+use Cake\Event\EventInterface;
+use Cake\Event\EventManager;
+use Cake\Log\Log;
+
+EventManager::instance()->on('QueueScheduler.Row.disabled', function (EventInterface $event): void {
+    $row = $event->getData('row');
+    $failures = $event->getData('consecutiveFailures');
+    Log::warning(sprintf('Schedule #%d disabled after %d reruns', $row->id, $failures));
+});
+```

@@ -65,7 +65,8 @@ Queue's example task prints a success message. Open the schedule's detail page t
 
 Run one dispatcher from cron and keep workers supervised. Add this cron entry on one designated host, using your actual project path:
 
-```text* * * * * cd /path/to/application && bin/cake scheduler run >> /path/to/application/logs/scheduler.log 2>&1
+```text
+* * * * * cd /path/to/application && bin/cake scheduler run >> /path/to/application/logs/scheduler.log 2>&1
 ```
 
 Check [Running the scheduler](./running) before using multiple hosts or sub-minute intervals. Logs expose dispatch errors; workers have separate execution and retry settings in the Queue plugin.
