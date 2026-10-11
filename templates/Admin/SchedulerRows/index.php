@@ -13,12 +13,12 @@
 			<?= $this->Html->link(
 				'<i class="fas fa-file-import me-1"></i>' . __d('queue_scheduler', 'Import Schedule'),
 				['action' => 'import'],
-				['class' => 'btn btn-outline-secondary me-2', 'escapeTitle' => false],
+				['class' => 'btn btn-outline-secondary me-2', 'escape' => false, 'escapeAttributes' => true],
 			) ?>
 			<?= $this->Html->link(
 				'<i class="fas fa-plus me-1"></i>' . __d('queue_scheduler', 'New Schedule'),
 				['action' => 'add'],
-				['class' => 'btn btn-primary', 'escapeTitle' => false],
+				['class' => 'btn btn-primary', 'escape' => false, 'escapeAttributes' => true],
 			) ?>
 		</div>
 	</div>
@@ -83,7 +83,7 @@
 											['action' => 'edit', $row->id],
 											[
 												'data' => ['enabled' => 1],
-												'escapeTitle' => false,
+												'escape' => false, 'escapeAttributes' => true,
 												'class' => 'btn btn-sm btn-success',
 												'form' => [
 													'class' => 'd-inline',
@@ -100,7 +100,7 @@
 													<?= $this->Html->link(
 														$this->Time->nice($row->last_run),
 														['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $row->last_queued_job_id],
-														['escapeTitle' => false],
+														['escape' => false, 'escapeAttributes' => true],
 													) ?>
 												<?php } else { ?>
 													<?= $this->Time->nice($row->last_run) ?>
@@ -125,18 +125,18 @@
 									<?= $this->Html->link(
 										'<i class="fas fa-eye"></i>',
 										['action' => 'view', $row->id],
-										['escapeTitle' => false, 'class' => 'btn btn-sm btn-outline-secondary me-1', 'title' => __d('queue_scheduler', 'View')],
+										['escape' => false, 'escapeAttributes' => true, 'class' => 'btn btn-sm btn-outline-secondary me-1', 'title' => __d('queue_scheduler', 'View')],
 									) ?>
 									<?= $this->Html->link(
 										'<i class="fas fa-edit"></i>',
 										['action' => 'edit', $row->id],
-										['escapeTitle' => false, 'class' => 'btn btn-sm btn-outline-secondary me-1', 'title' => __d('queue_scheduler', 'Edit')],
+										['escape' => false, 'escapeAttributes' => true, 'class' => 'btn btn-sm btn-outline-secondary me-1', 'title' => __d('queue_scheduler', 'Edit')],
 									) ?>
 									<?= $this->Form->postButton(
 										'<i class="fas fa-play-circle"></i>',
 										['action' => 'run', $row->id],
 										[
-											'escapeTitle' => false,
+											'escape' => false, 'escapeAttributes' => true,
 											'class' => 'btn btn-sm btn-outline-success me-1',
 											'title' => __d('queue_scheduler', 'Run manually now'),
 											'form' => [
@@ -149,7 +149,7 @@
 										'<i class="fas fa-trash"></i>',
 										['action' => 'delete', $row->id],
 										[
-											'escapeTitle' => false,
+											'escape' => false, 'escapeAttributes' => true,
 											'class' => 'btn btn-sm btn-outline-danger',
 											'title' => __d('queue_scheduler', 'Delete'),
 											'form' => [

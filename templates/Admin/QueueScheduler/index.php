@@ -25,12 +25,12 @@ if ($schedulerStatus['lastTick'] !== null) {
 			<?= $this->Html->link(
 				'<i class="fas fa-file-import me-1"></i>' . __d('queue_scheduler', 'Import Schedule'),
 				['controller' => 'SchedulerRows', 'action' => 'import'],
-				['class' => 'btn btn-outline-secondary me-2', 'escapeTitle' => false],
+				['class' => 'btn btn-outline-secondary me-2', 'escape' => false, 'escapeAttributes' => true],
 			) ?>
 			<?= $this->Html->link(
 				'<i class="fas fa-plus me-1"></i>' . __d('queue_scheduler', 'New Schedule'),
 				['controller' => 'SchedulerRows', 'action' => 'add'],
-				['class' => 'btn btn-primary', 'escapeTitle' => false],
+				['class' => 'btn btn-primary', 'escape' => false, 'escapeAttributes' => true],
 			) ?>
 		</div>
 	</div>
@@ -173,7 +173,7 @@ if ($schedulerStatus['lastTick'] !== null) {
 											'<i class="fas fa-play-circle" aria-hidden="true"></i>',
 											['controller' => 'SchedulerRows', 'action' => 'run', $schedulerRow->id],
 											[
-												'escapeTitle' => false,
+												'escape' => false, 'escapeAttributes' => true,
 												'class' => 'btn btn-sm btn-success me-1',
 												'title' => __d('queue_scheduler', 'Run manually now'),
 												'aria-label' => __d('queue_scheduler', 'Run manually now'),
@@ -189,7 +189,7 @@ if ($schedulerStatus['lastTick'] !== null) {
 										['controller' => 'SchedulerRows', 'action' => 'edit', $schedulerRow->id],
 										[
 											'data' => ['enabled' => 0],
-											'escapeTitle' => false,
+											'escape' => false, 'escapeAttributes' => true,
 											'class' => 'btn btn-sm btn-warning',
 											'title' => __d('queue_scheduler', 'Disable'),
 											'aria-label' => __d('queue_scheduler', 'Disable'),
@@ -232,14 +232,14 @@ if ($schedulerStatus['lastTick'] !== null) {
 		<?= $this->Html->link(
 			'<i class="fas fa-list me-1"></i>' . __d('queue_scheduler', 'All Schedules'),
 			['controller' => 'SchedulerRows', 'action' => 'index'],
-			['class' => 'btn btn-secondary me-2', 'escapeTitle' => false],
+			['class' => 'btn btn-secondary me-2', 'escape' => false, 'escapeAttributes' => true],
 		) ?>
 		<?php if ($newCount >= 2) { ?>
 			<?= $this->Form->postButton(
 				'<i class="fas fa-play-circle me-1"></i>' . __d('queue_scheduler', 'Run New ({0})', $newCount),
 				['controller' => 'SchedulerRows', 'action' => 'runAllNew'],
 				[
-					'escapeTitle' => false,
+					'escape' => false, 'escapeAttributes' => true,
 					'class' => 'btn btn-success me-2',
 					'title' => __d('queue_scheduler', 'Queue all enabled schedules that have never run yet'),
 					'form' => [
@@ -253,7 +253,7 @@ if ($schedulerStatus['lastTick'] !== null) {
 			'<i class="fas fa-pause-circle me-1"></i>' . __d('queue_scheduler', 'Disable All'),
 			['controller' => 'SchedulerRows', 'action' => 'disableAll'],
 			[
-				'escapeTitle' => false,
+				'escape' => false, 'escapeAttributes' => true,
 				'class' => 'btn btn-warning',
 				'form' => [
 					'class' => 'd-inline',

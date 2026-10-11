@@ -6,6 +6,6 @@ Non-dry-run single-pass scheduler runs now use the same lock as loop mode. The c
 
 Standalone mode now bypasses the host AppController's `beforeFilter()` as well as its initialization. Review your `adminAccess` gate and middleware before enabling it. Normal mode preserves a parent callback's redirect Response. Exceptions raised by the access gate propagate to your application.
 
-CakePHP 6 support is not declared. Keep current CakePHP 5 dependencies and plugins up to date, resolve application deprecations, and check this package's Composer constraints before a major upgrade.
+The `cake6` development branch requires PHP 8.5, CakePHP 6 and the Queue and Tools `cake6` branches. Follow [Installation](./installation) for application Composer stability and development dependencies. Custom commands use parameterless `execute()` with inherited `$this->args` and `$this->io` properties. Controller callbacks return `void` and preserve parent redirects through the event result. Entity fields use CakePHP 6's `$patchable` property. Tests use PHPUnit 13.
 
 Cake-command parameters must be JSON arrays of strings. Quote numeric arguments, such as `["42"]`; nested arrays, objects, booleans, and null values are rejected. Command output is retained when execution throws an exception.

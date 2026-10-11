@@ -7,7 +7,7 @@ use Cake\Collection\Collection;
 use Cake\Command\Command;
 use Cake\Console\Arguments;
 use Cake\Console\CommandInterface;
-use Cake\Console\ConsoleIo;
+use Cake\Console\ConsoleIoInterface;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Core\Configure;
 use Cake\Log\LogTrait;
@@ -82,12 +82,11 @@ class RunCommand extends Command {
 	}
 
 	/**
-	 * @param \Cake\Console\Arguments $args The command arguments.
-	 * @param \Cake\Console\ConsoleIo $io The console io
-	 *
 	 * @return int|null The exit code or null for success
 	 */
-	public function execute(Arguments $args, ConsoleIo $io): ?int {
+	public function execute(): ?int {
+		$args = $this->args;
+		$io = $this->io;
 		$limit = $args->getOption('limit');
 		if (!is_string($limit) || !ctype_digit($limit)) {
 			$io->error('--limit must be a non-negative integer.');
@@ -171,13 +170,13 @@ class RunCommand extends Command {
 	 * Loop mode: schedule repeatedly until the duration window closes.
 	 *
 	 * @param \Cake\Console\Arguments $args
-	 * @param \Cake\Console\ConsoleIo $io
+	 * @param \Cake\Console\ConsoleIoInterface $io
 	 * @param string $duration "auto" or a positive integer (seconds).
 	 * @param int $interval Seconds to sleep between iterations.
 	 *
 	 * @return int|null
 	 */
-	protected function runLoop(Arguments $args, ConsoleIo $io, string $duration, int $interval): ?int {
+	protected function runLoop(Arguments $args, ConsoleIoInterface $io, string $duration, int $interval): ?int {
 		$lock = $args->getOption('dry-run') ? null : $this->createLock();
 		$timeout = (int)(Configure::read('QueueScheduler.lockAcquireTimeout') ?? $this->lockAcquireTimeout);
 		if ($lock !== null && !$lock->acquire($timeout)) {
@@ -268,11 +267,11 @@ class RunCommand extends Command {
 	 * structured stats instead of writing a summary.
 	 *
 	 * @param \Cake\Console\Arguments $args
-	 * @param \Cake\Console\ConsoleIo $io
+	 * @param \Cake\Console\ConsoleIoInterface $io
 	 *
 	 * @return array{total:int,scheduled:int,failed:int}
 	 */
-	protected function scheduleIteration(Arguments $args, ConsoleIo $io): array {
+	protected function scheduleIteration(Arguments $args, ConsoleIoInterface $io): array {
 		$dryRun = (bool)$args->getOption('dry-run');
 
 		$scheduler = $this->createScheduler();
@@ -355,12 +354,9 @@ class RunCommand extends Command {
 	/**
 	 * Single scheduling pass. Returns null on success, CODE_ERROR if any row threw.
 	 *
-	 * @param \Cake\Console\Arguments $args The command arguments.
-	 * @param \Cake\Console\ConsoleIo $io The console io
-	 *
 	 * @return int|null
 	 */
-	protected function runOnce(Arguments $args, ConsoleIo $io): ?int {
+	protected function runOnce(Arguments $args, ConsoleIoInterface $io): ?int {
 		$dryRun = (bool)$args->getOption('dry-run');
 
 		$scheduler = $this->createScheduler();
@@ -406,11 +402,11 @@ class RunCommand extends Command {
 	 * Install SIGTERM/SIGINT handlers if pcntl is available; soft-degrade with
 	 * a warning otherwise.
 	 *
-	 * @param \Cake\Console\ConsoleIo $io
+	 * @param \Cake\Console\ConsoleIoInterface $io
 	 *
 	 * @return void
 	 */
-	protected function installSignalHandlers(ConsoleIo $io): void {
+	protected function installSignalHandlers(ConsoleIoInterface $io): void {
 		if (!function_exists('pcntl_signal')) {
 			$message = 'pcntl extension not loaded; signal handling disabled (loop is still killable with SIGKILL).';
 			$io->warning($message);

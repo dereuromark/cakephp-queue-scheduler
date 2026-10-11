@@ -27,12 +27,12 @@ class Application extends BaseApplication {
 		$routes->prefix('Admin', function (RouteBuilder $builder): void {
 			$builder->plugin(
 				'QueueScheduler',
-				['path' => '/queue-scheduler'],
 				function (RouteBuilder $builder): void {
 					$builder->connect('/', ['controller' => 'QueueScheduler', 'action' => 'index']);
 
 					$builder->fallbacks();
 				},
+				['path' => '/queue-scheduler'],
 			);
 		});
 	}

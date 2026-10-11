@@ -3,8 +3,6 @@
 namespace TestApp\Command;
 
 use Cake\Command\Command;
-use Cake\Console\Arguments;
-use Cake\Console\ConsoleIo;
 
 /**
  * Test command with a multi-word name (space-separated) — mirroring how
@@ -28,10 +26,12 @@ class TestMultiWordCommand extends Command {
 
 	/**
 	 * @param \Cake\Console\Arguments $args
-	 * @param \Cake\Console\ConsoleIo $io
+	 * @param \Cake\Console\ConsoleIoInterface $io
 	 * @return int|null
 	 */
-	public function execute(Arguments $args, ConsoleIo $io): ?int {
+	public function execute(): ?int {
+		$args = $this->args;
+		$io = $this->io;
 		$io->out('name=' . $this->getName());
 
 		return static::CODE_SUCCESS;

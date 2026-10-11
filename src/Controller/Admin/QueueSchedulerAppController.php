@@ -72,21 +72,16 @@ class QueueSchedulerAppController extends AppController {
 	 * @return void
 	 */
 	public function beforeFilter(EventInterface $event): void {
-		$result = null;
 		if (Configure::read('QueueScheduler.standalone')) {
 			Controller::beforeFilter($event);
 		} else {
-			$result = parent::beforeFilter($event);
+			parent::beforeFilter($event);
 		}
 
 		if ($this->components()->has('Authorization') && method_exists($this->components()->get('Authorization'), 'skipAuthorization')) {
 			$this->components()->get('Authorization')->skipAuthorization();
 		}
 
-		if ($result instanceof ResponseInterface) {
-			$event->setResult($result);
-			$event->stopPropagation();
-		}
 		if ($event->getResult() instanceof ResponseInterface || $event->isStopped()) {
 			return;
 		}
