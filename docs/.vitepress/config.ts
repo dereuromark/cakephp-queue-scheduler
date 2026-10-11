@@ -26,7 +26,6 @@ export default defineConfig({
       { text: 'Installation', link: '/guide/installation' },
       { text: 'Getting started', link: '/guide/getting-started' },
       { text: 'Reference', link: '/guide/tasks' },
-      { text: 'Plugins', link: 'https://dereuromark.github.io/' },
     ],
     sidebar: [{ text: 'QueueScheduler plugin', items: guide }],
     search: { provider: 'local' },
