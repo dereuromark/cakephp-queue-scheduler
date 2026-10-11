@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
-"POT-Creation-Date: 2026-05-04 02:23+0200\n"
+"POT-Creation-Date: 2026-10-11 17:21+0000\n"
 "PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
 "Last-Translator: NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
@@ -29,13 +29,34 @@ msgstr ""
 msgid "The row could not be saved. Please, try again."
 msgstr ""
 
+msgid "Provide a JSON file or paste JSON to import a schedule."
+msgstr ""
+
+msgid "Invalid import JSON."
+msgstr ""
+
+msgid "Import JSON must contain a schedule row payload."
+msgstr ""
+
+msgid "Imported schedule loaded. Review and save the draft."
+msgstr ""
+
 msgid "The job has been added to the queue."
+msgstr ""
+
+msgid "The job is outside its configured dispatch window. Use \"Run with overrides\" for an ad-hoc exception."
 msgstr ""
 
 msgid "The job could not be added to the queue."
 msgstr ""
 
-msgid "The job is outside its configured dispatch window. Use \"Run with overrides\" for an ad-hoc exception."
+msgid "Invalid param override: {0}"
+msgstr ""
+
+msgid "Invalid param override JSON."
+msgstr ""
+
+msgid "Invalid job_config override — must be a JSON object with allowed keys (priority, group)."
 msgstr ""
 
 msgid "All jobs have been disabled"
@@ -101,6 +122,15 @@ msgstr ""
 msgid "Must be a cron expression (\"0 11 * * *\"), an @-shortcut (\"@daily\", \"@minutely\"), a relative interval (\"+30 seconds\"), or an ISO 8601 duration (\"P2D\")."
 msgstr ""
 
+msgid "Window start time must be a valid time like 09:00."
+msgstr ""
+
+msgid "Window end time must be a valid time like 18:00."
+msgstr ""
+
+msgid "Window days must be a comma-separated list of 0-6 values, e.g. \"1,2,3,4,5\"."
+msgstr ""
+
 msgid "Cannot have separate param data for shell command."
 msgstr ""
 
@@ -119,67 +149,10 @@ msgstr ""
 msgid "Queue Scheduler"
 msgstr ""
 
+msgid "Import Schedule"
+msgstr ""
+
 msgid "New Schedule"
-msgstr ""
-
-msgid "Dispatch Window (optional)"
-msgstr ""
-
-msgid "Restrictions configured"
-msgstr ""
-
-msgid "No restrictions"
-msgstr ""
-
-msgid "Hide"
-msgstr ""
-
-msgid "Configure"
-msgstr ""
-
-msgid "Start"
-msgstr ""
-
-msgid "24h format HH:MM. Leave blank for no lower bound."
-msgstr ""
-
-msgid "End"
-msgstr ""
-
-msgid "24h format HH:MM. Earlier than start means overnight."
-msgstr ""
-
-msgid "Mon"
-msgstr ""
-
-msgid "Tue"
-msgstr ""
-
-msgid "Wed"
-msgstr ""
-
-msgid "Thu"
-msgstr ""
-
-msgid "Fri"
-msgstr ""
-
-msgid "Sat"
-msgstr ""
-
-msgid "Sun"
-msgstr ""
-
-msgid "Allowed Days"
-msgstr ""
-
-msgid "Leave all unchecked for every day."
-msgstr ""
-
-msgid "Weekday-only example: Mon-Fri."
-msgstr ""
-
-msgid "Run with overrides…"
 msgstr ""
 
 msgid "Addon to run commands and queue tasks as crontab like database driven schedule."
@@ -320,6 +293,63 @@ msgstr ""
 msgid "Optional JSON object. Allowed keys: priority (1-10, lower runs sooner; default 5) and group (worker group, matches `cake queue worker --group=...`)."
 msgstr ""
 
+msgid "Dispatch Window (optional)"
+msgstr ""
+
+msgid "Restrictions configured"
+msgstr ""
+
+msgid "No restrictions"
+msgstr ""
+
+msgid "Hide"
+msgstr ""
+
+msgid "Configure"
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "24h format HH:MM. Leave blank for no lower bound."
+msgstr ""
+
+msgid "End"
+msgstr ""
+
+msgid "24h format HH:MM. Earlier than start means overnight."
+msgstr ""
+
+msgid "Mon"
+msgstr ""
+
+msgid "Tue"
+msgstr ""
+
+msgid "Wed"
+msgstr ""
+
+msgid "Thu"
+msgstr ""
+
+msgid "Fri"
+msgstr ""
+
+msgid "Sat"
+msgstr ""
+
+msgid "Sun"
+msgstr ""
+
+msgid "Allowed Days"
+msgstr ""
+
+msgid "Leave all unchecked for every day."
+msgstr ""
+
+msgid "Weekday-only example: Mon-Fri."
+msgstr ""
+
 msgid "Save"
 msgstr ""
 
@@ -330,6 +360,21 @@ msgid "Delete"
 msgstr ""
 
 msgid "Are you sure you want to delete # {0}?"
+msgstr ""
+
+msgid "Import Schedule Draft"
+msgstr ""
+
+msgid "Import a previously exported schedule JSON. The scheduler will redirect to the add form with the fields pre-filled so you can review or customize before saving."
+msgstr ""
+
+msgid "JSON File"
+msgstr ""
+
+msgid "Or Paste JSON"
+msgstr ""
+
+msgid "Load Into Add Form"
 msgstr ""
 
 msgid "Raw commands are currently configured to be not runnable on non-debug system for security reasons."
@@ -347,10 +392,40 @@ msgstr ""
 msgid "Edit"
 msgstr ""
 
+msgid "Export JSON"
+msgstr ""
+
 msgid "Run Now"
 msgstr ""
 
 msgid "Are you sure you want to run this now?"
+msgstr ""
+
+msgid "Run with overrides…"
+msgstr ""
+
+msgid "Ad-hoc trigger with overrides"
+msgstr ""
+
+msgid "This dispatches the job once with the values below, in addition to the normal schedule. {0}last_run{1} and {0}next_run{1} are NOT advanced, so the row keeps firing on its regular cadence. Each override dispatch is logged at info level. Leave a field blank to use the row's stored value."
+msgstr ""
+
+msgid "Dispatch this job once with the overrides below?"
+msgstr ""
+
+msgid "Param override (JSON)"
+msgstr ""
+
+msgid "Sent as the queue job payload. Must be a valid JSON object."
+msgstr ""
+
+msgid "Job config override (JSON)"
+msgstr ""
+
+msgid "Allowed keys: priority (1-10), group. Merged on top of the row's stored job_config."
+msgstr ""
+
+msgid "Dispatch override now"
 msgstr ""
 
 msgid "Type"
@@ -372,6 +447,24 @@ msgid "No"
 msgstr ""
 
 msgid "Allow Concurrent"
+msgstr ""
+
+msgid "Dispatch Window"
+msgstr ""
+
+msgid "No extra restrictions"
+msgstr ""
+
+msgid "no start"
+msgstr ""
+
+msgid "no end"
+msgstr ""
+
+msgid "Days: {0}"
+msgstr ""
+
+msgid "Days: every day"
 msgstr ""
 
 msgid "Timing Information"
@@ -452,6 +545,9 @@ msgstr ""
 msgid "Reference"
 msgstr ""
 
+msgid "Commands & Tasks"
+msgstr ""
+
 msgid "Queue Plugin"
 msgstr ""
 
@@ -459,9 +555,6 @@ msgid "Queue Dashboard"
 msgstr ""
 
 msgid "Queued Jobs"
-msgstr ""
-
-msgid "Commands & Tasks"
 msgstr ""
 
 msgid "Available Commands"
@@ -485,5 +578,9 @@ msgstr ""
 msgid "Select a command or task to pre-fill the form"
 msgstr ""
 
+msgid "Back to App"
+msgstr ""
+
 msgid "Server Time"
 msgstr ""
+
