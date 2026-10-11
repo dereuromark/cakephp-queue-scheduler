@@ -6,6 +6,7 @@ use Cake\Command\Command;
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
+use RuntimeException;
 
 /**
  * Test command that writes to both stdout and stderr.
@@ -22,6 +23,8 @@ class TestOutputCommand extends Command {
 			'default' => false,
 		]);
 
+		$parser->addOption('throw', ['boolean' => true]);
+
 		return $parser;
 	}
 
@@ -34,6 +37,10 @@ class TestOutputCommand extends Command {
 		$io->out('stdout line one');
 		$io->out('stdout line two');
 		$io->err('stderr warning line');
+
+		if ($args->getOption('throw')) {
+			throw new RuntimeException('Original command failure');
+		}
 
 		if ($args->getOption('fail')) {
 			return static::CODE_ERROR;

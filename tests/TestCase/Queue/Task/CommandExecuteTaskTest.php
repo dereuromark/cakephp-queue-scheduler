@@ -8,6 +8,7 @@ use Cake\TestSuite\TestCase;
 use Queue\Console\Io;
 use Queue\Model\QueueException;
 use QueueScheduler\Queue\Task\CommandExecuteTask;
+use RuntimeException;
 use TestApp\Command\TestMultiWordCommand;
 use TestApp\Command\TestNamedCommand;
 use TestApp\Command\TestOutputCommand;
@@ -220,6 +221,27 @@ class CommandExecuteTaskTest extends TestCase {
 
 		$this->assertTextContains('name=cache clear', $out->output());
 		$this->assertTextNotContains('name=cake clear', $out->output());
+	}
+
+	public function testThrownExceptionStillForwardsDiagnostics(): void {
+		$out = new StubConsoleOutput();
+		$err = new StubConsoleOutput();
+		$task = new CommandExecuteTask(new Io(new ConsoleIo($out, $err)));
+		try {
+			$task->run(['class' => TestOutputCommand::class, 'args' => ['--throw']], 0);
+			$this->fail('The command exception was swallowed');
+		} catch (RuntimeException $exception) {
+			$this->assertSame('Original command failure', $exception->getMessage());
+			$this->assertTextContains('stdout line one', $out->output());
+			$this->assertTextContains('stderr warning line', $err->output());
+		}
+	}
+
+	public function testNestedArgumentsAreRejectedBeforeCommandExecution(): void {
+		$task = new CommandExecuteTask();
+		$this->expectException(QueueException::class);
+		$this->expectExceptionMessage('Command arguments must be a list of strings');
+		$task->run(['class' => TestOutputCommand::class, 'args' => [['invalid']]], 0);
 	}
 
 }

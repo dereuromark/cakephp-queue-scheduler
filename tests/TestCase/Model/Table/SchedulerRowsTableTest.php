@@ -1027,4 +1027,17 @@ class SchedulerRowsTableTest extends TestCase {
 		$this->assertSame('["-q"]', $row->param);
 	}
 
+	public function testCommandArgumentsMustBeStrings(): void {
+		foreach (['[["nested"]]', '[null]', '[true]', '[42]', '[{"option":"value"}]'] as $param) {
+			$row = $this->SchedulerRows->newEntity([
+				'name' => 'Invalid command arguments',
+				'type' => 1,
+				'content' => 'Cake\\Command\\CacheClearCommand',
+				'frequency' => '+1 minute',
+				'param' => $param,
+			]);
+			$this->assertNotEmpty($row->getError('param'), $param);
+		}
+	}
+
 }

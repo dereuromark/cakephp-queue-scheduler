@@ -37,7 +37,7 @@ MyPlugin.MyName
 Cake\Command\SchemacacheBuildCommand
 ```
 
-If you need to pass additional args, you can use the param textarea for this using JSON. Each entry is one argv token ; the array is forwarded straight to `$command->run($args, $io)`, so use one entry per token rather than embedding shell-style quoting inside a single string:
+If you need to pass additional args, you can use the param textarea for this using JSON. Each entry must be a string containing one argv token ; the array is forwarded straight to `$command->run($args, $io)`, so use one entry per token rather than embedding shell-style quoting inside a single string:
 ```json
 [
     "-v",
