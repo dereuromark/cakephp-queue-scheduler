@@ -22,25 +22,26 @@ class AppController extends Controller {
 	}
 
 	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingNativeTypeHint
-	 * @return mixed
+	 * @return void
 	 */
-	public function beforeFilter(EventInterface $event) {
+	public function beforeFilter(EventInterface $event): void {
 		parent::beforeFilter($event);
 		if (Configure::read('Test.eventRedirectScheduler')) {
 			$event->setResult($this->redirect('/login'));
 			$event->stopPropagation();
 
-			return null;
+			return;
 		}
 		if (Configure::read('Test.redirectScheduler')) {
-			return $this->redirect('/login');
+			$event->setResult($this->redirect('/login'));
+			$event->stopPropagation();
+
+			return;
 		}
 		if (Configure::read('Test.denyScheduler')) {
 			throw new ForbiddenException('Application denied scheduler access.');
 		}
 
-		return null;
 	}
 
 }

@@ -25,12 +25,12 @@ $windowOpen = $hasWindowValues || $hasWindowErrors;
 			<?= $this->Html->link(
 				'<i class="fas fa-arrow-left me-1"></i>' . __d('queue_scheduler', 'Back'),
 				['action' => 'index'],
-				['class' => 'btn btn-secondary me-2', 'escapeTitle' => false],
+				['class' => 'btn btn-secondary me-2', 'escape' => false, 'escapeAttributes' => true],
 			) ?>
 			<?= $this->Html->link(
 				'<i class="fas fa-clock me-1"></i>' . __d('queue_scheduler', 'Intervals Help'),
 				['controller' => 'QueueScheduler', 'action' => 'intervals'],
-				['class' => 'btn btn-outline-secondary', 'escapeTitle' => false, 'target' => '_blank', 'rel' => 'noopener'],
+				['class' => 'btn btn-outline-secondary', 'escape' => false, 'escapeAttributes' => true, 'target' => '_blank', 'rel' => 'noopener'],
 			) ?>
 		</div>
 	</div>
@@ -151,7 +151,7 @@ $windowOpen = $hasWindowValues || $hasWindowErrors;
 				</div>
 			</div>
 			<div class="mt-3">
-				<?= $this->Form->button('<i class="fas fa-save me-1"></i>' . __d('queue_scheduler', 'Save'), ['class' => 'btn btn-primary', 'escapeTitle' => false]) ?>
+				<?= $this->Form->button('<i class="fas fa-save me-1"></i>' . __d('queue_scheduler', 'Save'), ['class' => 'btn btn-primary', 'escape' => false, 'escapeAttributes' => true]) ?>
 			</div>
 			<?= $this->Form->end() ?>
 		</div>

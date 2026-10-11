@@ -36,19 +36,19 @@ $windowDays = $row->get('window_days_of_week');
 			<?= $this->Html->link(
 				'<i class="fas fa-edit me-1"></i>' . __d('queue_scheduler', 'Edit'),
 				['action' => 'edit', $row->id],
-				['class' => 'btn btn-primary me-2', 'escapeTitle' => false],
+				['class' => 'btn btn-primary me-2', 'escape' => false, 'escapeAttributes' => true],
 			) ?>
 			<?= $this->Html->link(
 				'<i class="fas fa-file-export me-1"></i>' . __d('queue_scheduler', 'Export JSON'),
 				['action' => 'export', $row->id],
-				['class' => 'btn btn-outline-primary me-2', 'escapeTitle' => false],
+				['class' => 'btn btn-outline-primary me-2', 'escape' => false, 'escapeAttributes' => true],
 			) ?>
 			<?= $this->Form->postButton(
 				'<i class="fas fa-play-circle me-1"></i>' . __d('queue_scheduler', 'Run Now'),
 				['action' => 'run', $row->id],
 				[
 					'class' => 'btn btn-success me-2',
-					'escapeTitle' => false,
+					'escape' => false, 'escapeAttributes' => true,
 					'form' => [
 						'class' => 'd-inline js-scheduler-run-form',
 						'data-confirm-message' => __d('queue_scheduler', 'Are you sure you want to run this now?'),
@@ -65,7 +65,7 @@ $windowDays = $row->get('window_days_of_week');
 				['action' => 'delete', $row->id],
 				[
 					'class' => 'btn btn-danger',
-					'escapeTitle' => false,
+					'escape' => false, 'escapeAttributes' => true,
 					'form' => [
 						'class' => 'd-inline',
 						'data-confirm-message' => __d('queue_scheduler', 'Are you sure you want to delete # {0}?', $row->id),
@@ -116,7 +116,7 @@ $windowDays = $row->get('window_days_of_week');
 					</div>
 					<?= $this->Form->button(
 						'<i class="fas fa-play me-1"></i>' . __d('queue_scheduler', 'Dispatch override now'),
-						['class' => 'btn btn-success', 'escapeTitle' => false, 'type' => 'submit'],
+						['class' => 'btn btn-success', 'escape' => false, 'escapeAttributes' => true, 'type' => 'submit'],
 					) ?>
 					<?= $this->Form->end() ?>
 				</div>
@@ -168,7 +168,7 @@ $windowDays = $row->get('window_days_of_week');
 										['action' => 'edit', $row->id],
 										[
 											'data' => ['enabled' => 1],
-											'escapeTitle' => false,
+											'escape' => false, 'escapeAttributes' => true,
 											'class' => 'btn btn-sm btn-success ms-2',
 											'form' => [
 												'class' => 'd-inline',
@@ -363,7 +363,7 @@ $windowDays = $row->get('window_days_of_week');
 										<?= $this->Html->link(
 											$this->Time->nice($job->created),
 											['plugin' => 'Queue', 'controller' => 'QueuedJobs', 'action' => 'view', $job->id],
-											['escapeTitle' => false],
+											['escape' => false, 'escapeAttributes' => true],
 										) ?>
 									</td>
 									<td>

@@ -3,8 +3,8 @@
 namespace QueueScheduler;
 
 use Cake\Console\CommandCollection;
+use Cake\Container\ContainerInterface;
 use Cake\Core\BasePlugin;
-use Cake\Core\ContainerInterface;
 use Cake\Routing\RouteBuilder;
 use QueueScheduler\Command\RunCommand;
 
@@ -37,12 +37,12 @@ class QueueSchedulerPlugin extends BasePlugin {
 		$routes->prefix('Admin', function (RouteBuilder $builder): void {
 			$builder->plugin(
 				'QueueScheduler',
-				['path' => '/queue-scheduler'],
 				function (RouteBuilder $builder): void {
 					$builder->connect('/', ['controller' => 'QueueScheduler', 'action' => 'index']);
 
 					$builder->fallbacks();
 				},
+				['path' => '/queue-scheduler'],
 			);
 		});
 
@@ -65,9 +65,9 @@ class QueueSchedulerPlugin extends BasePlugin {
 	/**
 	 * Register application container services.
 	 *
-	 * @link https://book.cakephp.org/5/en/development/dependency-injection.html#dependency-injection
+	 * @link https://book.cakephp.org/6.x/development/dependency-injection.html#dependency-injection
 	 *
-	 * @param \Cake\Core\ContainerInterface $container The Container to update.
+	 * @param \Cake\Container\ContainerInterface $container The Container to update.
 	 *
 	 * @return void
 	 */

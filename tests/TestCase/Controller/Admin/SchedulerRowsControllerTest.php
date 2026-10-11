@@ -49,6 +49,8 @@ class SchedulerRowsControllerTest extends TestCase {
 		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'index']);
 
 		$this->assertResponseCode(200);
+		$this->assertResponseContains('<i class="fas fa-plus me-1"></i>New Schedule');
+		$this->assertResponseNotContains('&lt;i class=');
 	}
 
 	/**

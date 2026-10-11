@@ -3,8 +3,6 @@
 namespace TestApp\Command;
 
 use Cake\Command\Command;
-use Cake\Console\Arguments;
-use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 
 /**
@@ -38,11 +36,10 @@ class TestNamedCommand extends Command {
 	}
 
 	/**
-	 * @param \Cake\Console\Arguments $args
-	 * @param \Cake\Console\ConsoleIo $io
 	 * @return int|null
 	 */
-	public function execute(Arguments $args, ConsoleIo $io): ?int {
+	public function execute(): ?int {
+		$io = $this->io;
 		$io->out('test_named ran');
 
 		return static::CODE_SUCCESS;
