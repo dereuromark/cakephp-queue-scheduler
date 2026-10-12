@@ -23,7 +23,7 @@
 		"dereuromark/cakephp-queue": "^8.9.0"
 	},
 	"require-dev": {
-		"dereuromark/cakephp-i18n-lint": "^0.1.1",
+		"dereuromark/cakephp-i18n-lint": "^0.1.2",
 		"panlatent/cron-expression-descriptor": "^1.1.0",
 		"dereuromark/cakephp-templating": "^0.2.7",
 		"cakephp/migrations": "^5.0.0",
@@ -65,7 +65,7 @@
 		"cs-fix": "phpcbf --colors --parallel=16",
 		"i18n-check": "i18n-lint check",
 		"i18n-extract": "i18n-lint extract",
-		"i18n-lint": "i18n-lint lint"
+		"i18n-lint": "i18n-lint lint --fail-on po.missing,po.obsolete"
 	},
 	"config": {
 		"allow-plugins": {
