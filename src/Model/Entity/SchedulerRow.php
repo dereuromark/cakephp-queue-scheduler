@@ -316,7 +316,7 @@ class SchedulerRow extends Entity {
 		try {
 			$cron = new CronExpression(static::normalizeCronExpression($this->frequency));
 			$dateTime = $cron->getNextRunDate((new DateTime())->toDateTimeString());
-		} catch (InvalidArgumentException | RuntimeException) {
+		} catch (InvalidArgumentException|RuntimeException) {
 			return null;
 		}
 
@@ -338,7 +338,7 @@ class SchedulerRow extends Entity {
 
 			try {
 				$nextRun = new DateTime($cron->getNextRunDate($nextRun->toDateTimeString()));
-			} catch (InvalidArgumentException | RuntimeException) {
+			} catch (InvalidArgumentException|RuntimeException) {
 				return null;
 			}
 		}
@@ -439,7 +439,7 @@ class SchedulerRow extends Entity {
 			$cron = new CronExpression(static::normalizeCronExpression($this->frequency));
 			$next1 = $cron->getNextRunDate('now', 0);
 			$next2 = $cron->getNextRunDate('now', 1);
-		} catch (InvalidArgumentException | RuntimeException) {
+		} catch (InvalidArgumentException|RuntimeException) {
 			return null;
 		}
 
