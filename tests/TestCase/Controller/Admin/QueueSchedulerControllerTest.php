@@ -8,6 +8,7 @@ use Cake\Http\Exception\ForbiddenException;
 use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 use QueueScheduler\Command\RunCommand;
+use QueueScheduler\Test\TestCase\RequestAttributeTrait;
 use RuntimeException;
 
 /**
@@ -16,6 +17,7 @@ use RuntimeException;
 class QueueSchedulerControllerTest extends TestCase {
 
 	use IntegrationTestTrait;
+	use RequestAttributeTrait;
 
 	/**
 	 * @return void
@@ -50,6 +52,55 @@ class QueueSchedulerControllerTest extends TestCase {
 		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'QueueScheduler', 'action' => 'index']);
 
 		$this->assertResponseCode(200);
+	}
+
+	/**
+	 * CakePHP's CspMiddleware stores the nonce as `cspScriptNonce`.
+	 *
+	 * @return void
+	 */
+	public function testIndexUsesCspScriptNonce(): void {
+		$this->disableErrorHandlerMiddleware();
+		$this->withRequestAttribute('cspScriptNonce', 'core-nonce');
+
+		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'QueueScheduler', 'action' => 'index']);
+
+		$this->assertResponseCode(200);
+		$this->assertResponseContains('<script nonce="core-nonce" src="https://cdn.jsdelivr.net/npm/bootstrap');
+		$this->assertResponseNotRegExp('/<script(?![^>]*nonce=)/');
+	}
+
+	/**
+	 * A custom middleware may still provide the nonce as `cspNonce`.
+	 *
+	 * @return void
+	 */
+	public function testIndexFallsBackToCspNonce(): void {
+		$this->disableErrorHandlerMiddleware();
+		$this->withRequestAttribute('cspNonce', 'custom-nonce');
+
+		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'QueueScheduler', 'action' => 'index']);
+
+		$this->assertResponseCode(200);
+		$this->assertResponseContains('<script nonce="custom-nonce">');
+		$this->assertResponseNotRegExp('/<script(?![^>]*nonce=)/');
+	}
+
+	/**
+	 * Inline styles and CDN stylesheets need the style nonce under a nonce-only `style-src`.
+	 *
+	 * @return void
+	 */
+	public function testIndexUsesCspStyleNonce(): void {
+		$this->disableErrorHandlerMiddleware();
+		$this->withRequestAttribute('cspStyleNonce', 'style-nonce');
+
+		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'QueueScheduler', 'action' => 'index']);
+
+		$this->assertResponseCode(200);
+		$this->assertResponseContains('<style nonce="style-nonce">');
+		$this->assertResponseNotRegExp('/<style(?![^>]*nonce=)/');
+		$this->assertResponseNotRegExp('/<link(?![^>]*nonce=)[^>]*stylesheet/');
 	}
 
 	/**
