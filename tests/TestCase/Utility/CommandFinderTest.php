@@ -13,6 +13,7 @@ class CommandFinderTest extends TestCase {
 	 */
 	protected function setUp(): void {
 		parent::setUp();
+		$this->loadPlugins(['Tools', 'Queue']);
 		CommandFinder::clearCache();
 	}
 
