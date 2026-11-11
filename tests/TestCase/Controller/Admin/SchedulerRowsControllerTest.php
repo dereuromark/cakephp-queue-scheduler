@@ -7,6 +7,7 @@ use Cake\Http\Exception\ForbiddenException;
 use Cake\I18n\DateTime;
 use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
+use QueueScheduler\Test\TestCase\RequestAttributeTrait;
 use QueueScheduler\Test\TestCase\ResetsTestNowTrait;
 
 /**
@@ -15,6 +16,7 @@ use QueueScheduler\Test\TestCase\ResetsTestNowTrait;
 class SchedulerRowsControllerTest extends TestCase {
 
 	use IntegrationTestTrait;
+	use RequestAttributeTrait;
 	use ResetsTestNowTrait;
 
 	/**
@@ -223,6 +225,22 @@ class SchedulerRowsControllerTest extends TestCase {
 		$this->assertResponseContains('window-start-time');
 		$this->assertResponseContains('window-end-time');
 		$this->assertResponseContains('window-days-of-week');
+	}
+
+	/**
+	 * The quick-add and autocomplete elements read `cspScriptNonce` set by CakePHP's CspMiddleware.
+	 *
+	 * @return void
+	 */
+	public function testAddUsesCspScriptNonce(): void {
+		$this->disableErrorHandlerMiddleware();
+		$this->withRequestAttribute('cspScriptNonce', 'core-nonce');
+
+		$this->get(['prefix' => 'Admin', 'plugin' => 'QueueScheduler', 'controller' => 'SchedulerRows', 'action' => 'add']);
+
+		$this->assertResponseCode(200);
+		$this->assertResponseContains('<script nonce="core-nonce">');
+		$this->assertResponseNotRegExp('/<script(?![^>]*nonce=)/');
 	}
 
 	/**

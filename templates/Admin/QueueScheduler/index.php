@@ -263,7 +263,8 @@ if ($schedulerStatus['lastTick'] !== null) {
 		) ?>
 	</div>
 </div>
-<script>
+<?php $cspNonce = (string)($this->getRequest()->getAttribute('cspScriptNonce') ?? $this->getRequest()->getAttribute('cspNonce', '')); ?>
+<script<?= $cspNonce !== '' ? ' nonce="' . h($cspNonce) . '"' : '' ?>>
 (function () {
 	var spinnerHtml = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i>';
 	document.addEventListener('submit', function (e) {
